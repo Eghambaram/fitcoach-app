@@ -19,7 +19,8 @@
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate": "openapi-typescript openapi.json -o src/schema.ts && prettier --write src/schema.ts"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0"
@@ -28,6 +29,7 @@
     "@fitcoach/config": "workspace:*",
     "@types/node": "^24.19.2",
     "eslint": "^9.39.5",
+    "openapi-typescript": "^7.13.0",
     "typescript": "~5.9.3",
     "vitest": "^5.0.5"
   }

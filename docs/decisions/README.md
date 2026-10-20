@@ -42,3 +42,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0035](0035-toolchain-version-pins.md)            | Toolchain pins: NestJS 11, TypeScript 5.9, ESLint 9                                        |
 | [0036](0036-rustfs-local-object-storage.md)       | RustFS replaces MinIO for local object storage                                             |
 | [0037](0037-muted-foreground-contrast.md)         | Muted text token darkened to #6A736D for WCAG AA                                           |
+| [0038](0038-request-transactions-and-db-roles.md) | One transaction per request; system role for jobs and rate limits                          |

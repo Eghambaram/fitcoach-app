@@ -2,16 +2,17 @@ import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { configureApp } from "./app.setup";
-
-const DEFAULT_PORT = 4000;
+import { AppConfig } from "./config/env";
+import { loadLocalEnv } from "./config/load-env";
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  loadLocalEnv();
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
   configureApp(app);
+  // SIGTERM (Railway redeploy) → pg-boss stops gracefully, pools close.
   app.enableShutdownHooks();
 
-  // Zod-validated config arrives in step 1.2; until then PORT is the only setting the API reads.
-  const port = Number(process.env.PORT ?? DEFAULT_PORT);
+  const { port } = app.get(AppConfig);
   // Listen on '::' (IPv4 + IPv6) — Railway private networking needs it (PROMPT §17.1).
   await app.listen(port, "::");
 }

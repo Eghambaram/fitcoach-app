@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "step/**"]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -12,9 +12,35 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       CI: "true"
+      TURBO_TELEMETRY_DISABLED: "1"
+      # CI-only values for the e2e stack; never real secrets.
+      APP_ENV: test
+      WEB_ORIGIN: http://localhost:3000
+      IP_HASH_SALT: ci-ip-hash-salt-0123456789abcdef
+      DATABASE_OWNER_URL: postgres://postgres:postgres@localhost:5432/fitcoach
+      DATABASE_URL: postgres://fitcoach_app:ci-app-password@localhost:5432/fitcoach
+      DATABASE_SYSTEM_URL: postgres://fitcoach_system:ci-system-password@localhost:5432/fitcoach
+      DB_APP_PASSWORD: ci-app-password
+      DB_SYSTEM_PASSWORD: ci-system-password
+      API_INTERNAL_URL: http://localhost:4000
+    services:
+      # For the e2e stack. DB/RLS and API integration suites start their own Testcontainers Postgres.
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fitcoach
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fitcoach"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v5
 
@@ -40,10 +66,17 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
-      # DB/RLS and API integration suites (Testcontainers) join here in step 1.2.
+      - name: DB / RLS tests (Testcontainers)
+        run: pnpm test:db
+
+      - name: API integration tests (Testcontainers)
+        run: pnpm test:api
 
       - name: Build
         run: pnpm build
+
+      - name: Migrate e2e database from zero
+        run: node apps/api/dist/db/migrate.js
 
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
