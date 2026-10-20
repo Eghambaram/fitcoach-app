@@ -108,7 +108,7 @@ Idempotency: critical mutations (conversion, onboarding finalize, attendance, in
 
 | Role                          | BYPASSRLS | Used by                                                                                                                                    |
 | ----------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| owner (`postgres` on Railway) | n/a       | `migrate.js` only (preDeployCommand / `pnpm db:migrate`)                                                                                   |
+| owner (`postgres` on Railway) | n/a       | `migrate.js` only (API container start / `pnpm db:migrate`)                                                                                |
 | `fitcoach_app`                | **no**    | every request-scoped query (inside the CLS transaction)                                                                                    |
 | `fitcoach_system`             | yes       | `SystemDb.run(reason, fn)` only: pre-session auth lookups, public enquiry insert, pg-boss jobs, platform aggregates, audited admin actions |
 
@@ -193,13 +193,13 @@ Supporting tables created early: `rate_limit_buckets`, `idempotency_keys`, `audi
 
 ## 8. Environments & deployment (§17)
 
-|            | Local                                    | Staging (Railway)                                  | Production (Railway)                                    |
-| ---------- | ---------------------------------------- | -------------------------------------------------- | ------------------------------------------------------- |
-| Web / API  | `pnpm dev` or compose `full` profile     | auto-deploy from `main` after CI green             | tracks `production` branch, GitHub environment approval |
-| Postgres   | Docker (same major as Railway)           | Railway service + volume backups                   | + PITR if available                                     |
-| Files      | RustFS `fitcoach-local-{private,public}` | R2 `fitcoach-staging-*` (`r2.dev` OK for public)   | R2 `fitcoach-prod-*`, `media.<domain>`                  |
-| Email      | Mailpit                                  | SMTP / Resend                                      | SMTP / Resend (`console` forbidden)                     |
-| Migrations | `pnpm db:migrate`                        | API `preDeployCommand` (`node dist/db/migrate.js`) | same                                                    |
+|            | Local                                    | Staging (Railway)                                         | Production (Railway)                                    |
+| ---------- | ---------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| Web / API  | `pnpm dev` or compose `full` profile     | auto-deploy from `main` after CI green                    | tracks `production` branch, GitHub environment approval |
+| Postgres   | Docker (same major as Railway)           | Railway service + volume backups                          | + PITR if available                                     |
+| Files      | RustFS `fitcoach-local-{private,public}` | R2 `fitcoach-staging-*` (`r2.dev` OK for public)          | R2 `fitcoach-prod-*`, `media.<domain>`                  |
+| Email      | Mailpit                                  | SMTP / Resend                                             | SMTP / Resend (`console` forbidden)                     |
+| Migrations | `pnpm db:migrate`                        | API container start (`node dist/db/migrate.js`, ADR-0043) | same                                                    |
 
 Builds: per-app Dockerfiles from the repo root using `turbo prune`; `watchPatterns` per service; `NEXT_PUBLIC_*` as build `ARG`s. Migrations are forward-only and expand → migrate → contract so a Railway rollback is always safe. Backups: Railway volume backups **plus** nightly `pg_dump -Fc` to the private R2 bucket (off-platform) with a heartbeat to the API.
 

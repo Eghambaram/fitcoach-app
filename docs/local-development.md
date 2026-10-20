@@ -71,7 +71,7 @@ Buckets: `fitcoach-local-private` (no anonymous access; presigned URLs only) and
 
 ## Production parity (the Railway images)
 
-`docker compose --profile full up -d --build --wait` builds `apps/api/Dockerfile` and `apps/web/Dockerfile`, the same images Railway runs. It then migrates the database with the image's `node dist/db/migrate.js` (Railway's pre-deploy command) and serves web on :3000 and api on :4000. Stop `pnpm dev` first, because the ports are the same.
+`docker compose --profile full up -d --build --wait` builds `apps/api/Dockerfile` and `apps/web/Dockerfile`, the same images Railway runs. The api container migrates the database on start (`node dist/db/migrate.js`, exactly as on Railway) and then serves. Web is on :3000 and api on :4000. Stop `pnpm dev` first, because the ports are the same.
 
 - Same Postgres, Mailpit and RustFS as everyday development. Role passwords and secrets come from your `.env`, so `pnpm dev` keeps working afterwards.
 - The API runs with `APP_ENV=test`: production build, JSON logs, and cookies without `Secure` so http://localhost works.

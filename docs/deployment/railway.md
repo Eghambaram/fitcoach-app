@@ -16,7 +16,7 @@ Cloudflare R2 (outside Railway): fitcoach-staging-private, fitcoach-staging-publ
 - Browsers only talk to **web**. Web forwards `/api/*` to the API over Railway's private network (`api.railway.internal`). The API has **no public domain**.
 - Both services listen on `::` (IPv4 + IPv6), which private networking needs.
 - Each service builds from the **repo root** with its own Dockerfile and config file (`apps/api/railway.json`, `apps/web/railway.json`). `watchPatterns` mean a web-only change doesn't redeploy the API.
-- The API's **pre-deploy command** `node dist/db/migrate.js` creates the database roles, applies SQL migrations and installs the pg-boss schema. If it fails, the deploy stops and the previous version keeps serving.
+- The API container **migrates on start** (`node dist/db/migrate.js`, then the server). This creates the database roles, applies SQL migrations and installs the pg-boss schema, under an advisory lock and idempotently. If it fails, the container exits, the health check never passes, and the previous deploy keeps serving (ADR-0043).
 - Deploy health checks: API `GET /v1/health` (no DB), web `GET /healthz`. Full readiness (DB + jobs + R2) is `GET /api/v1/health/ready` on the web domain.
 - The nightly `pg_dump` service (`db-backup`) arrives in step 6.2.
 
@@ -61,11 +61,15 @@ Ready-to-paste variable files with placeholders: [`infra/railway/staging/api.env
 1. **+ Create** → **GitHub Repo** → `Eghambaram/fitcoach-app`.
 2. Rename the service to exactly **`api`** (Settings → service name). The web variables reference `api`.
 3. Settings → **Source**: branch `main`, root directory empty (the repo root), and turn on **Wait for CI**. Staging then deploys only after GitHub Actions passes on `main`.
-4. Settings → **Config-as-code** → Railway config file: `/apps/api/railway.json`. This sets the Dockerfile, watch patterns, pre-deploy migrations and health check.
+4. Settings → **Config-as-code** → Railway config file: `/apps/api/railway.json` (watch patterns, health check, restart policy). Railway may ignore this file. On staging it did, so also set these directly:
+   - **Deploy** → **Healthcheck Path** `/v1/health`, timeout `120`. **Restart Policy** On Failure, `5`.
+   - **Deploy** → **Custom Start Command** and **Pre-deploy Command**: leave **empty**. The image's own command migrates, then starts the API (ADR-0043). A custom start command would skip the migration.
+   - **Build** → **Watch Paths** (optional): `apps/api/**`, `packages/**`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `turbo.json`.
 5. Settings → **Networking**: don't generate a public domain. The private domain `api.railway.internal` is enough.
-6. **Variables** → **Raw Editor** → paste this, then replace each `<…>`:
+6. **Variables** → **Raw Editor** → paste this, then replace each `<…>`. `RAILWAY_DOCKERFILE_PATH` makes Railway build the Dockerfile instead of guessing with Railpack:
 
 ```env
+RAILWAY_DOCKERFILE_PATH=apps/api/Dockerfile
 APP_ENV=staging
 PORT=4000
 LOG_LEVEL=info
@@ -107,10 +111,11 @@ STORAGE_HARD_LIMIT_BYTES=9663676416
 1. **+ Create** → **GitHub Repo** → `Eghambaram/fitcoach-app` again.
 2. Rename the service to exactly **`web`**.
 3. Settings → **Source**: branch `main`, root directory empty, **Wait for CI** on.
-4. Settings → **Config-as-code** → `/apps/web/railway.json`.
+4. Settings → **Config-as-code** → `/apps/web/railway.json`. As for the API, also set **Deploy** → **Healthcheck Path** `/healthz` (timeout `60`) and **Restart Policy** On Failure, `5`. Leave **Custom Start Command** empty; the image runs `node apps/web/server.js`.
 5. **Variables** → **Raw Editor**:
 
 ```env
+RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile
 NEXT_PUBLIC_SITE_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}
 NEXT_PUBLIC_APP_ENV=staging
 API_INTERNAL_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
@@ -125,7 +130,7 @@ PORT=3000
 ### 5. First deploy
 
 1. Click **Deploy** (or **Apply changes**) for the staged changes.
-2. Watch **api → Deployments → the latest → Deploy logs**. The pre-deploy step prints `[migrate] bootstrapping roles … applying SQL migrations … installing pg-boss schema … done`, then the API starts.
+2. Watch **api → Deployments → the latest**. The **build log** shows Docker steps (`[prune …] RUN pnpm dlx turbo@… prune`), not `railpack`. Right after `Starting Container`, the **deploy log** prints `[migrate] bootstrapping roles … applying SQL migrations … installing pg-boss schema … done`, then the API starts.
 3. When both services are green, open `https://<web domain>/api/v1/health/ready`. Expected: `{"status":"ok","checks":{"database":{"status":"ok"…},"jobs":{"status":"ok"…},"storage":{"status":"ok"…}}}`.
 
 ### 6. Beta invite code for staging
@@ -164,7 +169,7 @@ The code is printed once. Only its hash is stored. Creation is audited.
 | `APP_ENV`                                           | api     | `staging` (Secure cookies, https `WEB_ORIGIN` and a 32+ character `IP_HASH_SALT` are enforced)                                                 |
 | `PORT`                                              | api     | `4000` — set explicitly so `${{api.PORT}}` resolves for web                                                                                    |
 | `WEB_ORIGIN`                                        | api     | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` — exact origin for CSRF checks and email links                                                        |
-| `DATABASE_OWNER_URL`                                | api     | `${{Postgres.DATABASE_URL}}` — admin URL, used only by the pre-deploy migration                                                                |
+| `DATABASE_OWNER_URL`                                | api     | `${{Postgres.DATABASE_URL}}` — admin URL, used only by the start-up migration                                                                  |
 | `DB_APP_PASSWORD` / `DB_SYSTEM_PASSWORD`            | api     | generated hex; the migration sets these as the role passwords on every deploy                                                                  |
 | `DATABASE_URL`                                      | api     | `postgresql://fitcoach_app:${{DB_APP_PASSWORD}}@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` (RLS-enforced role)        |
 | `DATABASE_SYSTEM_URL`                               | api     | same with `fitcoach_system` and `${{DB_SYSTEM_PASSWORD}}` (jobs, auth lookups, CLIs)                                                           |
@@ -192,7 +197,7 @@ Signup and password reset send real emails, so staging needs a working provider:
 ## Deploy flow (PROMPT §17.4)
 
 1. **Pull request:** GitHub Actions `CI` runs format, typecheck, lint, unit, DB/RLS and API integration tests (Testcontainers) and the build, then builds both Docker images and runs Playwright against them (`docker compose --profile full`).
-2. **Merge to `main`:** once CI is green, Railway builds and deploys staging ("Wait for CI"). The API pre-deploy migration runs first. Then `Staging smoke` runs against the live URL.
+2. **Merge to `main`:** once CI is green, Railway builds and deploys staging ("Wait for CI"). The new API container migrates before it serves. Then `Staging smoke` runs against the live URL.
 3. **Production** (step 6.2) will track a `production` branch fast-forwarded from `main` after staging smoke passes.
 
 Migrations must stay backward-compatible with the running release (expand → migrate → contract), so redeploying the previous version is always a safe rollback.
@@ -203,17 +208,19 @@ Service → **Deployments** → pick the last good deployment → **⋮** → **
 
 ## Troubleshooting (PROMPT §17.6)
 
-| Symptom                                                       | Likely cause                                                                                                                                                                                                                                                                    |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api` calls return 502 "FitCoach is temporarily unavailable" | `API_INTERNAL_URL` wrong, API `PORT` not set, API service not named `api`, or the API crashed (check its deploy logs).                                                                                                                                                          |
-| API deploy fails at "pre-deploy"                              | `DATABASE_OWNER_URL` / `DB_*_PASSWORD` missing or invalid; the log names the missing variables, never their values.                                                                                                                                                             |
-| API exits with "Invalid API configuration: …"                 | A variable failed validation, e.g. `WEB_ORIGIN` not https, `IP_HASH_SALT` shorter than 32 characters, or only some `STORAGE_*` set. The message names the variable.                                                                                                             |
-| Login loops back to the login page                            | `WEB_ORIGIN` doesn't exactly match the web URL, or the browser called the API domain directly (the API has none, which is correct).                                                                                                                                             |
-| 403 `CSRF_REJECTED` on forms                                  | `WEB_ORIGIN` mismatch (e.g. after adding a custom domain without updating it).                                                                                                                                                                                                  |
-| Pages render without data or env values look empty            | `NEXT_PUBLIC_*` changed without a rebuild; redeploy web.                                                                                                                                                                                                                        |
-| Readiness shows `storage: degraded`                           | R2 endpoint, bucket names or token scope wrong, or usage over the soft budget. API logs show "storage readiness check failed" with the S3 error.                                                                                                                                |
-| Uploads refused "storage is full"                             | `STORAGE_HARD_LIMIT_BYTES` reached (shared R2 free tier). See [r2.md](r2.md).                                                                                                                                                                                                   |
-| Public images 404                                             | `STORAGE_PUBLIC_BASE_URL` wrong, or the r2.dev URL isn't enabled on the public bucket.                                                                                                                                                                                          |
-| Every user gets "too many attempts" at the same time          | Rate limits are per client IP. The API trusts `X-Forwarded-For` only from private-network hops and takes the address the Railway edge appended. If the edge adds another hop, all users share one bucket. Send Claude an API log line (IPs are hashed) to adjust `trust proxy`. |
-| Jobs (e.g. the nightly file purge) don't run                  | App Sleeping is on for the API, or no API replica is up.                                                                                                                                                                                                                        |
-| Staging smoke workflow fails "Set the STAGING_WEB_URL…"       | Add the repository variable (step 7).                                                                                                                                                                                                                                           |
+| Symptom                                                                                       | Likely cause                                                                                                                                                                                                                                                                    |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api` calls return 502 "FitCoach is temporarily unavailable"                                 | `API_INTERNAL_URL` wrong, API `PORT` not set, API service not named `api`, or the API crashed (check its deploy logs).                                                                                                                                                          |
+| Build log says `railpack` / "No start command detected"                                       | Railway isn't using the Dockerfile. Set the service variable `RAILWAY_DOCKERFILE_PATH` (`apps/api/Dockerfile` or `apps/web/Dockerfile`) and deploy the latest commit.                                                                                                           |
+| Deploy log shows `[migrate] failed: …`                                                        | `DATABASE_OWNER_URL` / `DB_*_PASSWORD` missing or invalid. The log names the missing variables, never their values.                                                                                                                                                             |
+| `password authentication failed for user "fitcoach_system"` (28P01) with no `[migrate]` lines | The migration didn't run, so the roles don't exist. Clear any **Custom Start Command** (it replaces the image's migrate-then-start command) and redeploy.                                                                                                                       |
+| API exits with "Invalid API configuration: …"                                                 | A variable failed validation, e.g. `WEB_ORIGIN` not https, `IP_HASH_SALT` shorter than 32 characters, or only some `STORAGE_*` set. The message names the variable.                                                                                                             |
+| Login loops back to the login page                                                            | `WEB_ORIGIN` doesn't exactly match the web URL, or the browser called the API domain directly (the API has none, which is correct).                                                                                                                                             |
+| 403 `CSRF_REJECTED` on forms                                                                  | `WEB_ORIGIN` mismatch (e.g. after adding a custom domain without updating it).                                                                                                                                                                                                  |
+| Pages render without data or env values look empty                                            | `NEXT_PUBLIC_*` changed without a rebuild; redeploy web.                                                                                                                                                                                                                        |
+| Readiness shows `storage: degraded`                                                           | R2 endpoint, bucket names or token scope wrong, or usage over the soft budget. API logs show "storage readiness check failed" with the S3 error.                                                                                                                                |
+| Uploads refused "storage is full"                                                             | `STORAGE_HARD_LIMIT_BYTES` reached (shared R2 free tier). See [r2.md](r2.md).                                                                                                                                                                                                   |
+| Public images 404                                                                             | `STORAGE_PUBLIC_BASE_URL` wrong, or the r2.dev URL isn't enabled on the public bucket.                                                                                                                                                                                          |
+| Every user gets "too many attempts" at the same time                                          | Rate limits are per client IP. The API trusts `X-Forwarded-For` only from private-network hops and takes the address the Railway edge appended. If the edge adds another hop, all users share one bucket. Send Claude an API log line (IPs are hashed) to adjust `trust proxy`. |
+| Jobs (e.g. the nightly file purge) don't run                                                  | App Sleeping is on for the API, or no API replica is up.                                                                                                                                                                                                                        |
+| Staging smoke workflow fails "Set the STAGING_WEB_URL…"                                       | Add the repository variable (step 7).                                                                                                                                                                                                                                           |

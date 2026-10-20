@@ -39,6 +39,7 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Changed
 
+- The API image migrates on start (`migrate.js && exec main.js`) instead of relying on Railway's pre-deploy command, which the staging setup didn't run. `railway.json` loses `preDeployCommand`/`startCommand`, services set `RAILWAY_DOCKERFILE_PATH`, compose drops the `api-migrate` service, and the Railway guide covers the Railpack and `28P01` symptoms (ADR-0043).
 - Storage readiness reads a non-existent key (`NoSuchKey` = reachable) instead of `HeadBucket`, which bucket-scoped R2 tokens may refuse. A misspelled bucket now reports "degraded" (ADR-0042).
 - The smoke spec checks the API through the web's `/api` proxy, so it also runs against deployed environments.
 - Phase 2 reordered: conversion (2.4) → onboarding (2.5) → calendar (2.6), so recurring series have real clients (ADR-0028).

@@ -2,7 +2,7 @@
 # Same interfaces as staging/production: Postgres, SMTP (Mailpit) and S3 (RustFS standing in for Cloudflare R2).
 # MinIO no longer publishes container images, so RustFS (MinIO-compatible, same ports) replaces it (ADR-0036).
 # Production parity: `docker compose --profile full up -d --build` also builds api + web from their
-# Dockerfiles (the images Railway runs), migrates the database, and serves web on :3000 and api on :4000.
+# Dockerfiles (the images Railway runs); the api container migrates on start. Web on :3000, api on :4000.
 # Stop `pnpm dev` first — the ports are the same.
 name: fitcoach
 
@@ -80,27 +80,12 @@ services:
 
   # ---- profile "full": the Railway images, run locally (PROMPT §17.2, §18) ----
 
-  # Railway runs this as the API pre-deploy command; here it is a one-shot service.
-  api-migrate:
-    profiles: [full]
-    build: &api-build
-      context: .
-      dockerfile: apps/api/Dockerfile
-    image: fitcoach-api:local
-    command: ["node", "dist/db/migrate.js"]
-    restart: "no"
-    environment:
-      DATABASE_OWNER_URL: postgres://postgres:postgres@postgres:5432/fitcoach
-      # Must match .env: migrations reset the role passwords that `pnpm dev` also uses.
-      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-fitcoach-app-local}
-      DB_SYSTEM_PASSWORD: ${DB_SYSTEM_PASSWORD:-fitcoach-system-local}
-    depends_on:
-      postgres:
-        condition: service_healthy
-
+  # Migrates on start (the image's CMD, as on Railway), then serves.
   api:
     profiles: [full]
-    build: *api-build
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     image: fitcoach-api:local
     restart: unless-stopped
     environment:
@@ -109,6 +94,10 @@ services:
       PORT: "4000"
       LOG_LEVEL: info
       WEB_ORIGIN: http://localhost:3000
+      DATABASE_OWNER_URL: postgres://postgres:postgres@postgres:5432/fitcoach
+      # Must match .env: migrations reset the role passwords that `pnpm dev` also uses.
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-fitcoach-app-local}
+      DB_SYSTEM_PASSWORD: ${DB_SYSTEM_PASSWORD:-fitcoach-system-local}
       DATABASE_URL: postgres://fitcoach_app:${DB_APP_PASSWORD:-fitcoach-app-local}@postgres:5432/fitcoach
       DATABASE_SYSTEM_URL: postgres://fitcoach_system:${DB_SYSTEM_PASSWORD:-fitcoach-system-local}@postgres:5432/fitcoach
       # Same secrets as .env, so host CLIs (`pnpm beta:invite`) issue codes this API accepts.
@@ -138,8 +127,8 @@ services:
       timeout: 5s
       retries: 20
     depends_on:
-      api-migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
       mailpit:
         condition: service_started
       storage-init:

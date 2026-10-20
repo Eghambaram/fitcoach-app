@@ -1,6 +1,7 @@
 # FitCoach API image (PROMPT §17.2). Build from the repo root:
 #   docker build -f apps/api/Dockerfile .
-# Railway runs `node dist/db/migrate.js` in this image as the pre-deploy command, then `node dist/main.js`.
+# On start it migrates (roles, SQL, pg-boss; advisory-locked and idempotent), then serves. A failed
+# migration exits the container, so the health check fails and Railway keeps the old deploy (ADR-0043).
 
 FROM node:24-bookworm-slim AS base
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
@@ -27,4 +28,5 @@ COPY --from=build --chown=node:node /app ./
 USER node
 EXPOSE 4000
 # Listens on '::' (IPv4 + IPv6) for Railway private networking; PORT comes from the environment.
-CMD ["node", "dist/main.js"]
+# Needs DATABASE_OWNER_URL, DB_APP_PASSWORD and DB_SYSTEM_PASSWORD for the migration step.
+CMD ["sh", "-c", "node dist/db/migrate.js && exec node dist/main.js"]

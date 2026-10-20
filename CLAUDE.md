@@ -155,7 +155,7 @@ Reuse shared components (PROMPT §7.2). Change tokens, not ad-hoc styles.
 - Services per environment: **web**, **api**, **Postgres**, **db-backup** (cron). Separate staging and production environments; PR environments get their own Postgres and use staging R2 under a `pr-<n>/` key prefix.
 - Monorepo Docker builds from repo root with `turbo prune`; per-service config files (`apps/web/railway.json`, `apps/api/railway.json`, `infra/db-backup/railway.json`) with `watchPatterns`.
 - **Listen on `::`** (API `app.listen(port, '::')`, web `HOSTNAME=::`) or private networking fails. Private networking isn't available during builds.
-- **Migrations run in the API `preDeployCommand`** (`node dist/db/migrate.js`, owner URL). A failed migration stops the deploy.
+- **Migrations run when the API container starts** (image CMD: `node dist/db/migrate.js && exec node dist/main.js`, owner URL, advisory-locked). A failed migration exits the container, so the deploy never goes healthy and the old one keeps serving (ADR-0043). Railway may ignore `railway.json`: services set `RAILWAY_DOCKERFILE_PATH` and must not override the start command.
 - `NEXT_PUBLIC_*` are build-time (`ARG` in the web Dockerfile) — changing them needs a rebuild.
 - Web reaches the API at `API_INTERNAL_URL` (`http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}`); set the API `PORT` explicitly.
 - Postgres: enable scheduled volume backups (+ PITR on production if available) **and** keep the nightly `pg_dump` to the private R2 bucket (off-platform; wiping a Railway volume deletes its volume backups).

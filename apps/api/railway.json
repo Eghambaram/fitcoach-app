@@ -13,8 +13,6 @@
     ]
   },
   "deploy": {
-    "preDeployCommand": ["node dist/db/migrate.js"],
-    "startCommand": "node dist/main.js",
     "healthcheckPath": "/v1/health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",

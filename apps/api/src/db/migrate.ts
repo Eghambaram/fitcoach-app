@@ -1,6 +1,7 @@
 /**
  * Migration entry point.
- * - Railway: `node dist/db/migrate.js` as the API's preDeployCommand — a failure stops the deploy.
+ * - Railway / Docker: the API image's CMD runs this before the server (ADR-0043) — a failure exits the
+ *   container, so the deploy never becomes healthy and the previous one keeps serving.
  * - Local:   `pnpm db:migrate`.
  */
 import { join } from "node:path";
