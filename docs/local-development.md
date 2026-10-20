@@ -36,7 +36,7 @@ pnpm beta:invite revoke <id>
 pnpm platform:grant you@example.com                                  # existing account → platform owner (login: step 6.1)
 ```
 
-All of these are audited (`audit_logs`). Verification and password-reset emails land in Mailpit at http://localhost:8025. Until the signup screens arrive in step 1.4, you can try the flow from the API docs at http://localhost:4000/v1/docs. Note that state-changing calls need `Origin: http://localhost:3000` and `X-FitCoach-Request: 1`.
+All of these are audited (`audit_logs`). Try the flow in the browser: create a code, open http://localhost:3000/signup, then open the verification email in Mailpit (http://localhost:8025) and click Confirm. Password-reset emails land there too. The browser only ever talks to the web origin: `/api/*` is proxied to the API, so don't call http://localhost:4000 from browser code.
 
 ## What runs where
 
@@ -66,7 +66,7 @@ Buckets: `fitcoach-local-private` (no anonymous access; presigned URLs only) and
 | Phone viewport only          | `pnpm test:e2e --project=mobile`                                      |
 | Every gate                   | `pnpm verify`                                                         |
 
-`pnpm test:e2e` reuses a running `pnpm dev`; otherwise it starts the web and API dev servers itself.
+`pnpm test:e2e` runs against the production builds, so run `pnpm build` first (`pnpm verify` does both). It starts the servers itself unless something is already listening on :3000/:4000. For a quick check against the dev servers: `E2E_DEV=1 pnpm test:e2e --workers=1`.
 `pnpm test:e2e` needs the database migrated and Mailpit running: it checks API readiness and reads the verification email from Mailpit.
 
 ## Troubleshooting

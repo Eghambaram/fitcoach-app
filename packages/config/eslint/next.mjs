@@ -17,4 +17,11 @@ export default [
     files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     languageOptions: { parser: tseslint.parser },
   },
+  {
+    rules: {
+      // React escapes text content; English copy is full of apostrophes (D24). Still catch the
+      // characters that usually mean a JSX typo.
+      "react/no-unescaped-entities": ["error", { forbid: [">", "}"] }],
+    },
+  },
 ];
