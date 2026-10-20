@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import type { DependencyCheck, ReadinessResponse } from "@fitcoach/shared";
 import { PinoLogger } from "nestjs-pino";
 import { AppDatabase } from "../../db/database";
+import { StorageService } from "../../integrations/storage/storage.service";
 import { JobsService } from "../jobs/jobs.service";
 
 const CHECK_TIMEOUT_MS = 2_000;
@@ -27,15 +28,19 @@ export class HealthService {
   constructor(
     private readonly database: AppDatabase,
     private readonly jobs: JobsService,
+    private readonly storageService: StorageService,
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(HealthService.name);
   }
 
   async readiness(): Promise<ReadinessResponse> {
-    const [database, jobs] = await Promise.all([this.checkDatabase(), this.jobs.check()]);
-    // Object storage is wired up in step 1.5; until then it is honestly "not_configured".
-    const storage: DependencyCheck = { status: "not_configured" };
+    const [database, jobs, storage] = await Promise.all([
+      this.checkDatabase(),
+      this.jobs.check(),
+      // "not_configured" when STORAGE_* isn't set; "degraded" when unreachable or over the soft budget.
+      this.storageService.check(),
+    ]);
 
     const checks = { database, jobs, storage };
     const healthy = Object.values(checks).every(

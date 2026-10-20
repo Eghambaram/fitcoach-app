@@ -31,7 +31,24 @@ jobs:
       DB_APP_PASSWORD: ci-app-password
       DB_SYSTEM_PASSWORD: ci-system-password
       API_INTERNAL_URL: http://localhost:4000
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_REGION: us-east-1
+      STORAGE_ACCESS_KEY_ID: ciaccesskey
+      STORAGE_SECRET_ACCESS_KEY: cisecretkey
+      STORAGE_PRIVATE_BUCKET: fitcoach-ci-private
+      STORAGE_PUBLIC_BUCKET: fitcoach-ci-public
+      STORAGE_PUBLIC_BASE_URL: http://localhost:9000/fitcoach-ci-public
     services:
+      # Same image as docker-compose (ADR-0036); buckets are created by `pnpm storage:init` below.
+      storage:
+        image: rustfs/rustfs:1.0.3
+        env:
+          RUSTFS_ACCESS_KEY: ciaccesskey
+          RUSTFS_SECRET_KEY: cisecretkey
+          RUSTFS_ADDRESS: ":9000"
+          RUSTFS_CONSOLE_ENABLE: "false"
+        ports:
+          - 9000:9000
       # For the e2e stack (DB/RLS and API integration suites start their own Testcontainers Postgres).
       mailpit:
         image: axllent/mailpit:v1.31.6
@@ -87,6 +104,9 @@ jobs:
 
       - name: Migrate e2e database from zero
         run: node apps/api/dist/db/migrate.js
+
+      - name: Create e2e storage buckets
+        run: pnpm storage:init
 
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium

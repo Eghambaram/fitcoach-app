@@ -1,6 +1,65 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/v1/files/profile-photo": {
+      "post": {
+        "operationId": "FilesController_uploadProfilePhoto",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadedPhotoResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "files"
+        ]
+      },
+      "delete": {
+        "operationId": "FilesController_removeProfilePhoto",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "files"
+        ]
+      }
+    },
     "/v1/auth/signup": {
       "post": {
         "operationId": "AuthController_signup",
@@ -366,6 +425,37 @@
   "servers": [],
   "components": {
     "schemas": {
+      "UploadedPhotoResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "url",
+          "thumbnailUrl"
+        ]
+      },
+      "OkResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
       "SignupRequestDto": {
         "type": "object",
         "properties": {
@@ -494,20 +584,6 @@
           "token"
         ]
       },
-      "OkResponseDto": {
-        "type": "object",
-        "properties": {
-          "ok": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          }
-        },
-        "required": [
-          "ok"
-        ]
-      },
       "EmailOnlyRequestDto": {
         "type": "object",
         "properties": {
@@ -598,10 +674,16 @@
             "properties": {
               "displayName": {
                 "type": "string"
+              },
+              "avatarUrl": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
               }
             },
             "required": [
-              "displayName"
+              "displayName",
+              "avatarUrl"
             ]
           },
           "workspace": {

@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
@@ -44,7 +45,28 @@ function initials(name: string): string {
     .join("");
 }
 
-export function Avatar({ name, className }: { name: string; className?: string }) {
+/** Photo when there is one (decorative: the name is always shown next to it), otherwise initials. */
+export function Avatar({
+  name,
+  imageUrl,
+  className,
+}: {
+  name: string;
+  imageUrl?: string | null;
+  className?: string;
+}) {
+  if (imageUrl) {
+    return (
+      <Image
+        src={imageUrl}
+        alt=""
+        width={36}
+        height={36}
+        unoptimized
+        className={cn("size-9 shrink-0 rounded-full object-cover", className)}
+      />
+    );
+  }
   return (
     <span
       aria-hidden="true"
@@ -152,6 +174,7 @@ function useSignOut() {
 export interface AppShellProps {
   area: ShellArea;
   userName: string;
+  avatarUrl?: string | null;
   /** Workspace / context line under the user's name. */
   subtitle?: string;
   badge?: string;
@@ -162,7 +185,15 @@ export interface AppShellProps {
 /**
  * Desktop: charcoal sidebar + compact top bar. Mobile: top bar + bottom nav + "More" sheet (PROMPT §6, §7).
  */
-export function AppShell({ area, userName, subtitle, badge, banner, children }: AppShellProps) {
+export function AppShell({
+  area,
+  userName,
+  avatarUrl,
+  subtitle,
+  badge,
+  banner,
+  children,
+}: AppShellProps) {
   const { nav, bottomNav, moreNav } = AREAS[area];
   const pathname = usePathname();
   const signOut = useSignOut();
@@ -193,7 +224,7 @@ export function AppShell({ area, userName, subtitle, badge, banner, children }: 
           ))}
         </nav>
         <div className="mt-4 flex items-center gap-3 rounded-card bg-sidebar-hover p-3">
-          <Avatar name={userName} />
+          <Avatar name={userName} imageUrl={avatarUrl} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-sidebar-foreground">{userName}</p>
             {subtitle ? <p className="truncate text-xs text-sidebar-muted">{subtitle}</p> : null}
@@ -213,7 +244,7 @@ export function AppShell({ area, userName, subtitle, badge, banner, children }: 
 
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:hidden">
         <Logo />
-        <Avatar name={userName} className="size-8" />
+        <Avatar name={userName} imageUrl={avatarUrl} className="size-8" />
       </header>
 
       {banner}

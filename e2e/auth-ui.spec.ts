@@ -34,6 +34,8 @@ test("a trainer signs up in three steps, confirms the email, logs in, checks ses
   page,
   request,
 }) => {
+  // The whole journey: two argon2 hashes, a Mailpit round trip and six page loads.
+  test.slow();
   const id = uniqueId();
   const email = `e2e-ui-${id}@example.test`;
   const password = "an-e2e-ui-passphrase";

@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+  "/v1/files/profile-photo": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["FilesController_uploadProfilePhoto"];
+    delete: operations["FilesController_removeProfilePhoto"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/auth/signup": {
     parameters: {
       query?: never;
@@ -216,6 +232,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    UploadedPhotoResponseDto: {
+      /** Format: uri */
+      url: string;
+      /** Format: uri */
+      thumbnailUrl: string;
+    };
+    OkResponseDto: {
+      /** @enum {boolean} */
+      ok: true;
+    };
     SignupRequestDto: {
       account: {
         /** Format: email */
@@ -245,10 +271,6 @@ export interface components {
     TokenRequestDto: {
       token: string;
     };
-    OkResponseDto: {
-      /** @enum {boolean} */
-      ok: true;
-    };
     EmailOnlyRequestDto: {
       /** Format: email */
       email: string;
@@ -273,6 +295,8 @@ export interface components {
       actor: "trainer" | "client" | "platform_owner";
       profile: {
         displayName: string;
+        /** Format: uri */
+        avatarUrl: string | null;
       };
       workspace: {
         /** Format: uuid */
@@ -329,6 +353,51 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  FilesController_uploadProfilePhoto: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /** Format: binary */
+          file: string;
+        };
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadedPhotoResponseDto"];
+        };
+      };
+    };
+  };
+  FilesController_removeProfilePhoto: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
   AuthController_signup: {
     parameters: {
       query?: never;
