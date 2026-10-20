@@ -1,5 +1,28 @@
-import { createApiClient } from "@fitcoach/api-client";
+import { createApiClient, CSRF_HEADER } from "@fitcoach/api-client";
 import { toApiRequestError } from "./errors";
+
+/**
+ * Multipart upload of one file through the `/api` proxy (the typed client doesn't do multipart).
+ * Same CSRF header and error contract as every other call.
+ */
+export async function uploadFile<T>(path: `/v1/${string}`, file: File, field = "file"): Promise<T> {
+  const form = new FormData();
+  form.append(field, file);
+  let response: Response;
+  try {
+    response = await fetch(`/api${path}`, {
+      method: "POST",
+      body: form,
+      headers: { [CSRF_HEADER]: "1" },
+      credentials: "same-origin",
+    });
+  } catch {
+    throw toApiRequestError(0, undefined);
+  }
+  const body: unknown = await response.json().catch(() => undefined);
+  if (!response.ok) throw toApiRequestError(response.status, body);
+  return body as T;
+}
 
 /**
  * The browser's API client: same origin only, through the `/api` proxy (PROMPT §4.2, CLAUDE.md

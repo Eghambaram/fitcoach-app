@@ -45,3 +45,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0038](0038-request-transactions-and-db-roles.md) | One transaction per request; system role for jobs and rate limits                          |
 | [0039](0039-trainer-auth-flows.md)                | Trainer auth flows: verify before login, non-enumerating signup                            |
 | [0040](0040-web-shell-conventions.md)             | Web shell conventions: honest navigation, API-decided access, one-click email confirm      |
+| [0041](0041-file-uploads-pipeline.md)             | File uploads: one API pipeline, profile photo in the public bucket, ledger-based budget    |

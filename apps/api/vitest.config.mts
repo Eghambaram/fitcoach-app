@@ -31,7 +31,7 @@ export default defineConfig({
         test: {
           name: "api",
           include: ["src/**/*.api.test.ts"],
-          globalSetup: ["src/test/postgres.global-setup.ts"],
+          globalSetup: ["src/test/postgres.global-setup.ts", "src/test/storage.global-setup.ts"],
           setupFiles: ["src/test/api-env.setup.ts"],
           testTimeout: 30_000,
           hookTimeout: 60_000,

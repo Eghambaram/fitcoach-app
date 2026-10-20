@@ -10,6 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { citext, timestamps } from "./columns";
+import { files } from "./files";
 import { workspaces } from "./workspaces";
 
 /** Identity & auth (PROMPT §4.4, §12.2). */
@@ -40,9 +41,12 @@ export const profiles = pgTable(
     kind: text("kind").notNull(),
     displayName: text("display_name").notNull(),
     phoneE164: text("phone_e164"),
+    /** Trainer photo (public bucket — it also appears on their public page). */
+    avatarFileId: uuid("avatar_file_id").references(() => files.id, { onDelete: "set null" }),
     ...timestamps,
   },
   (t) => [
+    index("profiles_avatar_file_id_idx").on(t.avatarFileId),
     check("profiles_kind", sql`${t.kind} in ('trainer', 'client')`),
     check("profiles_display_name_length", sql`char_length(${t.displayName}) between 1 and 80`),
     check(

@@ -17,7 +17,7 @@ import { RateLimitService } from "../../common/security/rate-limit.service";
 import { hashToken } from "../../common/security/tokens";
 import { AppConfig } from "../../config/env";
 import { DbContext } from "../../db/db-context";
-import { profiles, sessions, users, workspaceMembers, workspaces } from "../../db/schema";
+import { files, profiles, sessions, users, workspaceMembers, workspaces } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 import { EmailService } from "../../integrations/email/email.service";
 import {
@@ -26,6 +26,7 @@ import {
   verifyEmailMessage,
 } from "../../integrations/email/templates";
 import { recordAudit } from "../audit/audit.service";
+import { FilesService } from "../files/files.service";
 import { consumeBetaInvite } from "../platform/beta-invites";
 import { trackEvent } from "../product-events/track";
 import { consumeAuthToken, issueAuthToken } from "./auth-tokens";
@@ -72,6 +73,7 @@ export class AuthService {
     private readonly rateLimit: RateLimitService,
     private readonly email: EmailService,
     private readonly cls: ClsService<AppClsStore>,
+    private readonly files: FilesService,
   ) {}
 
   private emailKey(email: string): string {
@@ -433,9 +435,12 @@ export class AuthService {
         email: users.email,
         emailVerifiedAt: users.emailVerifiedAt,
         displayName: profiles.displayName,
+        avatarKey: files.objectKey,
       })
       .from(users)
       .innerJoin(profiles, eq(profiles.userId, users.id))
+      // RLS: only the caller's own workspace files are visible.
+      .leftJoin(files, eq(files.id, profiles.avatarFileId))
       .where(eq(users.id, auth.userId));
     if (!row)
       throw new DomainError(ERROR_CODES.UNAUTHENTICATED, 401, "Please sign in to continue.");
@@ -458,7 +463,7 @@ export class AuthService {
     return {
       user: { id: row.id, email: row.email, emailVerified: row.emailVerifiedAt !== null },
       actor: auth.actor,
-      profile: { displayName: row.displayName },
+      profile: { displayName: row.displayName, avatarUrl: this.files.avatarUrl(row.avatarKey) },
       workspace: workspace ? { ...workspace, status: workspace.status as WorkspaceStatus } : null,
     };
   }

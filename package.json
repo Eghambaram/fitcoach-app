@@ -25,7 +25,8 @@
     "api:client": "pnpm --filter @fitcoach/api openapi && pnpm --filter @fitcoach/api-client generate",
     "platform:grant": "pnpm --filter @fitcoach/api platform:grant",
     "beta:invite": "pnpm --filter @fitcoach/api beta:invite",
-    "verify": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm test:db && pnpm test:api && pnpm build && pnpm test:e2e"
+    "verify": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm test:db && pnpm test:api && pnpm build && pnpm test:e2e",
+    "storage:init": "pnpm --filter @fitcoach/api storage:init"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

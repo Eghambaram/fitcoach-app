@@ -132,7 +132,11 @@ export const meResponseSchema = z.object({
     emailVerified: z.boolean(),
   }),
   actor: z.enum(ACTORS),
-  profile: z.object({ displayName: z.string() }),
+  profile: z.object({
+    displayName: z.string(),
+    /** Public-bucket URL of the trainer's photo (it also appears on their public page), or null. */
+    avatarUrl: z.string().url().nullable(),
+  }),
   workspace: z
     .object({
       id: z.string().uuid(),

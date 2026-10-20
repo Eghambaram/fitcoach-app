@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronRight, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,12 @@ export const metadata: Metadata = { title: "Settings" };
 
 /** Settings sections appear as they're built; profile, public page, templates and more arrive in step 2.1. */
 const SECTIONS = [
+  {
+    href: "/app/settings/profile",
+    title: "Profile",
+    description: "Your photo, shown to clients and on your public page.",
+    icon: UserRound,
+  },
   {
     href: "/app/settings/security",
     title: "Security",

@@ -22,7 +22,7 @@ describe("health endpoints", () => {
     expect(response.body).toEqual({ status: "ok" });
   });
 
-  it("GET /v1/health/ready reports the database and job queue as OK", async () => {
+  it("GET /v1/health/ready reports the database, job queue and storage as OK", async () => {
     const response = await request(app.getHttpServer()).get("/v1/health/ready");
 
     expect(response.status).toBe(200);
@@ -30,8 +30,8 @@ describe("health endpoints", () => {
     expect(body.status).toBe("ok");
     expect(body.checks.database.status).toBe("ok");
     expect(body.checks.jobs.status).toBe("ok");
-    // Storage arrives in step 1.5 and is reported honestly until then.
-    expect(body.checks.storage.status).toBe("not_configured");
+    // Both buckets on the test RustFS container are reachable.
+    expect(body.checks.storage.status).toBe("ok");
   });
 
   it("serves routes only under /v1 and answers unknown routes with the error contract", async () => {

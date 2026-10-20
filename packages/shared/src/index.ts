@@ -1,5 +1,6 @@
 export * from "./contracts/auth";
 export * from "./contracts/errors";
+export * from "./contracts/files";
 export * from "./contracts/health";
 export * from "./defaults";
 export * from "./messaging";

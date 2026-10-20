@@ -59,6 +59,7 @@ export default async function TrainerLayout({ children }: { children: ReactNode 
     <AppShell
       area="trainer"
       userName={me.profile.displayName}
+      avatarUrl={me.profile.avatarUrl}
       subtitle={me.workspace.name}
       banner={banner}
     >

@@ -2,6 +2,7 @@ import { inject } from "vitest";
 
 /** Points the API's config at the Testcontainers database before any test module boots the app. */
 const db = inject("db");
+const storage = inject("storage");
 
 Object.assign(process.env, {
   APP_ENV: "test",
@@ -14,5 +15,12 @@ Object.assign(process.env, {
   SIGNUP_MODE: "invite_code",
   EMAIL_PROVIDER: "console",
   EMAIL_FROM: "FitCoach <noreply@fitcoach.test>",
+  STORAGE_ENDPOINT: storage.endpoint,
+  STORAGE_REGION: "us-east-1",
+  STORAGE_ACCESS_KEY_ID: storage.accessKeyId,
+  STORAGE_SECRET_ACCESS_KEY: storage.secretAccessKey,
+  STORAGE_PRIVATE_BUCKET: storage.privateBucket,
+  STORAGE_PUBLIC_BUCKET: storage.publicBucket,
+  STORAGE_PUBLIC_BASE_URL: `${storage.endpoint}/${storage.publicBucket}`,
   LOG_LEVEL: "silent",
 });

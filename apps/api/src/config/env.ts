@@ -34,6 +34,30 @@ const envSchema = z
     EMAIL_FROM: z.string().min(3),
     SMTP_URL: z.string().url().optional(),
     RESEND_API_KEY: z.string().min(10).optional(),
+    // Object storage (PROMPT §17.3, §17.7): Cloudflare R2 deployed, RustFS locally. All or nothing —
+    // without them uploads are "not configured" rather than failing.
+    STORAGE_ENDPOINT: z.string().url().optional(),
+    STORAGE_REGION: z.string().min(1).default("auto"),
+    STORAGE_ACCESS_KEY_ID: z.string().min(1).optional(),
+    STORAGE_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    STORAGE_PRIVATE_BUCKET: z.string().min(3).optional(),
+    STORAGE_PUBLIC_BUCKET: z.string().min(3).optional(),
+    STORAGE_PUBLIC_BASE_URL: z.string().url().optional(),
+    /** `pr-<n>/` for PR environments sharing the staging buckets; empty otherwise. */
+    STORAGE_KEY_PREFIX: z
+      .string()
+      .regex(/^([a-z0-9-]+\/)?$/, "must be empty or like pr-12/")
+      .default(""),
+    STORAGE_BUDGET_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(8 * 1024 ** 3),
+    STORAGE_HARD_LIMIT_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(9 * 1024 ** 3),
     LOG_LEVEL: z.enum(LOG_LEVELS).default("info"),
   })
   .superRefine((env, ctx) => {
@@ -65,7 +89,38 @@ const envSchema = z
     if (env.APP_ENV === "production" && env.EMAIL_PROVIDER === "console") {
       problem("EMAIL_PROVIDER", "console is not allowed in production (D13)");
     }
+
+    const storageVars = [
+      "STORAGE_ENDPOINT",
+      "STORAGE_ACCESS_KEY_ID",
+      "STORAGE_SECRET_ACCESS_KEY",
+      "STORAGE_PRIVATE_BUCKET",
+      "STORAGE_PUBLIC_BUCKET",
+      "STORAGE_PUBLIC_BASE_URL",
+    ] as const;
+    const missingStorage = storageVars.filter((name) => !env[name]);
+    if (missingStorage.length > 0 && missingStorage.length < storageVars.length) {
+      for (const name of missingStorage)
+        problem(name, "is required when object storage is configured");
+    }
+    if (env.STORAGE_BUDGET_BYTES >= env.STORAGE_HARD_LIMIT_BYTES) {
+      problem("STORAGE_BUDGET_BYTES", "must be lower than STORAGE_HARD_LIMIT_BYTES");
+    }
   });
+
+export interface StorageConfig {
+  readonly endpoint: string;
+  readonly region: string;
+  readonly accessKeyId: string;
+  readonly secretAccessKey: string;
+  readonly privateBucket: string;
+  readonly publicBucket: string;
+  /** Where public objects are served from: `https://media.<domain>` (R2 custom domain) or the local bucket URL. */
+  readonly publicBaseUrl: string;
+  readonly keyPrefix: string;
+  readonly budgetBytes: number;
+  readonly hardLimitBytes: number;
+}
 
 /** Validated API configuration. Injected by type: `constructor(private readonly config: AppConfig)`. */
 export abstract class AppConfig {
@@ -89,6 +144,8 @@ export abstract class AppConfig {
     readonly smtpUrl?: string;
     readonly resendApiKey?: string;
   };
+  /** null when STORAGE_* isn't set: uploads answer "not configured" (CLAUDE.md rule 20). */
+  abstract readonly storage: StorageConfig | null;
   abstract readonly logLevel: (typeof LOG_LEVELS)[number];
 }
 
@@ -127,6 +184,26 @@ export function parseEnv(source: NodeJS.ProcessEnv): AppConfig {
       smtpUrl: env.SMTP_URL,
       resendApiKey: env.RESEND_API_KEY,
     },
+    storage:
+      env.STORAGE_ENDPOINT &&
+      env.STORAGE_ACCESS_KEY_ID &&
+      env.STORAGE_SECRET_ACCESS_KEY &&
+      env.STORAGE_PRIVATE_BUCKET &&
+      env.STORAGE_PUBLIC_BUCKET &&
+      env.STORAGE_PUBLIC_BASE_URL
+        ? {
+            endpoint: env.STORAGE_ENDPOINT,
+            region: env.STORAGE_REGION,
+            accessKeyId: env.STORAGE_ACCESS_KEY_ID,
+            secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY,
+            privateBucket: env.STORAGE_PRIVATE_BUCKET,
+            publicBucket: env.STORAGE_PUBLIC_BUCKET,
+            publicBaseUrl: env.STORAGE_PUBLIC_BASE_URL.replace(/\/+$/, ""),
+            keyPrefix: env.STORAGE_KEY_PREFIX,
+            budgetBytes: env.STORAGE_BUDGET_BYTES,
+            hardLimitBytes: env.STORAGE_HARD_LIMIT_BYTES,
+          }
+        : null,
     logLevel: env.LOG_LEVEL,
   };
 }
