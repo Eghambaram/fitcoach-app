@@ -5,12 +5,15 @@
 - **Source:** PROMPT.md §1 (D18, §8.3A)
 
 ## Decision
+
 `client_packages` (session_pack / time_based / online_coaching), `package_session_ledger` and `client_payments` ship in the MVP. Payments are recorded by the trainer (cash/UPI/bank/card/other); FitCoach processes no client payments.
 
 ## Why
+
 Trainers' biggest weekly pain is "who has sessions left / who hasn't paid".
 
 ## Consequences
+
 - Session deduction happens only in the attendance transaction (unique per package + appointment); un-marking writes a reversal row.
 - Ledger and payments are append-only (voids are new rows).
 - Clients see sessions left and expiry only — never prices, amounts or payment records.

@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens from PROMPT §7.1. Step 1.4 completes the set (semantic soft colours, radii,
+ * shadows, shadcn variable mapping). Change tokens here, not ad-hoc styles.
+ */
+@theme {
+  --color-charcoal: #18211d;
+  --color-lime: #c8f169;
+  --color-lime-hover: #a9d846;
+  --color-lime-foreground: #18211d;
+  --color-background: #f6f7f3;
+  --color-card: #ffffff;
+  --color-foreground: #18201c;
+  --color-muted-foreground: #6a736d; /* #6C756F in the original spec failed AA on the background (4.42:1) — ADR-0037 */
+  --color-border: #e6eae5;
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}

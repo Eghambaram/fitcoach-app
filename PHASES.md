@@ -64,7 +64,7 @@ Then stop and summarize the open questions for me.
 
 ### 1.1 Monorepo + local Docker
 ```
-Implement PROMPT §4.1 and §18: pnpm workspaces + Turborepo with apps/web (Next.js ≥16, App Router, TypeScript strict, Tailwind, shadcn/ui), apps/api (NestJS, TypeScript strict), packages/shared, packages/api-client, packages/config. Pin Node 24 LTS (engines, .nvmrc, CI, Docker images — ADR-0026). Add docker-compose.yml with Postgres 17 (until Railway's version is confirmed — ADR-0027), Mailpit and MinIO with both local buckets (§18). Add .env.example files, root scripts from the CLAUDE.md Commands table (stubs are fine where the feature doesn't exist yet, but they must exit cleanly), ESLint/Prettier, Vitest in both apps, Playwright skeleton, and a GitHub Actions CI workflow running typecheck, lint and unit tests.
+Implement PROMPT §4.1 and §18: pnpm workspaces + Turborepo with apps/web (Next.js ≥16, App Router, TypeScript strict, Tailwind, shadcn/ui), apps/api (NestJS, TypeScript strict), packages/shared, packages/api-client, packages/config. Pin Node 24 LTS (engines, .nvmrc, CI, Docker images — ADR-0026). Add docker-compose.yml with Postgres 17 (until Railway's version is confirmed — ADR-0027), Mailpit and RustFS with both local buckets (§18). Add .env.example files, root scripts from the CLAUDE.md Commands table (stubs are fine where the feature doesn't exist yet, but they must exit cleanly), ESLint/Prettier, Vitest in both apps, Playwright skeleton, and a GitHub Actions CI workflow running typecheck, lint and unit tests.
 [QUALITY BAR]
 ```
 **Done when:** `docker compose up -d && pnpm install && pnpm dev` starts web on :3000 and api on :4000; CI is green.
@@ -90,12 +90,12 @@ Implement PROMPT §6, §7 and §4.2 in apps/web: design tokens (§7.1) as CSS va
 ```
 **Done when:** signup/login work through the browser on mobile and desktop; the trainer shell shows only MVP nav items; navigating to /platform as a trainer is refused by the API.
 
-### 1.5 File storage (MinIO / R2)
+### 1.5 File storage (RustFS / R2)
 ```
-Implement PROMPT D11, §11 storage row, §17.7 and the files ledger (§10.2): StorageService with private and public buckets (put, presignGet ≤ 5 min, publicUrl, delete, usage), the R2 S3 client settings from CLAUDE.md, upload endpoint through the API with type/size checks and sharp (EXIF strip, WebP 1600 px + 400 px thumbnail), files table as the storage ledger, soft delete + 7-day purge job stub, budget/hard-limit checks with clear errors. First use: trainer profile photo and public-page photo (public bucket), client avatar (private bucket, used later). Local uses MinIO; staging will use R2.
+Implement PROMPT D11, §11 storage row, §17.7 and the files ledger (§10.2): StorageService with private and public buckets (put, presignGet ≤ 5 min, publicUrl, delete, usage), the R2 S3 client settings from CLAUDE.md, upload endpoint through the API with type/size checks and sharp (EXIF strip, WebP 1600 px + 400 px thumbnail), files table as the storage ledger, soft delete + 7-day purge job stub, budget/hard-limit checks with clear errors. First use: trainer profile photo and public-page photo (public bucket), client avatar (private bucket, used later). Local uses RustFS; staging will use R2.
 [QUALITY BAR]
 ```
-**Done when:** you can upload a profile photo locally, see it in MinIO as WebP, and an over-limit upload is refused with a readable message.
+**Done when:** you can upload a profile photo locally, see it in RustFS as WebP, and an over-limit upload is refused with a readable message.
 
 ### 1.6 Dockerfiles, Railway staging, CI deploy
 ```

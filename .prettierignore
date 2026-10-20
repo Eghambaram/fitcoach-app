@@ -1,0 +1,16 @@
+node_modules
+dist
+.next
+coverage
+.turbo
+pnpm-lock.yaml
+playwright-report
+test-results
+packages/api-client/src/schema.ts
+docs/source
+# Spec files are maintained by hand; keep their formatting as written.
+PROMPT.md
+PHASES.md
+MVP_REVIEW.md
+CLAUDE.md
+docs/design/README.md

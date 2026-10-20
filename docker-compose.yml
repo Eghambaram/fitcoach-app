@@ -1,0 +1,81 @@
+# Local infrastructure for FitCoach (PROMPT §18). Start: `docker compose up -d`.
+# Same interfaces as staging/production: Postgres, SMTP (Mailpit) and S3 (RustFS standing in for Cloudflare R2).
+# MinIO no longer publishes container images, so RustFS (MinIO-compatible, same ports) replaces it (ADR-0036).
+# The `full` profile (api + web built from their Dockerfiles) is added in step 1.6.
+name: fitcoach
+
+services:
+  postgres:
+    # Postgres 17 until the Railway service's major version is confirmed (ADR-0027).
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fitcoach
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fitcoach"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # web UI — http://localhost:8025
+
+  storage:
+    image: rustfs/rustfs:1.0.3
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: localaccesskey
+      RUSTFS_SECRET_KEY: localsecretkey
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # console — http://localhost:9001/rustfs/console/ (localaccesskey / localsecretkey)
+    volumes:
+      - storagedata:/data
+
+  # One-shot job: creates both local buckets with the AWS CLI (the same S3 API the app uses);
+  # the public bucket gets anonymous read to mimic the R2 custom domain.
+  storage-init:
+    image: amazon/aws-cli:2.38.2
+    depends_on:
+      - storage
+    restart: "no"
+    environment:
+      AWS_ACCESS_KEY_ID: localaccesskey
+      AWS_SECRET_ACCESS_KEY: localsecretkey
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        s3() { aws --endpoint-url http://storage:9000 "$$@"; }
+        until s3 s3api list-buckets >/dev/null 2>&1; do echo "waiting for storage..."; sleep 1; done
+        for bucket in fitcoach-local-private fitcoach-local-public; do
+          s3 s3api head-bucket --bucket "$$bucket" >/dev/null 2>&1 || s3 s3api create-bucket --bucket "$$bucket"
+        done
+        s3 s3api put-bucket-policy --bucket fitcoach-local-public --policy '{
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"AWS": ["*"]},
+            "Action": ["s3:GetObject"],
+            "Resource": ["arn:aws:s3:::fitcoach-local-public/*"]
+          }]
+        }'
+        echo "storage buckets ready"
+
+volumes:
+  pgdata:
+  storagedata:

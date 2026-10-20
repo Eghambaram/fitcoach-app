@@ -1,0 +1,11 @@
+{
+  "extends": "@fitcoach/config/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom/vitest"]
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.mts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
+}
