@@ -22,7 +22,21 @@ pnpm dev                          # web http://localhost:3000 · api http://loca
 ```
 
 Check it: http://localhost:4000/v1/health/ready should report `database` and `jobs` as `ok`. API docs (non-production only): http://localhost:4000/v1/docs.
-From step 1.3, also run `pnpm db:seed` for demo data.
+
+Optional demo account: `pnpm db:seed` creates a verified trainer `demo.trainer@fitcoach.local` and prints its password. Set `SEED_TRAINER_PASSWORD` in `.env` to choose it. It refuses to run unless `APP_ENV=development`.
+
+## Accounts and beta codes
+
+Signup is invite-only while `SIGNUP_MODE=invite_code` (the default):
+
+```bash
+pnpm beta:invite create --uses 5 --days 30 --label "Pune trainers"   # prints the code once
+pnpm beta:invite list
+pnpm beta:invite revoke <id>
+pnpm platform:grant you@example.com                                  # existing account → platform owner (login: step 6.1)
+```
+
+All of these are audited (`audit_logs`). Verification and password-reset emails land in Mailpit at http://localhost:8025. Until the signup screens arrive in step 1.4, you can try the flow from the API docs at http://localhost:4000/v1/docs. Note that state-changing calls need `Origin: http://localhost:3000` and `X-FitCoach-Request: 1`.
 
 ## What runs where
 
@@ -53,7 +67,7 @@ Buckets: `fitcoach-local-private` (no anonymous access; presigned URLs only) and
 | Every gate                   | `pnpm verify`                                                         |
 
 `pnpm test:e2e` reuses a running `pnpm dev`; otherwise it starts the web and API dev servers itself.
-`pnpm test:e2e` needs the database migrated, because it checks API readiness. Commands for later steps (`db:seed`, `platform:grant`, `beta:invite`) exist already and print which step implements them.
+`pnpm test:e2e` needs the database migrated and Mailpit running: it checks API readiness and reads the verification email from Mailpit.
 
 ## Troubleshooting
 

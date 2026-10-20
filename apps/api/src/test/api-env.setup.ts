@@ -10,5 +10,9 @@ Object.assign(process.env, {
   DATABASE_SYSTEM_URL: db.systemUrl,
   DB_POOL_MAX: "4",
   IP_HASH_SALT: "test-ip-hash-salt-0123456789",
+  SESSION_SECRET: "test-session-secret-0123456789abcdef",
+  SIGNUP_MODE: "invite_code",
+  EMAIL_PROVIDER: "console",
+  EMAIL_FROM: "FitCoach <noreply@fitcoach.test>",
   LOG_LEVEL: "silent",
 });

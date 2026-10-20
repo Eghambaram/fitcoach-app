@@ -2,15 +2,16 @@ import { Controller, Get, Res } from "@nestjs/common";
 import { ApiOkResponse, ApiServiceUnavailableResponse, ApiTags } from "@nestjs/swagger";
 import type { LivenessResponse, ReadinessResponse } from "@fitcoach/shared";
 import type { Response } from "express";
+import { Public } from "../../common/auth/decorators";
 import { SkipDbContext } from "../../db/db-context";
 import { LivenessResponseDto, ReadinessResponseDto } from "./health.dto";
 import { HealthService } from "./health.service";
 
 /**
- * Health endpoints (PROMPT §17.5). Neither touches tenant data, so no request transaction is opened.
- * The session guard (step 1.3) will mark this controller `@Public()`.
+ * Health endpoints (PROMPT §17.5). Public, and neither touches tenant data, so no request transaction.
  */
 @ApiTags("health")
+@Public()
 @SkipDbContext()
 @Controller("health")
 export class HealthController {

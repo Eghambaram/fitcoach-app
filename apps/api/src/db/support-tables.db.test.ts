@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { committed, createPool, sqlState, twoTenants, withContext } from "../test/db";
+import { createTrainer, drizzleFor, trainerContext } from "../test/fixtures";
 
 const insertKey = `
   insert into idempotency_keys (workspace_id, user_id, key, endpoint, request_hash, expires_at)
@@ -10,16 +11,23 @@ const insertKey = `
 
 describe("idempotency_keys RLS", () => {
   let app: Pool;
-  const { a, b } = twoTenants();
+  let system: Pool;
+  // Real trainers: idempotency_keys has FKs to users and workspaces since step 1.3.
+  let a: ReturnType<typeof trainerContext>;
+  let b: ReturnType<typeof trainerContext>;
   const keyA = randomUUID();
 
   beforeAll(async () => {
-    app = createPool(inject("db").appUrl);
+    const db = inject("db");
+    app = createPool(db.appUrl);
+    system = createPool(db.systemUrl);
+    a = trainerContext(await createTrainer(drizzleFor(system)));
+    b = trainerContext(await createTrainer(drizzleFor(system)));
     await committed(app, a, (client) => client.query(insertKey, [a.workspaceId, a.userId, keyA]));
   });
 
   afterAll(async () => {
-    await app.end();
+    await Promise.all([app.end(), system.end()]);
   });
 
   it("shows a user their own keys", async () => {

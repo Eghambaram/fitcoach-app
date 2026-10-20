@@ -20,6 +20,11 @@ jobs:
       APP_ENV: test
       WEB_ORIGIN: http://localhost:3000
       IP_HASH_SALT: ci-ip-hash-salt-0123456789abcdef
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123
+      SIGNUP_MODE: invite_code
+      EMAIL_PROVIDER: smtp
+      SMTP_URL: smtp://localhost:1025
+      EMAIL_FROM: "FitCoach CI <noreply@fitcoach.test>"
       DATABASE_OWNER_URL: postgres://postgres:postgres@localhost:5432/fitcoach
       DATABASE_URL: postgres://fitcoach_app:ci-app-password@localhost:5432/fitcoach
       DATABASE_SYSTEM_URL: postgres://fitcoach_system:ci-system-password@localhost:5432/fitcoach
@@ -27,7 +32,12 @@ jobs:
       DB_SYSTEM_PASSWORD: ci-system-password
       API_INTERNAL_URL: http://localhost:4000
     services:
-      # For the e2e stack. DB/RLS and API integration suites start their own Testcontainers Postgres.
+      # For the e2e stack (DB/RLS and API integration suites start their own Testcontainers Postgres).
+      mailpit:
+        image: axllent/mailpit:v1.31.6
+        ports:
+          - 1025:1025
+          - 8025:8025
       postgres:
         image: postgres:17
         env:

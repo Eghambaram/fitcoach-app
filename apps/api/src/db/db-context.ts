@@ -65,7 +65,7 @@ export class DbContext {
   constructor(private readonly cls: ClsService<AppClsStore>) {}
 
   get tx(): Tx {
-    const tx = this.cls.isActive() ? this.cls.get("tx") : undefined;
+    const tx = (this.cls.isActive() ? this.cls.get("tx") : undefined) as Tx | undefined;
     if (!tx) {
       // Querying outside the request transaction would run without RLS context and silently see nothing.
       throw new Error(
