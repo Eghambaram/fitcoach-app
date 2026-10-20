@@ -1,0 +1,7 @@
+{
+  "extends": "@fitcoach/config/tsconfig/node.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["playwright.config.ts", "e2e/**/*.ts"]
+}

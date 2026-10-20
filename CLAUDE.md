@@ -10,7 +10,7 @@ Operating manual for AI coding agents in this repository.
 FitCoach — Personal Trainer Copilot. Mobile-first, multi-tenant SaaS for independent personal trainers (leads → trials → clients → programs → workouts → check-ins → progress), with a simple client portal and a Platform Owner admin.
 
 **Architecture:** Next.js (UI) → same-origin `/api` proxy → **NestJS API** → **PostgreSQL** (+ **Cloudflare R2** object storage, SMTP).
-**Environments:** local on **Docker Desktop** (Postgres, Mailpit, MinIO) · staging & production on **Railway** (web, api, Postgres, db-backup cron) + **Cloudflare R2** for files (free tier 10 GB). **No Supabase.**
+**Environments:** local on **Docker Desktop** (Postgres, Mailpit, RustFS) · staging & production on **Railway** (web, api, Postgres, db-backup cron) + **Cloudflare R2** for files (free tier 10 GB). **No Supabase.**
 
 **Current release: MVP closed beta** — free, invite-only, 5–10 trainers in India.
 
@@ -30,7 +30,7 @@ The non-negotiable spine (protect it if scope is cut):
 
 ## Stack
 
-pnpm workspaces + Turborepo · **web:** Next.js ≥16 App Router, React 19, Tailwind, shadcn/ui (Radix), Lucide, React Hook Form, TanStack Query, Recharts · **api:** NestJS, nestjs-zod, @nestjs/swagger, nestjs-cls, nestjs-pino, helmet, pg-boss · **db:** PostgreSQL, Drizzle ORM + SQL migrations · **auth:** custom (argon2id, opaque DB sessions, email OTP/magic link, Google via arctic, TOTP via otplib) · **files:** Cloudflare R2 via AWS SDK v3 S3 client (MinIO locally) + sharp · **shared:** Zod schemas in `packages/shared` · **tests:** Vitest, RTL, Supertest, Testcontainers, Playwright, axe.
+pnpm workspaces + Turborepo · **web:** Next.js ≥16 App Router, React 19, Tailwind, shadcn/ui (Radix), Lucide, React Hook Form, TanStack Query, Recharts · **api:** NestJS, nestjs-zod, @nestjs/swagger, nestjs-cls, nestjs-pino, helmet, pg-boss · **db:** PostgreSQL, Drizzle ORM + SQL migrations · **auth:** custom (argon2id, opaque DB sessions, email OTP/magic link, Google via arctic, TOTP via otplib) · **files:** Cloudflare R2 via AWS SDK v3 S3 client (RustFS locally) + sharp · **shared:** Zod schemas in `packages/shared` · **tests:** Vitest, RTL, Supertest, Testcontainers, Playwright, axe.
 
 ---
 
@@ -40,7 +40,7 @@ pnpm workspaces + Turborepo · **web:** Next.js ≥16 App Router, React 19, Tail
 
 | Task | Command |
 |---|---|
-| Start local infra | `docker compose up -d` (Postgres :5432, Mailpit :8025, MinIO :9000/:9001) |
+| Start local infra | `docker compose up -d` (Postgres :5432, Mailpit :8025, RustFS :9000/:9001) |
 | Stop / wipe infra | `docker compose down` · `docker compose down -v` (deletes local data) |
 | Install | `pnpm install` |
 | Migrate (roles + SQL + pg-boss) | `pnpm db:migrate` |
@@ -132,7 +132,7 @@ Adapt to existing conventions if the repo differs — don't create parallel stru
 
 ## Design system quick reference
 
-Tokens: `charcoal #18211D` · `lime #C8F169` (hover `#A9D846`, text on lime = charcoal) · `background #F6F7F3` · `card #FFFFFF` · `foreground #18201C` · `muted #6C756F` · `border #E6EAE5` · semantic success/warning/danger/info + soft variants. Lime only for primary actions, active nav, positive indicators.
+Tokens: `charcoal #18211D` · `lime #C8F169` (hover `#A9D846`, text on lime = charcoal) · `background #F6F7F3` · `card #FFFFFF` · `foreground #18201C` · `muted #6A736D` · `border #E6EAE5` · semantic success/warning/danger/info + soft variants. Lime only for primary actions, active nav, positive indicators.
 Radius card 16 / control 12 / pill full · Inter · 4px scale · touch targets ≥ 44px.
 Desktop: charcoal sidebar + compact top bar + right drawers. Mobile bottom nav — Trainer: Home/Leads/Clients/Calendar/More · Client: Home/Workouts/Progress/Check-in/More.
 Reuse shared components (PROMPT §7.2). Change tokens, not ad-hoc styles.
@@ -174,7 +174,7 @@ Reuse shared components (PROMPT §7.2). Change tokens, not ad-hoc styles.
 - Deletes are soft (`files.deleted_at`) and purged by a job after 7 days — R2 has no versioning to undo mistakes.
 - S3 client config for R2: `endpoint https://<ACCOUNT_ID>.r2.cloudflarestorage.com`, `region "auto"`, `requestChecksumCalculation` and `responseChecksumValidation` = `"WHEN_REQUIRED"`.
 - One R2 API token per environment, scoped to that environment's buckets. Lifecycle rules: `exports/` 1 day, `backups/daily/` 8 days, `backups/weekly/` 35 days, abort incomplete multipart uploads after 1 day.
-- Locally, MinIO mimics both buckets (public one has anonymous read). Same code path — only env values change.
+- Locally, RustFS mimics both buckets (public one has anonymous read). Same code path — only env values change.
 - Full setup and budget rules: PROMPT §17.7.
 
 ---

@@ -36,7 +36,7 @@ public lead capture → follow-up → trial → client conversion (+ package) �
 | # | Decision | Rationale |
 |---|----------|-----------|
 | D1 | **No Supabase.** Backend = **NestJS** API + **PostgreSQL**. Frontend = **Next.js** (UI only, no direct DB access). | Avoid free-tier pausing/limits; full control of auth, data and jobs. |
-| D2 | **Hosting = Railway** for compute and database in staging/production: `web` (Next.js), `api` (NestJS), `Postgres` (Railway database service), `db-backup` (cron). **File storage = Cloudflare R2** (S3-compatible, free tier 10 GB-month). **Local = Docker Desktop** (Postgres, Mailpit, MinIO standing in for R2). | No idle shutdowns; free object storage with zero egress; identical S3/SMTP/Postgres interfaces locally. |
+| D2 | **Hosting = Railway** for compute and database in staging/production: `web` (Next.js), `api` (NestJS), `Postgres` (Railway database service), `db-backup` (cron). **File storage = Cloudflare R2** (S3-compatible, free tier 10 GB-month). **Local = Docker Desktop** (Postgres, Mailpit, RustFS (RustFS-compatible; ADR-0036) standing in for R2). | No idle shutdowns; free object storage with zero egress; identical S3/SMTP/Postgres interfaces locally. |
 | D3 | **Monorepo** (pnpm workspaces + Turborepo): `apps/web`, `apps/api`, `packages/shared` (Zod schemas, enums, types), `packages/api-client` (generated typed client), `packages/config` (tsconfig/eslint). | Single source of truth for validation and types across web and API. |
 | D4 | **ORM = Drizzle** (node-postgres driver) with **SQL migrations** checked into `apps/api/src/db/migrations`. Constraints, RLS policies, triggers and functions are written in SQL migrations. | SQL-first control needed for RLS, exclusion constraints and `SET LOCAL` request context. |
 | D5 | **Tenant key = `workspace_id`.** One workspace per trainer in the MVP (`workspace_members.role = 'owner'`). Multi-trainer Studio stays disabled until its membership/permission model is built. | Studio-ready without a later migration. |
@@ -175,7 +175,7 @@ FitCoach helps independent personal trainers (≈10–50 clients, in-gym, online
 | Security | `helmet`, rate limiting on Postgres, CSRF checks (§12) |
 | PWA | Web manifest + service worker (Serwist or hand-rolled) |
 | Testing | Vitest (web + API, API via `unplugin-swc` for decorators), React Testing Library, Supertest, **Testcontainers** (real Postgres in Docker), Playwright, axe |
-| Local infra | Docker Desktop + `docker-compose.yml` (Postgres, Mailpit, MinIO) |
+| Local infra | Docker Desktop + `docker-compose.yml` (Postgres, Mailpit, RustFS) |
 | Hosting / CI | Railway · GitHub Actions |
 
 Rules: Server Components by default; client components only for interaction/browser APIs. **Business logic lives in the API** (NestJS services), never in React components. No microservices, Redis or AI infrastructure in the MVP.
@@ -215,7 +215,7 @@ packages/
   shared/                      Zod schemas, enums, constants, unit conversion, metric definitions
   api-client/                  generated OpenAPI types + thin fetch wrapper
   config/                      tsconfig, eslint, prettier presets
-docker-compose.yml             local Postgres, Mailpit, MinIO (+ optional full-stack profile)
+docker-compose.yml             local Postgres, Mailpit, RustFS (+ optional full-stack profile)
 docs/                          architecture.md, decisions/, rls.md, metrics.md, api.md,
                                deployment/railway.md, local-development.md, runbooks/
 ```
@@ -328,7 +328,7 @@ Boards show placeholder people, names, numbers and photos — never reuse them, 
 --background:      #F6F7F3
 --card:            #FFFFFF
 --foreground:      #18201C
---muted-foreground:#6C756F
+--muted-foreground:#6A736D   (was #6C756F — 4.42:1 on --background fails AA; ADR-0037)
 --border:          #E6EAE5
 --success / --warning / --danger / --info (+ *-soft backgrounds), all ≥ 4.5:1 for text
 ```
@@ -424,7 +424,7 @@ Tabs Active / Paused / Archived (counts); search, filters (goal, mode, program, 
 ### 8.3A Packages, sessions & payments (MVP core)
 Trainers sell session packs ("12 sessions in 6 weeks"), monthly plans ("unlimited, 1 month") and online coaching ("3 months online"). FitCoach tracks what was sold, what's been used and what's been paid — **it does not process payments.**
 
-**Package types** (`client_packages.kind`): `session_pack` (N sessions, optional expiry) · `time_based` (unlimited or N/week within start–end) · `online_coaching` (time-based, no session deduction).
+**Package types** (`client_packages.kind`): `session_pack` (N sessions, optional expiry) · `time_based` (unlimited or N/week within start–end) · `online_coaching` (time-based, no session deduction). For `time_based`, "N/week" is informational in the MVP: shown on the package card, never deducted or enforced (ADR-0031).
 **Fields:** client, name (from a workspace package preset or custom), kind, `sessions_included` (nullable for time-based), `starts_on`, `expires_on` (nullable), `price_paise`, `amount_due_paise` (defaults to price; supports discounts), `payment_due_on`, status (`active | completed | expired | cancelled`), notes. One **active** package per client at a time (partial unique index); a renewal creates a new package and closes the previous one (`completed` when sessions are used up, `expired` after `expires_on`).
 **Package presets** (Settings): reusable name, kind, sessions, duration, default price — so selling a package is two taps.
 **Session deduction:** when an appointment linked to a client is marked `completed` (or `no_show` / late-cancel per the D25 policy), the service writes one `package_session_ledger` row (`package_id`, `appointment_id`, `reason: attended | no_show | late_cancel | manual_adjustment`, `uses_session`, actor) **inside the attendance transaction**. Unique `(package_id, appointment_id)` makes it idempotent; undoing attendance writes a reversing row (never deletes). Manual adjustments need a note. If no active package exists, attendance still saves and the client shows "No active package".
@@ -564,7 +564,7 @@ Multi-record operations run in **one transaction in the service layer** (Drizzle
 
 | Integration | Interface | Prod adapter | Local / dev | "Not configured" behaviour |
 |---|---|---|---|---|
-| Storage | `StorageService` (put, presignGet, publicUrl, delete, usage) | Cloudflare R2 (private + public buckets) | MinIO in Docker (private bucket + anonymous-read public bucket) | uploads disabled with notice |
+| Storage | `StorageService` (put, presignGet, publicUrl, delete, usage) | Cloudflare R2 (private + public buckets) | RustFS in Docker (private bucket + anonymous-read public bucket) | uploads disabled with notice |
 | Email | `EmailProvider.send()` | SMTP or Resend | Mailpit (SMTP) or `console` → `email_outbox` | auth emails blocked in prod → health shows "Degraded" |
 | Billing (v1.1) | `BillingProvider` | Razorpay | `manual` | not built in MVP; plan assignment is manual |
 | Captcha | `CaptchaVerifier` | Cloudflare Turnstile | always-pass (non-prod only) | honeypot + timing + rate limit still apply |
@@ -652,7 +652,7 @@ Build only this in the MVP; §16.1 is the v1.1+ reference.
 - **Role & access:** `platform_owner` granted only via `pnpm platform:grant <email>` (audited CLI). Separate `/platform/login`, **TOTP MFA required** (AAL2), 12-hour absolute session. Not a trainer with extra buttons.
 - **Overview:** real counts only — total trainers, active this week, suspended, pending approval, total active clients (aggregate), activation rate (§1A.5), invites accepted, feedback awaiting review, failed jobs (24 h). No revenue, MRR or payment cards ("Billing not configured").
 - **Trainers:** search/filter (status, signup date, last active), detail with onboarding checklist progress, plan and limit, usage counts (leads, clients, appointments, workouts — counts only, no client PII), last active; actions: **approve signup**, **assign plan / change client limit / set trial end** (writes `workspace_plans`), suspend/reactivate (reason required, trainer notified in-app), send password-reset email, revoke sessions. All audited.
-- **Beta invites:** create/revoke invite codes (hashed), see uses.
+- **Beta invites:** create/revoke invite codes (hashed), see uses. Until this UI exists, the audited CLI `pnpm beta:invite` (built in step 1.3, same service) creates, lists and revokes codes (ADR-0029).
 - **Feedback inbox:** list `feedback` rows (trainer, page, message, date), mark triaged/closed. Trainers submit via "Send feedback" in More/Settings (page URL attached automatically; no screenshots in MVP).
 - **Health:** DB connectivity, pg-boss queue lag + failed jobs (24 h), last successful backup (from `db-backup` heartbeat), email provider, R2 reachability, **storage used vs budget** — each OK / Degraded / **Unknown**.
 - **Audit logs:** filterable table (actor, action, target, time), immutable.
@@ -705,7 +705,7 @@ Each app has its own Dockerfile, built from the **repo root context** using `tur
 
 `apps/api/Dockerfile` (sketch):
 ```dockerfile
-FROM node:22-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 RUN corepack enable
 FROM base AS prune
 WORKDIR /repo
@@ -717,7 +717,7 @@ COPY --from=prune /repo/out/json/ ./
 RUN pnpm install --frozen-lockfile
 COPY --from=prune /repo/out/full/ ./
 RUN pnpm turbo run build --filter=@fitcoach/api && pnpm --filter @fitcoach/api deploy --prod /app
-FROM node:22-bookworm-slim AS runner
+FROM node:24-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app ./
@@ -766,13 +766,13 @@ CMD ["node", "dist/main.js"]
 | `STORAGE_REGION` | api, db-backup | `auto` (local: `us-east-1`) |
 | `STORAGE_ACCESS_KEY_ID` / `STORAGE_SECRET_ACCESS_KEY` | api, db-backup | R2 API token scoped to **this environment's two buckets**, Object Read & Write |
 | `STORAGE_PRIVATE_BUCKET` / `STORAGE_PUBLIC_BUCKET` | api (+ private for db-backup) | e.g. `fitcoach-prod-private` / `fitcoach-prod-public` |
-| `STORAGE_PUBLIC_BASE_URL` | api | `https://media.<domain>` (staging: r2.dev URL; local: MinIO URL) |
+| `STORAGE_PUBLIC_BASE_URL` | api | `https://media.<domain>` (staging: r2.dev URL; local: RustFS URL) |
 | `STORAGE_KEY_PREFIX` | api | empty, or `pr-<n>/` for PR environments |
 | `STORAGE_BUDGET_BYTES` | api | soft budget across both buckets, default `8589934592` (8 GiB) |
 | `STORAGE_HARD_LIMIT_BYTES` | api | default `9663676416` (9 GiB) — uploads refused above this |
 | `EMAIL_PROVIDER` / `SMTP_URL` / `RESEND_API_KEY` / `EMAIL_FROM` | api | `console` forbidden when `APP_ENV=production` |
 | `SIGNUP_MODE` | api | `invite_code` (beta default) · `approval` · `open` |
-| `BETA_DEFAULT_CLIENT_LIMIT` | api | active-client limit for new beta workspaces, e.g. `50` |
+| `BETA_DEFAULT_CLIENT_LIMIT` | api | active-client limit for new beta workspaces, default `50` (ADR-0033) |
 | `BILLING_PROVIDER` / `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` | api | **v1.1** — leave unset in MVP |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | api | **v1.1** — leave unset in MVP |
 | `TURNSTILE_SECRET_KEY` | api | optional |
@@ -827,19 +827,19 @@ Note: uploads from Railway to R2 travel over the public internet and count towar
 `docker-compose.yml` (default profile):
 - `postgres` — `postgres:<same major as Railway>` on `5432`, volume `pgdata`, healthcheck `pg_isready`.
 - `mailpit` — SMTP `1025`, UI `http://localhost:8025`.
-- `minio` — S3 API `9000`, console `9001`; `minio-init` creates `fitcoach-local-private` and `fitcoach-local-public` (anonymous read on the public one to mimic the R2 custom domain). Same `StorageService` code path as R2 — only env values differ.
+- `storage` — RustFS (S3-compatible; MinIO stopped publishing images, ADR-0036): S3 API `9000`, console `9001/rustfs/console/`; `storage-init` (AWS CLI) creates `fitcoach-local-private` and `fitcoach-local-public` (anonymous read on the public one to mimic the R2 custom domain). Same `StorageService` code path as R2 — only env values differ.
 Profile `full`: also builds and runs `api` and `web` from their Dockerfiles for production-parity checks.
 
 Workflow:
 ```bash
 cp .env.example .env            # local values (pre-filled for compose services)
-docker compose up -d            # Postgres, Mailpit, MinIO
+docker compose up -d            # Postgres, Mailpit, RustFS
 pnpm install
 pnpm db:migrate                 # bootstrap roles + migrations + pg-boss schema
 pnpm db:seed                    # demo trainer/client + exercise library
 pnpm dev                        # turbo: web :3000, api :4000 (API_INTERNAL_URL=http://localhost:4000)
 ```
-Demo logins printed by the seed. Emails appear in Mailpit; files in MinIO. `pnpm db:reset` drops and rebuilds the local DB. Local cookies: `Secure` off when `APP_ENV=development`.
+Demo logins printed by the seed. Emails appear in Mailpit; files in RustFS. `pnpm db:reset` drops and rebuilds the local DB. Local cookies: `Secure` off when `APP_ENV=development`.
 
 ---
 
@@ -860,8 +860,8 @@ The exact prompts for each step are in **`PHASES.md`** (one Claude Code session 
 | Phase | Steps | Exit criteria |
 |---|---|---|
 | **0 · Plan** | Inspect repo, `docs/architecture.md`, ADRs for D1–D25 | Plan written; continue |
-| **1 · Foundation** | Monorepo + Docker compose → API skeleton + DB roles + RLS harness → auth (trainer signup with beta code, verify, login, sessions) → web shells + design tokens + `/api` proxy + typed client → storage (MinIO/R2) + files ledger → Dockerfiles + CI + **first Railway staging deploy** | Trainer can sign up and log in on Railway staging; RLS tests green |
-| **2 · Growth spine** | Settings basics + public page + enquiry → leads list + drawer + duplicates → follow-ups + communication log + message templates → calendar (day/week/agenda) + recurring series + trials + attendance → conversion → onboarding wizard | Enquiry → lead → follow-up → trial → client works end-to-end |
+| **1 · Foundation** | Monorepo + Docker compose → API skeleton + DB roles + RLS harness → auth (trainer signup with beta code, verify, login, sessions) → web shells + design tokens + `/api` proxy + typed client → storage (RustFS/R2) + files ledger → Dockerfiles + CI + **first Railway staging deploy** | Trainer can sign up and log in on Railway staging; RLS tests green |
+| **2 · Growth spine** | Settings basics + public page + enquiry → leads list + drawer + duplicates → follow-ups + communication log + message templates → conversion → onboarding wizard → calendar (day/week/agenda) + recurring series + trials + attendance (ADR-0028) | Enquiry → lead → follow-up → trial → client works end-to-end |
 | **3 · Coaching & packages** | Clients list/detail + lifecycle → **packages, ledger, payments** → exercise library seed + starter templates → program builder → assignment + planned sessions → live workout logging | Trainer can sell a package, run a session, log a workout; sessions left update |
 | **4 · Client app & results** | WhatsApp invite link + client login/OTP → client home/workouts/schedule/contact/profile → check-ins (client form + trainer inbox) → measurements + charts + sharing | Invited client checks in, logs a workout, sees shared progress and sessions left |
 | **5 · Dashboard & beta readiness** | Dashboard + attention groups + first-run checklist → notifications + pg-boss jobs → product events + feedback → CSV export → PWA install → legal pages + beta FAQ | Alpha with 1 trainer for a week with no data/access bugs |
