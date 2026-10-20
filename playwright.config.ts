@@ -1,15 +1,25 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI);
-
-// In CI the apps are already built, so run the production servers; locally reuse `pnpm dev` if it is running.
-const apiCommand = isCI ? "pnpm --filter @fitcoach/api start" : "pnpm --filter @fitcoach/api dev";
-const webCommand = isCI ? "pnpm --filter @fitcoach/web start" : "pnpm --filter @fitcoach/web dev";
+/**
+ * E2E runs against the production builds (run `pnpm build` first; `pnpm verify` does). The dev
+ * server recompiles routes on first visit and can reload pages mid-test, which makes parallel runs
+ * flaky. `E2E_DEV=1 pnpm test:e2e --workers=1` uses the dev servers for a quick local check.
+ */
+const useDevServers = process.env.E2E_DEV === "1";
+const apiCommand = useDevServers
+  ? "pnpm --filter @fitcoach/api dev"
+  : "pnpm --filter @fitcoach/api start";
+const webCommand = useDevServers
+  ? "pnpm --filter @fitcoach/web dev"
+  : "pnpm --filter @fitcoach/web start";
 
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",
   fullyParallel: true,
+  // Room for argon2 hashing and email delivery through Mailpit (and dev compiles with E2E_DEV=1).
+  expect: { timeout: 15_000 },
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : "list",

@@ -333,6 +333,27 @@
           "health"
         ]
       }
+    },
+    "/v1/platform/access": {
+      "get": {
+        "operationId": "PlatformController_access",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "platform"
+        ]
+      }
     }
   },
   "info": {

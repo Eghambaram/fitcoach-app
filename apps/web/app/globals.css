@@ -1,27 +1,113 @@
 @import "tailwindcss";
 
 /*
- * Design tokens from PROMPT §7.1. Step 1.4 completes the set (semantic soft colours, radii,
- * shadows, shadcn variable mapping). Change tokens here, not ad-hoc styles.
+ * FitCoach design tokens (PROMPT §7.1). Change tokens here, never ad-hoc colours in components.
+ * Every text/background pair below is ≥ 4.5:1 (WCAG AA). --muted-foreground was darkened from the
+ * spec's #6C756F, which failed on --background (ADR-0037).
  */
-@theme {
-  --color-charcoal: #18211d;
-  --color-lime: #c8f169;
-  --color-lime-hover: #a9d846;
-  --color-lime-foreground: #18211d;
-  --color-background: #f6f7f3;
-  --color-card: #ffffff;
-  --color-foreground: #18201c;
-  --color-muted-foreground: #6a736d; /* #6C756F in the original spec failed AA on the background (4.42:1) — ADR-0037 */
-  --color-border: #e6eae5;
+:root {
+  --charcoal: #18211d;
+  --charcoal-soft: #26302b;
+  --lime: #c8f169;
+  --lime-hover: #a9d846;
+  --lime-foreground: #18211d;
+  --background: #f6f7f3;
+  --card: #ffffff;
+  --foreground: #18201c;
+  --muted: #eef0ec;
+  --muted-foreground: #6a736d;
+  --border: #e6eae5;
+  --ring: #18211d;
 
+  /* Semantic, each with a soft background for pills and notices. */
+  --success: #18794e;
+  --success-soft: #e7f6ee;
+  --warning: #8a5300;
+  --warning-soft: #fdf3dc;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --info: #175cd3;
+  --info-soft: #e8f0fd;
+  --pink: #a11a5e;
+  --pink-soft: #fce8f2;
+  --neutral: #4f5752;
+  --neutral-soft: #eef0ec;
+
+  /* Dark surfaces (sidebar, hero). */
+  --sidebar: #18211d;
+  --sidebar-foreground: #f6f7f3;
+  --sidebar-muted: #b7c0ba;
+  --sidebar-hover: #26302b;
+
+  --shadow-card: 0 1px 2px rgb(24 33 29 / 0.06), 0 1px 3px rgb(24 33 29 / 0.04);
+  --shadow-drawer: -8px 0 32px rgb(24 33 29 / 0.16);
+}
+
+@theme inline {
+  --color-charcoal: var(--charcoal);
+  --color-charcoal-soft: var(--charcoal-soft);
+  --color-lime: var(--lime);
+  --color-lime-hover: var(--lime-hover);
+  --color-lime-foreground: var(--lime-foreground);
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-neutral: var(--neutral);
+  --color-neutral-soft: var(--neutral-soft);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-hover: var(--sidebar-hover);
+
+  /* Radius: card 16 · control 12 · pill full (§7.1). */
   --radius-card: 16px;
   --radius-control: 12px;
+
+  --shadow-card: var(--shadow-card);
+  --shadow-drawer: var(--shadow-drawer);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Visible focus everywhere (§7.4). */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* iPhone home-indicator space for the bottom nav (§14). */
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
 }

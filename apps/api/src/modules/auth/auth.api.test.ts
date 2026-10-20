@@ -400,6 +400,19 @@ describe("password reset", () => {
   });
 });
 
+describe("platform access (PROMPT §16.0)", () => {
+  it("refuses a signed-in trainer and anonymous callers", async () => {
+    const trainer = await verifiedTrainer();
+    const http = client();
+    await http.post("/v1/auth/login", trainer);
+
+    const asTrainer = await http.get("/v1/platform/access");
+    expect(asTrainer.status).toBe(403);
+    expect(asTrainer.body.code).toBe("FORBIDDEN");
+    expect((await request(app.getHttpServer()).get("/v1/platform/access")).status).toBe(401);
+  });
+});
+
 describe("workspace status", () => {
   it("keeps a pending workspace signed in but away from workspace routes", async () => {
     const trainer = await verifiedTrainer();
