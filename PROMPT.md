@@ -424,7 +424,7 @@ Tabs Active / Paused / Archived (counts); search, filters (goal, mode, program, 
 ### 8.3A Packages, sessions & payments (MVP core)
 Trainers sell session packs ("12 sessions in 6 weeks"), monthly plans ("unlimited, 1 month") and online coaching ("3 months online"). FitCoach tracks what was sold, what's been used and what's been paid — **it does not process payments.**
 
-**Package types** (`client_packages.kind`): `session_pack` (N sessions, optional expiry) · `time_based` (unlimited or N/week within start–end) · `online_coaching` (time-based, no session deduction).
+**Package types** (`client_packages.kind`): `session_pack` (N sessions, optional expiry) · `time_based` (unlimited or N/week within start–end) · `online_coaching` (time-based, no session deduction). For `time_based`, "N/week" is informational in the MVP: shown on the package card, never deducted or enforced (ADR-0031).
 **Fields:** client, name (from a workspace package preset or custom), kind, `sessions_included` (nullable for time-based), `starts_on`, `expires_on` (nullable), `price_paise`, `amount_due_paise` (defaults to price; supports discounts), `payment_due_on`, status (`active | completed | expired | cancelled`), notes. One **active** package per client at a time (partial unique index); a renewal creates a new package and closes the previous one (`completed` when sessions are used up, `expired` after `expires_on`).
 **Package presets** (Settings): reusable name, kind, sessions, duration, default price — so selling a package is two taps.
 **Session deduction:** when an appointment linked to a client is marked `completed` (or `no_show` / late-cancel per the D25 policy), the service writes one `package_session_ledger` row (`package_id`, `appointment_id`, `reason: attended | no_show | late_cancel | manual_adjustment`, `uses_session`, actor) **inside the attendance transaction**. Unique `(package_id, appointment_id)` makes it idempotent; undoing attendance writes a reversing row (never deletes). Manual adjustments need a note. If no active package exists, attendance still saves and the client shows "No active package".
@@ -652,7 +652,7 @@ Build only this in the MVP; §16.1 is the v1.1+ reference.
 - **Role & access:** `platform_owner` granted only via `pnpm platform:grant <email>` (audited CLI). Separate `/platform/login`, **TOTP MFA required** (AAL2), 12-hour absolute session. Not a trainer with extra buttons.
 - **Overview:** real counts only — total trainers, active this week, suspended, pending approval, total active clients (aggregate), activation rate (§1A.5), invites accepted, feedback awaiting review, failed jobs (24 h). No revenue, MRR or payment cards ("Billing not configured").
 - **Trainers:** search/filter (status, signup date, last active), detail with onboarding checklist progress, plan and limit, usage counts (leads, clients, appointments, workouts — counts only, no client PII), last active; actions: **approve signup**, **assign plan / change client limit / set trial end** (writes `workspace_plans`), suspend/reactivate (reason required, trainer notified in-app), send password-reset email, revoke sessions. All audited.
-- **Beta invites:** create/revoke invite codes (hashed), see uses.
+- **Beta invites:** create/revoke invite codes (hashed), see uses. Until this UI exists, the audited CLI `pnpm beta:invite` (built in step 1.3, same service) creates, lists and revokes codes (ADR-0029).
 - **Feedback inbox:** list `feedback` rows (trainer, page, message, date), mark triaged/closed. Trainers submit via "Send feedback" in More/Settings (page URL attached automatically; no screenshots in MVP).
 - **Health:** DB connectivity, pg-boss queue lag + failed jobs (24 h), last successful backup (from `db-backup` heartbeat), email provider, R2 reachability, **storage used vs budget** — each OK / Degraded / **Unknown**.
 - **Audit logs:** filterable table (actor, action, target, time), immutable.
@@ -705,7 +705,7 @@ Each app has its own Dockerfile, built from the **repo root context** using `tur
 
 `apps/api/Dockerfile` (sketch):
 ```dockerfile
-FROM node:22-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 RUN corepack enable
 FROM base AS prune
 WORKDIR /repo
@@ -717,7 +717,7 @@ COPY --from=prune /repo/out/json/ ./
 RUN pnpm install --frozen-lockfile
 COPY --from=prune /repo/out/full/ ./
 RUN pnpm turbo run build --filter=@fitcoach/api && pnpm --filter @fitcoach/api deploy --prod /app
-FROM node:22-bookworm-slim AS runner
+FROM node:24-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app ./
@@ -772,7 +772,7 @@ CMD ["node", "dist/main.js"]
 | `STORAGE_HARD_LIMIT_BYTES` | api | default `9663676416` (9 GiB) — uploads refused above this |
 | `EMAIL_PROVIDER` / `SMTP_URL` / `RESEND_API_KEY` / `EMAIL_FROM` | api | `console` forbidden when `APP_ENV=production` |
 | `SIGNUP_MODE` | api | `invite_code` (beta default) · `approval` · `open` |
-| `BETA_DEFAULT_CLIENT_LIMIT` | api | active-client limit for new beta workspaces, e.g. `50` |
+| `BETA_DEFAULT_CLIENT_LIMIT` | api | active-client limit for new beta workspaces, default `50` (ADR-0033) |
 | `BILLING_PROVIDER` / `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` | api | **v1.1** — leave unset in MVP |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | api | **v1.1** — leave unset in MVP |
 | `TURNSTILE_SECRET_KEY` | api | optional |
@@ -861,7 +861,7 @@ The exact prompts for each step are in **`PHASES.md`** (one Claude Code session 
 |---|---|---|
 | **0 · Plan** | Inspect repo, `docs/architecture.md`, ADRs for D1–D25 | Plan written; continue |
 | **1 · Foundation** | Monorepo + Docker compose → API skeleton + DB roles + RLS harness → auth (trainer signup with beta code, verify, login, sessions) → web shells + design tokens + `/api` proxy + typed client → storage (MinIO/R2) + files ledger → Dockerfiles + CI + **first Railway staging deploy** | Trainer can sign up and log in on Railway staging; RLS tests green |
-| **2 · Growth spine** | Settings basics + public page + enquiry → leads list + drawer + duplicates → follow-ups + communication log + message templates → calendar (day/week/agenda) + recurring series + trials + attendance → conversion → onboarding wizard | Enquiry → lead → follow-up → trial → client works end-to-end |
+| **2 · Growth spine** | Settings basics + public page + enquiry → leads list + drawer + duplicates → follow-ups + communication log + message templates → conversion → onboarding wizard → calendar (day/week/agenda) + recurring series + trials + attendance (ADR-0028) | Enquiry → lead → follow-up → trial → client works end-to-end |
 | **3 · Coaching & packages** | Clients list/detail + lifecycle → **packages, ledger, payments** → exercise library seed + starter templates → program builder → assignment + planned sessions → live workout logging | Trainer can sell a package, run a session, log a workout; sessions left update |
 | **4 · Client app & results** | WhatsApp invite link + client login/OTP → client home/workouts/schedule/contact/profile → check-ins (client form + trainer inbox) → measurements + charts + sharing | Invited client checks in, logs a workout, sees shared progress and sessions left |
 | **5 · Dashboard & beta readiness** | Dashboard + attention groups + first-run checklist → notifications + pg-boss jobs → product events + feedback → CSV export → PWA install → legal pages + beta FAQ | Alpha with 1 trainer for a week with no data/access bugs |

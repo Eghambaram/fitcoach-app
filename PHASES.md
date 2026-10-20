@@ -26,9 +26,9 @@ For steps with screens, Claude Code also opens the board rows that `docs/design/
 
 ## Progress
 
-- [ ] 0.1 Plan
+- [x] 0.1 Plan
 - [ ] 1.1 Monorepo + Docker · [ ] 1.2 API + DB roles + RLS · [ ] 1.3 Auth · [ ] 1.4 Web shells · [ ] 1.5 Storage · [ ] 1.6 Railway staging
-- [ ] 2.1 Settings + public page · [ ] 2.2 Leads · [ ] 2.3 Follow-ups + templates · [ ] 2.4 Calendar · [ ] 2.5 Conversion · [ ] 2.6 Onboarding
+- [ ] 2.1 Settings + public page · [ ] 2.2 Leads · [ ] 2.3 Follow-ups + templates · [ ] 2.4 Conversion · [ ] 2.5 Onboarding · [ ] 2.6 Calendar
 - [ ] 3.1 Clients · [ ] 3.2 Packages · [ ] 3.3 Exercises + templates · [ ] 3.4 Programs · [ ] 3.5 Live workout
 - [ ] 4.1 Client invite + login · [ ] 4.2 Client app · [ ] 4.3 Check-ins · [ ] 4.4 Progress
 - [ ] 5.1 Dashboard · [ ] 5.2 Notifications + jobs · [ ] 5.3 Beta readiness
@@ -38,7 +38,7 @@ For steps with screens, Claude Code also opens the board rows that `docs/design/
 
 ## Before you start (one-time, ~1 hour)
 
-- Install Docker Desktop, Node 22 LTS, pnpm, Git, and Claude Code. Create an empty GitHub repo.
+- Install Docker Desktop, Node 24 LTS, pnpm, Git, and Claude Code. Create an empty GitHub repo.
 - Unzip the FitCoach pack into the empty repo, so `CLAUDE.md`, `PROMPT.md`, `PHASES.md`, `MVP_REVIEW.md`, `README.md` and `docs/` sit at the root, then commit. The reference boards and their screen index are already in `docs/design/`.
 - Create a Railway account and an empty project `fitcoach` (environments `staging` and `production`).
 - Create a Cloudflare account, enable R2, and create the four buckets from PROMPT §17.7. Buy your domain and add it to Cloudflare (needed for `media.<domain>` and email).
@@ -64,7 +64,7 @@ Then stop and summarize the open questions for me.
 
 ### 1.1 Monorepo + local Docker
 ```
-Implement PROMPT §4.1 and §18: pnpm workspaces + Turborepo with apps/web (Next.js ≥16, App Router, TypeScript strict, Tailwind, shadcn/ui), apps/api (NestJS, TypeScript strict), packages/shared, packages/api-client, packages/config. Add docker-compose.yml with Postgres (same major version as Railway), Mailpit and MinIO with both local buckets (§18). Add .env.example files, root scripts from the CLAUDE.md Commands table (stubs are fine where the feature doesn't exist yet, but they must exit cleanly), ESLint/Prettier, Vitest in both apps, Playwright skeleton, and a GitHub Actions CI workflow running typecheck, lint and unit tests.
+Implement PROMPT §4.1 and §18: pnpm workspaces + Turborepo with apps/web (Next.js ≥16, App Router, TypeScript strict, Tailwind, shadcn/ui), apps/api (NestJS, TypeScript strict), packages/shared, packages/api-client, packages/config. Pin Node 24 LTS (engines, .nvmrc, CI, Docker images — ADR-0026). Add docker-compose.yml with Postgres 17 (until Railway's version is confirmed — ADR-0027), Mailpit and MinIO with both local buckets (§18). Add .env.example files, root scripts from the CLAUDE.md Commands table (stubs are fine where the feature doesn't exist yet, but they must exit cleanly), ESLint/Prettier, Vitest in both apps, Playwright skeleton, and a GitHub Actions CI workflow running typecheck, lint and unit tests.
 [QUALITY BAR]
 ```
 **Done when:** `docker compose up -d && pnpm install && pnpm dev` starts web on :3000 and api on :4000; CI is green.
@@ -78,14 +78,14 @@ Implement PROMPT §4.3, §4.5, §10.1, §10.5, §10.6 and §12.1 foundations in 
 
 ### 1.3 Authentication
 ```
-Implement PROMPT §4.4 and §12.2 for trainers and the auth base for clients: users, sessions, auth_tokens, profiles, workspaces, workspace_members, trainer_settings, workspace_plans (beta plan seeded), beta_invites. Endpoints: signup (3-step data: account → profile → business; requires a beta invite code when SIGNUP_MODE=invite_code), verify email, login, logout, me, forgot/reset password, active sessions list + revoke. argon2id, opaque hashed session cookie fc_session, constant-time non-enumerating responses, Postgres rate limits. Email via the EmailProvider abstraction (SMTP → Mailpit locally; console adapter non-prod only). Guards: SessionGuard, RolesGuard, WorkspaceGuard, @Public(). On signup, copy default message templates and package presets into the new workspace (create those two tables now with defaults from §8.12 and §8.3A). Add `pnpm platform:grant` CLI (platform_roles) but no platform UI yet.
+Implement PROMPT §4.4 and §12.2 for trainers and the auth base for clients: users, sessions, auth_tokens, profiles, workspaces, workspace_members, trainer_settings, workspace_plans (beta plan seeded), beta_invites. Endpoints: signup (3-step data: account → profile → business; requires a beta invite code when SIGNUP_MODE=invite_code), verify email, login, logout, me, forgot/reset password, active sessions list + revoke. argon2id, opaque hashed session cookie fc_session, constant-time non-enumerating responses, Postgres rate limits. Email via the EmailProvider abstraction (SMTP → Mailpit locally; console adapter non-prod only). Guards: SessionGuard, RolesGuard, WorkspaceGuard, @Public(). On signup, copy default message templates and package presets into the new workspace (create those two tables now with defaults from §8.12 and §8.3A). Add `pnpm platform:grant` CLI (platform_roles) but no platform UI yet. Add an audited `pnpm beta:invite` CLI (create with uses/expiry, list, revoke) so beta codes exist before step 6.1 (ADR-0029). Signup step 3 "Business" collects business/display name, public page slug (prefilled, unique), city, coaching modes and timezone (default Asia/Kolkata); phone optional (ADR-0032). New workspaces get the beta plan with BETA_DEFAULT_CLIENT_LIMIT (default 50, ADR-0033). Create product_events and a small no-PII track() helper now and record trainer_signed_up and email_verified (ADR-0030).
 [QUALITY BAR]
 ```
 **Done when:** you can sign up with a beta code, receive the verification email in Mailpit, log in, see sessions, and log out; a second trainer can't access the first trainer's data in tests.
 
 ### 1.4 Web shells + design system + API proxy
 ```
-Implement PROMPT §6, §7 and §4.2 in apps/web: design tokens (§7.1) as CSS variables + Tailwind theme, Inter, shared components from §7.2 (start with AppShell, sidebar, BottomNav, PageHeader, KpiCard, DataTable↔CardList, FilterBar, StatusPill, Drawer, Stepper, EmptyState, ErrorState, PermissionDenied, ConfirmDialog, Toast, OfflineBanner, NotConfiguredNotice), the trainer/client/platform layouts with MVP navigation only (§6), app/api/[...path] streaming proxy, lib/api/server.ts and browser.ts using packages/api-client (generated from the API's OpenAPI), proxy.ts coarse redirects, and the public pages: signup (3 steps, matching the "Trainer Sign Up" mockup), login, forgot/reset, verify-email. Match the reference images in docs/design/ for layout and feel, but follow §7.3 (no brand logos, fake numbers or reviews).
+Implement PROMPT §6, §7 and §4.2 in apps/web: design tokens (§7.1) as CSS variables + Tailwind theme, Inter, shared components from §7.2 (start with AppShell, sidebar, BottomNav, PageHeader, KpiCard, DataTable↔CardList, FilterBar, StatusPill, Drawer, Stepper, EmptyState, ErrorState, PermissionDenied, ConfirmDialog, Toast, OfflineBanner, NotConfiguredNotice), the trainer/client/platform layouts with MVP navigation only (§6), app/api/[...path] streaming proxy, lib/api/server.ts and browser.ts using packages/api-client (generated from the API's OpenAPI), proxy.ts coarse redirects, and the public pages: signup (3 steps, matching the "Trainer Sign Up" mockup), login, forgot/reset, verify-email. Match the reference images in docs/design/ for layout and feel, but follow §7.3 (no brand logos, fake numbers or reviews). Draw an original SVG logo mark + "FITCOACH" wordmark in the lime/charcoal tokens; use gradients/illustrations instead of people photos (ADR-0034).
 [QUALITY BAR]
 ```
 **Done when:** signup/login work through the browser on mobile and desktop; the trainer shell shows only MVP nav items; navigating to /platform as a trainer is refused by the API.
@@ -130,27 +130,29 @@ Implement PROMPT §8.2 follow-ups (create from drawer and list, due/overdue stat
 ```
 **Done when:** a follow-up shows as Today/Overdue, WhatsApp opens on your phone with the right prefilled text, and the contact appears in the Activity timeline.
 
-### 2.4 Calendar, recurring series, trials, attendance
-```
-Implement PROMPT §8.6 and §10.3 scheduling: appointments with the exclusion constraint, appointment_changes, appointment_series with expansion (≤ 52 occurrences) and per-occurrence conflict reporting, edit this / this-and-following, reschedule, cancel with reason and late-cancel flag (D25 window from settings), mark attendance (completed / no-show), session notes, day + week views on desktop, agenda + day on mobile, trial booking from the lead drawer (Book Trial Session mockup) moving the lead to trial_booked. Package deduction is NOT built yet — leave a clearly named service hook that step 3.2 will implement.
-[QUALITY BAR]
-```
-**Done when:** you can book a trial, create a Mon/Wed/Fri series for 8 weeks, see a conflict when you double-book, and mark attendance.
+> Step order changed in step 0.1 (ADR-0028): conversion and onboarding come **before** the calendar, because recurring series and client sessions need the `clients` table.
 
-### 2.5 Lead → client conversion
+### 2.4 Lead → client conversion
 ```
-Implement PROMPT §8.2 "Lead → client conversion" exactly: POST /leads/:id/convert with Idempotency-Key, single transaction, SELECT … FOR UPDATE, link-to-existing-client option, active-client limit from workspace_plans (PLAN_LIMIT error), client creation with attribution and source_lead_id, lead updates + activities + activity_events. Create the clients table (§10.2, §10.3 uniques) with RLS. UI: the "Convert to Client" confirm sheet from the mockup. Leave the "initial package" field visible but disabled with "Available after packages are set up" until step 3.2, and wire "Convert & Continue" to open the onboarding wizard route (built next).
+Implement PROMPT §8.2 "Lead → client conversion" exactly: POST /leads/:id/convert with Idempotency-Key, single transaction, SELECT … FOR UPDATE, link-to-existing-client option, active-client limit from workspace_plans (PLAN_LIMIT error), client creation with attribution and source_lead_id, lead updates + activities + activity_events. Create the clients table (§10.2, §10.3 uniques) with RLS, and extend the step 2.2 duplicate check to include clients. UI: the "Convert to Client" confirm sheet from the mockup. Leave the "initial package" field visible but disabled with "Available after packages are set up" until step 3.2, and wire "Convert & Continue" to open the onboarding wizard route (built next).
 Include a concurrency test proving double-submit creates exactly one client and a forced-failure test proving the lead is not marked converted.
 [QUALITY BAR]
 ```
 **Done when:** converting a lead twice quickly still gives one client; the lead's history is preserved.
 
-### 2.6 Onboarding wizard
+### 2.5 Onboarding wizard
 ```
-Implement PROMPT §8.4: the 4-step wizard (Basic info → Goals & training → Baseline & consent → Review & create) with Save as Draft on every step (client_onboarding_drafts), ?draft= and ?fromLead= prefill, optional baseline measurements (create measurement_types + measurements tables now, append-only), consents with notice version/timestamp/source/actor (client_consents), client_goals, finalize in one transaction. Match the Add New Client mockups. Optional fields never block creation.
+Implement PROMPT §8.4: the 4-step wizard (Basic info → Goals & training → Baseline & consent → Review & create) with Save as Draft on every step (client_onboarding_drafts), ?draft= and ?fromLead= prefill, optional baseline measurements (create measurement_types + measurements tables now, append-only), consents with notice version/timestamp/source/actor (client_consents), client_goals, finalize in one transaction. Match the Add New Client mockups. Optional fields never block creation. In Review & create, show the optional package and program fields disabled with honest copy until steps 3.2 and 3.4.
 [QUALITY BAR]
 ```
 **Done when:** you can start a client, leave halfway, come back to the draft, and create the client with only the required fields.
+
+### 2.6 Calendar, recurring series, trials, attendance
+```
+Implement PROMPT §8.6 and §10.3 scheduling: appointments with the exclusion constraint (ends_at maintained by a trigger — a generated column can't use timestamptz + interval because it isn't immutable), appointment_changes, appointment_series for clients with expansion (≤ 52 occurrences) and per-occurrence conflict reporting, edit this / this-and-following, reschedule, cancel with reason and late-cancel flag (D25 window from settings), mark attendance (completed / no-show), session notes, day + week views on desktop, agenda + day on mobile, trial booking from the lead drawer (Book Trial Session mockup) moving the lead to trial_booked. Package deduction is NOT built yet — leave a clearly named service hook that step 3.2 will implement.
+[QUALITY BAR]
+```
+**Done when:** you can book a trial, create a Mon/Wed/Fri series for 8 weeks for a client, see a conflict when you double-book, and mark attendance.
 
 ---
 
@@ -165,7 +167,7 @@ Implement PROMPT §8.3 clients list (Active/Paused/Archived tabs with counts, se
 
 ### 3.2 Packages, sessions remaining, payments
 ```
-Implement PROMPT §8.3A completely, plus the D25 policy: client_packages, package_presets usage, package_session_ledger, client_payments (append-only, voids), one-active-package rule, renewal, expiry, sell-package sheet (from client detail, conversion and onboarding — enable the field left disabled in step 2.5), Packages tab with "8 of 12 used" progress, payments list and "Record payment", amount due, and the attendance hook from step 2.4 now writing ledger rows in the same transaction (attended / no-show / late cancel per policy; reversal on un-marking; manual adjustment with note). INR formatting with Indian grouping; money in paise.
+Implement PROMPT §8.3A completely, plus the D25 policy: client_packages, package_presets usage, package_session_ledger, client_payments (append-only, voids), one-active-package rule, renewal, expiry, sell-package sheet (from client detail, conversion and onboarding — enable the fields left disabled in steps 2.4 and 2.5), Packages tab with "8 of 12 used" progress, payments list and "Record payment", amount due, and the attendance hook from step 2.6 now writing ledger rows in the same transaction (attended / no-show / late cancel per policy; reversal on un-marking; manual adjustment with note). Time-based and online packages never deduct sessions; "N per week" is shown on the package card but not enforced (ADR-0031). INR formatting with Indian grouping; money in paise.
 Tests must prove: double-submitting attendance deducts once; un-marking reverses; renewal closes the old package; the client API never returns prices or payments.
 [QUALITY BAR]
 ```

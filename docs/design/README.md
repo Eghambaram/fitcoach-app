@@ -61,9 +61,9 @@ They are **not** a feature list. **PROMPT.md decides what gets built.** Where a 
 | Welcome "Your Coaching Business, Simplified." | **Adjust** | Keep it. "Continue with Email" leads to login; hide "Continue with Google" (v1.1). | §12.2 | 1.4 |
 | Home "Good morning, Alex" | **Adjust** | Week strip and Today list as shown. Add compact KPI cards and Needs attention below. Bottom nav → Home · Leads · Clients · Calendar · More. | §8.1 | 5.1 |
 | Clients list | **Build** | Tabs Active/Paused/Archived with counts, search, status pills, + button. | §8.3 | 3.1 |
-| Add New Client — Basic Information | **Build** | Step 1 of **4**; WhatsApp/Phone/Email preferred contact chips. | §8.4 | 2.6 |
-| Goals & Training | **Build** | Step 2; mode radio cards, goal radios. | §8.4 | 2.6 |
-| Client & Training — Baseline & Consent | **Adjust** | Step 3; keep the measurement fields and consent checkbox. Add the separate photo consent. Add **Step 4 Review & create**, with optional package and program, then "Invite via WhatsApp". Keep Save as Draft on every step. | §8.4 | 2.6 |
+| Add New Client — Basic Information | **Build** | Step 1 of **4**; WhatsApp/Phone/Email preferred contact chips. | §8.4 | 2.5 |
+| Goals & Training | **Build** | Step 2; mode radio cards, goal radios. | §8.4 | 2.5 |
+| Client & Training — Baseline & Consent | **Adjust** | Step 3; keep the measurement fields and consent checkbox. Add the separate photo consent. Add **Step 4 Review & create**, with optional package and program, then "Invite via WhatsApp". Keep Save as Draft on every step. | §8.4 | 2.5 |
 | Client Progress (mobile) | **Build** | Metric selector, range selector, chart tooltip, latest measurements list with change. | §8.8 | 4.4 |
 
 ---
@@ -78,8 +78,8 @@ They are **not** a feature list. **PROMPT.md decides what gets built.** Where a 
 | Mobile — Leads list | **Build** | Stage chips, overdue dot, follow-up line, + button. Bottom nav Home · Leads · Clients · Calendar · More. | §8.2 | 2.2 |
 | Mobile — Lead detail | **Build** | Call / WhatsApp / Schedule buttons; Overview/Activity/Notes; Book Trial / Convert footer. | §8.2 | 2.2 |
 | Mobile — Add New Lead | **Build** | Fields as shown. "How did they hear about you?" maps to `source`. Duplicate-match panel appears inline. | §8.2 | 2.2 |
-| Mobile — Book Trial Session | **Build** | Date, start time, session type (in-person/online), location or link, notes. Conflict error shown inline. | §8.2, §8.6 | 2.4 |
-| Mobile — Convert to Client | **Build** | Checklist (import info, preserve history, set initial package, start onboarding), Initial Package select, Start Date, Convert & Continue. The package select is enabled in step 3.2. | §8.2, §8.3A | 2.5, 3.2 |
+| Mobile — Book Trial Session | **Build** | Date, start time, session type (in-person/online), location or link, notes. Conflict error shown inline. | §8.2, §8.6 | 2.6 |
+| Mobile — Convert to Client | **Build** | Checklist (import info, preserve history, set initial package, start onboarding), Initial Package select, Start Date, Convert & Continue. The package select is enabled in step 3.2. | §8.2, §8.3A | 2.4, 3.2 |
 | Mobile — Your Enquiry Page (share) | **Build** | URL with copy, QR code, Share Page, form preview, Preview button. | §8.2 | 2.1 |
 
 ---

@@ -21,7 +21,7 @@ This repository starts with a spec, not code. Claude Code builds the app from th
 ## How to start
 
 1. Create an empty GitHub repo, unzip this pack into it, and commit.
-2. Do the one-time setup in `PHASES.md` → "Before you start" (Docker Desktop, Node 22, pnpm, Claude Code, Railway project, Cloudflare R2 buckets, domain, email provider).
+2. Do the one-time setup in `PHASES.md` → "Before you start" (Docker Desktop, Node 24, pnpm, Claude Code, Railway project, Cloudflare R2 buckets, domain, email provider).
 3. Open Claude Code in the repo and paste prompt **0.1** from `PHASES.md`.
 4. Work through the steps in order, one fresh session per step. Check each step's "Done when" list yourself on your phone and desktop before moving on.
 
