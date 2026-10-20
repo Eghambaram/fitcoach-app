@@ -11,4 +11,9 @@ export default [
       "@typescript-eslint/no-extraneous-class": ["error", { allowWithDecorator: true }],
     },
   },
+  {
+    // CLI entry points (migrate, reset, OpenAPI export) report progress on stdout.
+    files: ["src/db/migrate.ts", "src/db/reset.ts", "src/openapi.ts"],
+    rules: { "no-console": "off" },
+  },
 ];

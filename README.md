@@ -10,6 +10,7 @@ Needs Docker Desktop (running), Node 24 and pnpm 12. Details, URLs and troublesh
 cp .env.example .env
 docker compose up -d     # Postgres :5432, Mailpit :8025, RustFS (S3) :9000/:9001
 pnpm install
+pnpm db:migrate
 pnpm dev                 # web http://localhost:3000 · api http://localhost:4000
 ```
 

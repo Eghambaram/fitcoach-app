@@ -1,34 +1,53 @@
-import { type INestApplication } from "@nestjs/common";
-import { Test } from "@nestjs/testing";
-import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { AppModule } from "../../app.module";
-import { configureApp } from "../../app.setup";
+import type { ReadinessResponse } from "@fitcoach/shared";
+import type { Response } from "express";
+import { describe, expect, it, vi } from "vitest";
+import { HealthController } from "./health.controller";
+import type { HealthService } from "./health.service";
 
-describe("GET /v1/health", () => {
-  let app: INestApplication;
+function controllerWith(result: ReadinessResponse) {
+  const health = { readiness: vi.fn(async () => result) } as unknown as HealthService;
+  const response = { status: vi.fn() } as unknown as Response;
+  return { controller: new HealthController(health), response };
+}
 
-  beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication();
-    configureApp(app);
-    await app.init();
+describe("HealthController", () => {
+  it("reports liveness without dependencies", () => {
+    const { controller } = controllerWith({
+      status: "ok",
+      checks: { database: { status: "ok" }, jobs: { status: "ok" }, storage: { status: "ok" } },
+    });
+
+    expect(controller.liveness()).toEqual({ status: "ok" });
   });
 
-  afterAll(async () => {
-    await app.close();
+  it("answers 200 when every dependency is ready", async () => {
+    const { controller, response } = controllerWith({
+      status: "ok",
+      checks: {
+        database: { status: "ok" },
+        jobs: { status: "ok" },
+        storage: { status: "not_configured" },
+      },
+    });
+
+    await controller.readiness(response);
+
+    expect(response.status).toHaveBeenCalledWith(200);
   });
 
-  it("reports liveness without touching the database", async () => {
-    const response = await request(app.getHttpServer()).get("/v1/health");
+  it("answers 503 when a dependency is degraded", async () => {
+    const { controller, response } = controllerWith({
+      status: "degraded",
+      checks: {
+        database: { status: "degraded" },
+        jobs: { status: "ok" },
+        storage: { status: "not_configured" },
+      },
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: "ok" });
-  });
+    const body = await controller.readiness(response);
 
-  it("serves routes only under the /v1 prefix", async () => {
-    const response = await request(app.getHttpServer()).get("/health");
-
-    expect(response.status).toBe(404);
+    expect(response.status).toHaveBeenCalledWith(503);
+    expect(body.checks.database.status).toBe("degraded");
   });
 });

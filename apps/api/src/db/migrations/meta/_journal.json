@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792477222039,
+      "tag": "0000_foundation_extensions",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792477223675,
+      "tag": "0001_foundation_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792477225176,
+      "tag": "0002_foundation_rls",
+      "breakpoints": true
+    }
+  ]
+}

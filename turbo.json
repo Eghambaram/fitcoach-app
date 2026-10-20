@@ -20,6 +20,14 @@
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
+    },
+    "test:db": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:api": {
+      "dependsOn": ["^build"],
+      "cache": false
     }
   }
 }
