@@ -14,6 +14,9 @@ const GENERIC_MESSAGES: Record<ErrorCode, string> = {
   VALIDATION_FAILED: "Some details need fixing.",
   CSRF_REJECTED: "This request was blocked for your security. Reload the page and try again.",
   UNAUTHENTICATED: "Please sign in to continue.",
+  INVALID_CREDENTIALS: "That email and password don't match.",
+  EMAIL_NOT_VERIFIED: "Confirm your email address first.",
+  TOKEN_INVALID: "This link is invalid or has expired. Request a new one.",
   FORBIDDEN: "You don't have access to this.",
   NOT_FOUND: "We couldn't find that.",
   METHOD_NOT_ALLOWED: "That action isn't supported here.",
@@ -24,6 +27,7 @@ const GENERIC_MESSAGES: Record<ErrorCode, string> = {
   INVALID_REFERENCE: "Something this depends on no longer exists.",
   PLAN_LIMIT: "You've reached the limit of your plan.",
   WORKSPACE_READ_ONLY: "This workspace is read-only right now.",
+  WORKSPACE_INACTIVE: "This workspace isn't active.",
   INTERNAL_ERROR: "Something went wrong on our side. Please try again.",
 };
 

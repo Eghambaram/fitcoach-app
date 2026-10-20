@@ -8,6 +8,7 @@ const webCommand = isCI ? "pnpm --filter @fitcoach/web start" : "pnpm --filter @
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,

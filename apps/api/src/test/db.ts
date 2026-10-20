@@ -78,3 +78,23 @@ export async function sqlState(promise: Promise<unknown>): Promise<string | unde
     return (error as { code?: string }).code;
   }
 }
+
+/**
+ * SQLSTATE of one statement inside an open transaction, using a savepoint so a refused statement
+ * doesn't abort the rest of the transaction (Postgres would answer 25P02 to everything after it).
+ */
+export async function sqlStateIn(
+  client: PoolClient,
+  query: string,
+  params: unknown[] = [],
+): Promise<string | undefined> {
+  await client.query("savepoint attempt");
+  try {
+    await client.query(query, params);
+    await client.query("release savepoint attempt");
+    return undefined;
+  } catch (error) {
+    await client.query("rollback to savepoint attempt");
+    return (error as { code?: string }).code;
+  }
+}

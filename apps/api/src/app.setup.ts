@@ -1,5 +1,6 @@
 import type { INestApplication } from "@nestjs/common";
 import { DocumentBuilder, type OpenAPIObject, SwaggerModule } from "@nestjs/swagger";
+import cookieParser from "cookie-parser";
 import type { Express } from "express";
 import helmet from "helmet";
 import { cleanupOpenApiDoc } from "nestjs-zod";
@@ -18,6 +19,7 @@ export function configureApp(app: INestApplication): void {
   express.set("trust proxy", "loopback, linklocal, uniquelocal");
 
   app.use(helmet());
+  app.use(cookieParser());
   app.setGlobalPrefix(API_PREFIX);
 
   // OpenAPI is served only outside production (PROMPT §15).

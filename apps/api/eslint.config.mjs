@@ -13,7 +13,13 @@ export default [
   },
   {
     // CLI entry points (migrate, reset, OpenAPI export) report progress on stdout.
-    files: ["src/db/migrate.ts", "src/db/reset.ts", "src/openapi.ts"],
+    files: [
+      "src/db/migrate.ts",
+      "src/db/reset.ts",
+      "src/db/seed.ts",
+      "src/openapi.ts",
+      "src/cli/**",
+    ],
     rules: { "no-console": "off" },
   },
 ];

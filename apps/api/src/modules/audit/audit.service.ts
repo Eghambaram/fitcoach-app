@@ -22,27 +22,32 @@ export interface AuditEntry {
 }
 
 /**
- * Writes immutable audit entries (PROMPT §12.1). Pass the transaction that performs the change, so the
- * audit row commits or rolls back with it. With a request transaction (fitcoach_app) RLS only accepts
- * rows matching the session's own user/workspace/actor; SystemDb transactions may record any actor.
+ * Writes an immutable audit entry (PROMPT §12.1) in the transaction that performs the change, so it
+ * commits or rolls back with it. In a request transaction (fitcoach_app) RLS only accepts entries
+ * matching the session's own user/workspace/actor; SystemDb transactions may record any actor.
+ * No RETURNING: fitcoach_app has INSERT but not SELECT on audit_logs.
  */
+export async function recordAudit(tx: Tx, entry: AuditEntry): Promise<void> {
+  await tx.insert(auditLogs).values({
+    actorKind: entry.actorKind,
+    actorUserId: entry.actorUserId,
+    workspaceId: entry.workspaceId,
+    action: entry.action,
+    targetType: entry.targetType,
+    targetId: entry.targetId,
+    reason: entry.reason,
+    before: entry.before,
+    after: entry.after,
+    ipHash: entry.ipHash,
+    userAgent: entry.userAgent?.slice(0, 300),
+    requestId: entry.requestId,
+  });
+}
+
+/** Injectable wrapper so services can depend on auditing (and tests can replace it). */
 @Injectable()
 export class AuditService {
-  async record(tx: Tx, entry: AuditEntry): Promise<void> {
-    // No RETURNING: fitcoach_app has INSERT but not SELECT on audit_logs.
-    await tx.insert(auditLogs).values({
-      actorKind: entry.actorKind,
-      actorUserId: entry.actorUserId,
-      workspaceId: entry.workspaceId,
-      action: entry.action,
-      targetType: entry.targetType,
-      targetId: entry.targetId,
-      reason: entry.reason,
-      before: entry.before,
-      after: entry.after,
-      ipHash: entry.ipHash,
-      userAgent: entry.userAgent?.slice(0, 300),
-      requestId: entry.requestId,
-    });
+  record(tx: Tx, entry: AuditEntry): Promise<void> {
+    return recordAudit(tx, entry);
   }
 }

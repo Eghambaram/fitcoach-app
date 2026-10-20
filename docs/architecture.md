@@ -1,7 +1,7 @@
 # FitCoach — Architecture (MVP closed beta)
 
 > Target architecture for the MVP. Product behaviour and acceptance criteria live in `PROMPT.md`; working rules in `CLAUDE.md`; decisions in `docs/decisions/`. Section references (§) point to `PROMPT.md`.
-> Status: steps 1.1–1.2 landed (monorepo, local infra, CI, API foundation, DB roles and RLS harness). Later steps in `docs/mvp-plan.md` are still planned. Update this file as each phase lands.
+> Status: steps 1.1–1.3 landed (monorepo, local infra, CI, API foundation, DB roles and RLS harness, trainer auth). Later steps in `docs/mvp-plan.md` are still planned. Update this file as each phase lands.
 
 ---
 

@@ -4,6 +4,7 @@ import { createZodDto } from "nestjs-zod";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
+import { Public } from "./auth/decorators";
 import { DbContext } from "../db/db-context";
 import { createTestApp, WEB_HEADERS } from "../test/create-test-app";
 
@@ -11,7 +12,8 @@ class ProbeBodyDto extends createZodDto(
   z.object({ name: z.string().min(2), phone: z.string().regex(/^\+\d{8,15}$/) }),
 ) {}
 
-/** Test-only endpoints that exercise the global pipeline (guards, pipes, interceptor, filter). */
+/** Test-only public endpoints that exercise the global pipeline (guards, pipes, interceptor, filter). */
+@Public()
 @Controller("test-probe")
 class ProbeController {
   constructor(private readonly db: DbContext) {}
