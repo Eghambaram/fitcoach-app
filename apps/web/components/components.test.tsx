@@ -136,13 +136,16 @@ describe("FilterBar", () => {
 });
 
 describe("EnvironmentRibbon", () => {
-  it("labels staging and stays hidden everywhere else", () => {
+  it("labels staging as its own landmark and stays hidden everywhere else", () => {
     const { rerender } = render(<EnvironmentRibbon appEnv="staging" />);
-    expect(screen.getByRole("note")).toHaveTextContent("Staging environment — test data only");
+    // A landmark, so axe's "region" rule passes: it renders outside each page's header/main.
+    expect(screen.getByRole("complementary", { name: "Environment" })).toHaveTextContent(
+      "Staging environment — test data only",
+    );
 
     for (const appEnv of ["production", "development", "test", undefined]) {
       rerender(<EnvironmentRibbon appEnv={appEnv} />);
-      expect(screen.queryByRole("note")).not.toBeInTheDocument();
+      expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     }
   });
 });
