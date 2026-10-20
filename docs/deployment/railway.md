@@ -40,6 +40,8 @@ You need: `DB_APP_PASSWORD`, `DB_SYSTEM_PASSWORD`, `SESSION_SECRET`, `IP_HASH_SA
 
 ## Step by step
 
+Ready-to-paste variable files with placeholders: [`infra/railway/staging/api.env.example`](../../infra/railway/staging/api.env.example) (replace every `<PLACEHOLDER>`), [`web.env.example`](../../infra/railway/staging/web.env.example) (paste as is) and [`github.env.example`](../../infra/railway/staging/github.env.example) (the smoke-test repository variable). Paste the filled-in values into Railway and GitHub only. Never commit them.
+
 ### 1. Project and environment
 
 1. Railway dashboard → **New Project** → **Empty Project**. Rename it `fitcoach` (Settings → General).
