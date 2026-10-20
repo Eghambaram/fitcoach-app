@@ -20,22 +20,22 @@ test.describe("foundation smoke", () => {
     expect(await response.json()).toEqual({ status: "ok" });
   });
 
-  // Direct API calls from the test runner only; browsers always go through the web origin (CLAUDE.md rule 10).
-  // The /api proxy that browsers will use arrives in step 1.4.
-  test("api liveness endpoint is up", async ({ request }) => {
-    const response = await request.get("http://localhost:4000/v1/health");
+  // Through the web origin's /api proxy, as browsers do (CLAUDE.md rule 10). This also works against a
+  // deployed environment, where the API has no public domain (post-deploy smoke, E2E_BASE_URL).
+  test("api liveness endpoint is reachable through the web proxy", async ({ request }) => {
+    const response = await request.get("/api/v1/health");
 
     expect(response.ok()).toBe(true);
     expect(await response.json()).toEqual({ status: "ok" });
   });
 
-  test("api is ready: database and job queue reachable", async ({ request }) => {
-    const response = await request.get("http://localhost:4000/v1/health/ready");
+  test("api is ready: database, job queue and object storage reachable", async ({ request }) => {
+    const response = await request.get("/api/v1/health/ready");
 
     expect(response.status()).toBe(200);
     expect(await response.json()).toMatchObject({
       status: "ok",
-      checks: { database: { status: "ok" }, jobs: { status: "ok" } },
+      checks: { database: { status: "ok" }, jobs: { status: "ok" }, storage: { status: "ok" } },
     });
   });
 });

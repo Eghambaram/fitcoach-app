@@ -4,6 +4,9 @@ import type { Pool } from "pg";
 import sharp from "sharp";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
+import { PinoLogger } from "nestjs-pino";
+import { AppConfig } from "../../config/env";
+import { SystemDb } from "../../db/system-db";
 import { StorageService } from "../../integrations/storage/storage.service";
 import { createTestApp, WEB_HEADERS } from "../../test/create-test-app";
 import { createPool } from "../../test/db";
@@ -197,6 +200,21 @@ describe("storage service", () => {
     const ready = await request(app.getHttpServer()).get("/v1/health/ready");
 
     expect(ready.body.checks.storage.status).toBe("ok");
+  });
+
+  it("reports a misspelled bucket as degraded, not ok", async () => {
+    const config = app.get(AppConfig);
+    if (!config.storage) throw new Error("storage must be configured in the API suite");
+    const misconfigured = new StorageService(
+      { ...config, storage: { ...config.storage, publicBucket: "fitcoach-test-missing" } },
+      app.get(SystemDb),
+      await app.resolve(PinoLogger),
+    );
+    try {
+      expect((await misconfigured.check()).status).toBe("degraded");
+    } finally {
+      misconfigured.onModuleDestroy();
+    }
   });
 
   it("serves private objects only through presigned URLs that expire within 5 minutes", async () => {

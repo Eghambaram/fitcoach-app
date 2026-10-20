@@ -69,6 +69,18 @@ Buckets: `fitcoach-local-private` (no anonymous access; presigned URLs only) and
 `pnpm test:e2e` runs against the production builds, so run `pnpm build` first (`pnpm verify` does both). It starts the servers itself unless something is already listening on :3000/:4000. For a quick check against the dev servers: `E2E_DEV=1 pnpm test:e2e --workers=1`.
 `pnpm test:e2e` needs the database migrated and Mailpit running: it checks API readiness and reads the verification email from Mailpit.
 
+## Production parity (the Railway images)
+
+`docker compose --profile full up -d --build --wait` builds `apps/api/Dockerfile` and `apps/web/Dockerfile`, the same images Railway runs. It then migrates the database with the image's `node dist/db/migrate.js` (Railway's pre-deploy command) and serves web on :3000 and api on :4000. Stop `pnpm dev` first, because the ports are the same.
+
+- Same Postgres, Mailpit and RustFS as everyday development. Role passwords and secrets come from your `.env`, so `pnpm dev` keeps working afterwards.
+- The API runs with `APP_ENV=test`: production build, JSON logs, and cookies without `Secure` so http://localhost works.
+- `E2E_EXTERNAL_SERVERS=1 pnpm test:e2e` runs Playwright against the containers. CI does exactly this.
+- Back to development: `docker compose --profile full stop api web`, then `pnpm dev`.
+- Single images: `docker build -f apps/api/Dockerfile .` and `docker build -f apps/web/Dockerfile .` from the repo root.
+
+Deploying to Railway: [deployment/railway.md](deployment/railway.md) and [deployment/r2.md](deployment/r2.md).
+
 ## Troubleshooting
 
 - **`failed to connect to the docker API`**: Docker Desktop isn't running. Start it and wait until `docker info` succeeds.

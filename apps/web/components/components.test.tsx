@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataList, FilterBar } from "./shared/data-list";
+import { EnvironmentRibbon } from "./shared/environment-ribbon";
 import { KpiCard } from "./shared/page-header";
 import {
   EmptyState,
@@ -131,5 +132,17 @@ describe("FilterBar", () => {
     expect(screen.getByRole("tab", { name: /All/ })).toHaveAttribute("aria-selected", "true");
     await userEvent.click(screen.getByRole("tab", { name: /New/ }));
     expect(onTabChange).toHaveBeenCalledWith("new");
+  });
+});
+
+describe("EnvironmentRibbon", () => {
+  it("labels staging and stays hidden everywhere else", () => {
+    const { rerender } = render(<EnvironmentRibbon appEnv="staging" />);
+    expect(screen.getByRole("note")).toHaveTextContent("Staging environment — test data only");
+
+    for (const appEnv of ["production", "development", "test", undefined]) {
+      rerender(<EnvironmentRibbon appEnv={appEnv} />);
+      expect(screen.queryByRole("note")).not.toBeInTheDocument();
+    }
   });
 });

@@ -1,0 +1,72 @@
+name: Staging smoke
+
+# PROMPT §17.4 step 2: after Railway deploys staging, check it from the outside — web liveness, API
+# readiness through the web's /api proxy (the API has no public domain), and the smoke Playwright spec.
+# Railway's GitHub integration reports each deploy as a GitHub deployment; manual runs are allowed too.
+on:
+  deployment_status:
+  workflow_dispatch:
+
+concurrency:
+  group: staging-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       contains(github.event.deployment.environment, 'staging'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: "true"
+      # Repository variable, e.g. https://fitcoach-web-staging.up.railway.app (docs/deployment/railway.md).
+      E2E_BASE_URL: ${{ vars.STAGING_WEB_URL }}
+    steps:
+      - name: Check configuration
+        run: |
+          if [ -z "$E2E_BASE_URL" ]; then
+            echo "::error::Set the STAGING_WEB_URL repository variable (Settings → Secrets and variables → Actions → Variables)."
+            exit 1
+          fi
+
+      # A deploy that just went live may still be swapping replicas; retry for up to ~2 minutes.
+      - name: Wait for web and API readiness
+        run: |
+          for attempt in $(seq 1 24); do
+            if curl -fsS "$E2E_BASE_URL/healthz" >/dev/null &&
+               curl -fsS "$E2E_BASE_URL/api/v1/health/ready" | tee /tmp/ready.json | grep -q '"status":"ok"'; then
+              cat /tmp/ready.json; echo; exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::staging is not ready"; cat /tmp/ready.json 2>/dev/null; exit 1
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.deployment.sha || github.sha }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Smoke spec against staging
+        run: pnpm exec playwright test e2e/smoke.spec.ts --project=desktop
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-smoke-report
+          path: playwright-report
+          retention-days: 7

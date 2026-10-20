@@ -11,7 +11,10 @@ if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  // Standalone output for the Railway Docker image is configured in step 1.6.
+  // Self-contained server for the Docker image (apps/web/Dockerfile, PROMPT §17.2). Tracing from the
+  // repo root so workspace packages are included.
+  output: "standalone",
+  outputFileTracingRoot: resolve(process.cwd(), "../.."),
 };
 
 export default nextConfig;

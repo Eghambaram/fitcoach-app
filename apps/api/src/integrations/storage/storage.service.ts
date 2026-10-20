@@ -1,7 +1,7 @@
 import {
   DeleteObjectsCommand,
   GetObjectCommand,
-  HeadBucketCommand,
+  NoSuchKey,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -18,6 +18,13 @@ export type BucketKind = "private" | "public";
 
 /** Presigned GETs for private objects expire within 5 minutes (CLAUDE.md, PROMPT §17.7). */
 export const PRESIGN_MAX_SECONDS = 300;
+/**
+ * Readiness reads a key that never exists: `NoSuchKey` proves the bucket exists and the credentials
+ * are accepted (a HEAD can't tell a missing key from a missing bucket). HeadBucket isn't used because
+ * R2 tokens scoped to "Object Read & Write" on specific buckets may be refused bucket-level calls
+ * (ADR-0042). One Class B operation per bucket per check.
+ */
+const PROBE_KEY = "health/readiness-probe";
 /** `files.size_bytes` sums are cached this long (§17.7). */
 const USAGE_CACHE_MS = 5 * 60 * 1000;
 
@@ -164,11 +171,7 @@ export class StorageService implements OnModuleDestroy {
     try {
       const timeout = AbortSignal.timeout(3_000);
       await Promise.all(
-        (["private", "public"] as const).map((bucket) =>
-          this.client?.send(new HeadBucketCommand({ Bucket: this.bucketName(bucket) }), {
-            abortSignal: timeout,
-          }),
-        ),
+        (["private", "public"] as const).map((bucket) => this.probe(bucket, timeout)),
       );
       const usage = await this.usage();
       if (usage.usedBytes >= usage.budgetBytes) {
@@ -182,6 +185,21 @@ export class StorageService implements OnModuleDestroy {
     } catch (error) {
       this.logger.warn({ err: error }, "storage readiness check failed");
       return { status: "degraded" };
+    }
+  }
+
+  private async probe(bucket: BucketKind, abortSignal: AbortSignal): Promise<void> {
+    try {
+      const found = await this.client?.send(
+        new GetObjectCommand({ Bucket: this.bucketName(bucket), Key: this.key(PROBE_KEY) }),
+        { abortSignal },
+      );
+      found?.Body?.transformToWebStream()
+        .cancel()
+        .catch(() => undefined);
+    } catch (error) {
+      if (error instanceof NoSuchKey) return;
+      throw error;
     }
   }
 

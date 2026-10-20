@@ -6,6 +6,12 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 1.6 deployment (PROMPT §17.1–§17.6): `apps/api/Dockerfile` and `apps/web/Dockerfile` built from the repo root with `turbo prune` (API via `pnpm deploy --prod`; web as Next.js standalone on `HOSTNAME=::`), `.dockerignore`, `apps/api/railway.json` (pre-deploy migrations, `/v1/health`, draining) and `apps/web/railway.json` (`/healthz`), both with `watchPatterns`.
+- `docker compose --profile full`: the same images run locally, with a one-shot `api-migrate` service standing in for Railway's pre-deploy command.
+- CI split into `verify` (gates + Testcontainers suites) and `e2e` (Playwright against the Docker images, migrated from zero). New `Staging smoke` workflow after each Railway staging deploy (or by hand): web liveness, readiness through `/api`, and `e2e/smoke.spec.ts` against `STAGING_WEB_URL`. Playwright supports `E2E_EXTERNAL_SERVERS=1` and `E2E_BASE_URL`.
+- Staging ribbon on every page when `NEXT_PUBLIC_APP_ENV=staging`.
+- `docs/deployment/railway.md` (step-by-step staging setup, every §17.3 variable with Railway reference variables, deploy flow, rollback, troubleshooting) and `docs/deployment/r2.md` (buckets, r2.dev, scoped token, lifecycle rules, budget). ADR-0042.
+
 - Step 1.5 file storage (PROMPT D11, §10.2, §17.7): `StorageService` for the private and public buckets (put, presigned GET ≤ 5 min, public URL, delete, usage) with the R2 S3 client settings (`WHEN_REQUIRED` checksums, `STORAGE_KEY_PREFIX` for PR environments). Upload pipeline through the API: 10 MB in-memory limit, format checked from the real bytes, EXIF stripped, WebP + thumbnail, originals never stored.
 - `files` table as the storage ledger (RLS, insert-only plus soft delete, bucket/kind CHECKs) and `profiles.avatar_file_id` guarded by a trigger. Budget checks: `507 STORAGE_FULL` near the hard limit, readiness "degraded" at the soft budget, `503 STORAGE_NOT_CONFIGURED` without `STORAGE_*`. Daily `files.purge` pg-boss job removes objects 7 days after soft delete. `JobsService.registerRecurring`.
 - `POST`/`DELETE /v1/files/profile-photo`; `GET /v1/auth/me` returns `profile.avatarUrl`. Web: `/app/settings/profile` (upload, replace, remove, field errors) and the photo in the app shell. `pnpm storage:init` creates local/CI buckets.
@@ -33,6 +39,8 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Changed
 
+- Storage readiness reads a non-existent key (`NoSuchKey` = reachable) instead of `HeadBucket`, which bucket-scoped R2 tokens may refuse. A misspelled bucket now reports "degraded" (ADR-0042).
+- The smoke spec checks the API through the web's `/api` proxy, so it also runs against deployed environments.
 - Phase 2 reordered: conversion (2.4) → onboarding (2.5) → calendar (2.6), so recurring series have real clients (ADR-0028).
 - Node 24 LTS replaces Node 22 in the spec and Dockerfile sketch (ADR-0026).
 - Local object storage is RustFS instead of MinIO in PROMPT.md, CLAUDE.md and PHASES.md (ADR-0036).

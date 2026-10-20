@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
+import { EnvironmentRibbon } from "@/components/shared/environment-ribbon";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-dvh font-sans antialiased">
+        <EnvironmentRibbon />
         <Providers>{children}</Providers>
       </body>
     </html>

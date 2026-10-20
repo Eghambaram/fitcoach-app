@@ -46,3 +46,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0039](0039-trainer-auth-flows.md)                | Trainer auth flows: verify before login, non-enumerating signup                            |
 | [0040](0040-web-shell-conventions.md)             | Web shell conventions: honest navigation, API-decided access, one-click email confirm      |
 | [0041](0041-file-uploads-pipeline.md)             | File uploads: one API pipeline, profile photo in the public bucket, ledger-based budget    |
+| [0042](0042-railway-staging-pipeline.md)          | Railway staging pipeline: one image per app, e2e against the images, smoke via web origin  |

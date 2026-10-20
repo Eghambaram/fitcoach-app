@@ -9,6 +9,7 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# PROMPT §17.4: PR checks. Railway deploys staging from main only when these pass ("Wait for CI").
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -16,58 +17,6 @@ jobs:
     env:
       CI: "true"
       TURBO_TELEMETRY_DISABLED: "1"
-      # CI-only values for the e2e stack; never real secrets.
-      APP_ENV: test
-      WEB_ORIGIN: http://localhost:3000
-      IP_HASH_SALT: ci-ip-hash-salt-0123456789abcdef
-      SESSION_SECRET: ci-session-secret-0123456789abcdef0123
-      SIGNUP_MODE: invite_code
-      EMAIL_PROVIDER: smtp
-      SMTP_URL: smtp://localhost:1025
-      EMAIL_FROM: "FitCoach CI <noreply@fitcoach.test>"
-      DATABASE_OWNER_URL: postgres://postgres:postgres@localhost:5432/fitcoach
-      DATABASE_URL: postgres://fitcoach_app:ci-app-password@localhost:5432/fitcoach
-      DATABASE_SYSTEM_URL: postgres://fitcoach_system:ci-system-password@localhost:5432/fitcoach
-      DB_APP_PASSWORD: ci-app-password
-      DB_SYSTEM_PASSWORD: ci-system-password
-      API_INTERNAL_URL: http://localhost:4000
-      STORAGE_ENDPOINT: http://localhost:9000
-      STORAGE_REGION: us-east-1
-      STORAGE_ACCESS_KEY_ID: ciaccesskey
-      STORAGE_SECRET_ACCESS_KEY: cisecretkey
-      STORAGE_PRIVATE_BUCKET: fitcoach-ci-private
-      STORAGE_PUBLIC_BUCKET: fitcoach-ci-public
-      STORAGE_PUBLIC_BASE_URL: http://localhost:9000/fitcoach-ci-public
-    services:
-      # Same image as docker-compose (ADR-0036); buckets are created by `pnpm storage:init` below.
-      storage:
-        image: rustfs/rustfs:1.0.3
-        env:
-          RUSTFS_ACCESS_KEY: ciaccesskey
-          RUSTFS_SECRET_KEY: cisecretkey
-          RUSTFS_ADDRESS: ":9000"
-          RUSTFS_CONSOLE_ENABLE: "false"
-        ports:
-          - 9000:9000
-      # For the e2e stack (DB/RLS and API integration suites start their own Testcontainers Postgres).
-      mailpit:
-        image: axllent/mailpit:v1.31.6
-        ports:
-          - 1025:1025
-          - 8025:8025
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: fitcoach
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d fitcoach"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - uses: actions/checkout@v5
 
@@ -93,6 +42,7 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
+      # Both suites start their own Postgres (and RustFS) with Testcontainers.
       - name: DB / RLS tests (Testcontainers)
         run: pnpm test:db
 
@@ -102,17 +52,51 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Migrate e2e database from zero
-        run: node apps/api/dist/db/migrate.js
+  # Playwright against the Docker images Railway runs (docker compose --profile full).
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      TURBO_TELEMETRY_DISABLED: "1"
+      # CI-only values; never real secrets. Compose reads them too, so the host CLI used by the
+      # Playwright global setup (`pnpm beta:invite`) and the API container share them.
+      APP_ENV: test
+      SESSION_SECRET: ci-session-secret-0123456789abcdef0123
+      IP_HASH_SALT: ci-ip-hash-salt-0123456789abcdef
+      DB_APP_PASSWORD: ci-app-password
+      DB_SYSTEM_PASSWORD: ci-system-password
+      DATABASE_SYSTEM_URL: postgres://fitcoach_system:ci-system-password@localhost:5432/fitcoach
+      E2E_EXTERNAL_SERVERS: "1"
+    steps:
+      - uses: actions/checkout@v5
 
-      - name: Create e2e storage buckets
-        run: pnpm storage:init
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # The beta-invite CLI imports the shared package from its build output.
+      - name: Build shared package
+        run: pnpm turbo run build --filter=@fitcoach/shared
+
+      - name: Build images and start the stack (migrations run first)
+        run: docker compose --profile full up -d --build --wait
 
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
 
       - name: E2E (desktop + mobile)
         run: pnpm test:e2e
+
+      - name: Stack logs
+        if: failure()
+        run: docker compose --profile full logs --no-color --tail 300
 
       - name: Upload Playwright report
         if: failure()

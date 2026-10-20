@@ -1,0 +1,18 @@
+# Build context for apps/*/Dockerfile (repo root, PROMPT §17.2). Keep it small and secret-free.
+.git
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/*.tsbuildinfo
+.env
+.env.*
+!.env.example
+test-results
+playwright-report
+coverage
+docs
+e2e
+.github
+.vscode
+.idea
