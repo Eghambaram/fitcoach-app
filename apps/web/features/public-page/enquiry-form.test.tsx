@@ -1,3 +1,4 @@
+import type * as Shared from "@fitcoach/shared";
 import type { PublicPageResponse } from "@fitcoach/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
@@ -8,7 +9,7 @@ import { EnquiryForm } from "./enquiry-form";
 
 // The real form waits out the time-to-submit minimum; tests don't need to.
 vi.mock("@fitcoach/shared", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@fitcoach/shared")>()),
+  ...(await importOriginal<typeof Shared>()),
   ENQUIRY_MIN_FILL_MS: -1_000,
 }));
 
