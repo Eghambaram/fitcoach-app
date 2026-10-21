@@ -37,5 +37,25 @@ export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
       .setVersion("1")
       .build(),
   );
-  return cleanupOpenApiDoc(document);
+  return cleanupOpenApiDoc(normaliseNullableTypes(document) as OpenAPIObject);
+}
+
+/**
+ * Zod 4 writes a bare nullable scalar as JSON Schema 2020-12 `type: ["string", "null"]`, which the
+ * OpenAPI 3.0 pipeline turns into an array of strings. Rewrite it as `type: "string", nullable: true`
+ * before cleanup so the generated client types stay `string | null`.
+ */
+export function normaliseNullableTypes(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(normaliseNullableTypes);
+  if (node === null || typeof node !== "object") return node;
+  const entries = Object.entries(node).map(([key, value]) => [key, normaliseNullableTypes(value)]);
+  const result: Record<string, unknown> = Object.fromEntries(entries);
+  if (Array.isArray(result.type) && result.type.includes("null")) {
+    const types = result.type.filter((type) => type !== "null");
+    if (types.length === 1) {
+      result.type = types[0];
+      result.nullable = true;
+    }
+  }
+  return result;
 }

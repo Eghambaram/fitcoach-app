@@ -180,6 +180,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/auth/password/change": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["AuthController_changePassword"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/health": {
     parameters: {
       query?: never;
@@ -222,6 +238,262 @@ export interface paths {
     get: operations["PlatformController_access"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["SettingsController_getWorkspaceSettings"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/locale": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["SettingsController_updateLocale"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/check-ins": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["SettingsController_updateCheckIns"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/package-policy": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["SettingsController_updatePackagePolicy"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/public-page": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["SettingsController_getPublicPage"];
+    put: operations["SettingsController_updatePublicPage"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/public-page/publish": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SettingsController_setPublished"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/public-page/qr": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["SettingsController_qrCode"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/message-templates": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["SettingsController_listTemplates"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/message-templates/{purpose}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["SettingsController_updateTemplate"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/message-templates/{purpose}/reset": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SettingsController_resetTemplate"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/package-presets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["SettingsController_listPresets"];
+    put?: never;
+    post: operations["SettingsController_createPreset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/package-presets/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["SettingsController_updatePreset"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/package-presets/{id}/archive": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SettingsController_archivePreset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/settings/package-presets/{id}/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["SettingsController_restorePreset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/public/pages/{slug}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PublicPageController_getPage"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/public/enquiries": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PublicPageController_submit"];
     delete?: never;
     options?: never;
     head?: never;
@@ -319,6 +591,10 @@ export interface components {
         current: boolean;
       }[];
     };
+    ChangePasswordRequestDto: {
+      currentPassword: string;
+      newPassword: string;
+    };
     LivenessResponseDto: {
       /** @enum {string} */
       status: "ok";
@@ -343,6 +619,218 @@ export interface components {
           latencyMs?: number;
         };
       };
+    };
+    WorkspaceSettingsResponseDto: {
+      locale: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+        timezone: string;
+        country: string;
+      };
+      checkIns: {
+        /** @enum {string} */
+        checkInFrequency: "daily" | "weekly";
+        noCheckInDays: number;
+        noMeasurementDays: number;
+      };
+      packagePolicy: {
+        noShowUsesSession: boolean;
+        lateCancelWindowHours: number;
+        lateCancelUsesSession: boolean;
+        lowSessionsThreshold: number;
+        expiryWarningDays: number;
+      };
+      plan: {
+        planName: string;
+        maxActiveClients: number;
+        /** Format: date-time */
+        trialEndsAt: string | null;
+      };
+    };
+    LocaleSettingsDto: {
+      /** @enum {string} */
+      weightUnit: "kg" | "lb";
+      /** @enum {string} */
+      lengthUnit: "cm" | "in";
+      timezone: string;
+      country: string;
+    };
+    CheckInRulesDto: {
+      /** @enum {string} */
+      checkInFrequency: "daily" | "weekly";
+      noCheckInDays: number;
+      noMeasurementDays: number;
+    };
+    PackagePolicyDto: {
+      noShowUsesSession: boolean;
+      lateCancelWindowHours: number;
+      lateCancelUsesSession: boolean;
+      lowSessionsThreshold: number;
+      expiryWarningDays: number;
+    };
+    PublicPageSettingsResponseDto: {
+      displayName: string;
+      businessName: string;
+      slug: string;
+      headline: string;
+      bio: string;
+      location: string;
+      coachingTypes: string[];
+      coachingModes: ("in_person" | "online" | "hybrid")[];
+      /** Format: uri */
+      avatarUrl: string | null;
+      form: {
+        /** @enum {string} */
+        email: "hidden" | "optional" | "required";
+        schedule: boolean;
+        message: boolean;
+        consentText: string;
+        version: number;
+      };
+      isPublished: boolean;
+      /** Format: date-time */
+      publishedAt: string | null;
+      /** Format: uri */
+      publicUrl: string;
+    };
+    PublicPageSettingsRequestDto: {
+      displayName: string;
+      businessName: string;
+      slug: string;
+      /** @default  */
+      headline: string;
+      /** @default  */
+      bio: string;
+      /** @default  */
+      location: string;
+      coachingTypes: string[];
+      coachingModes: ("in_person" | "online" | "hybrid")[];
+      form: {
+        /** @enum {string} */
+        email: "hidden" | "optional" | "required";
+        schedule: boolean;
+        message: boolean;
+        consentText: string;
+      };
+    };
+    PublishRequestDto: {
+      published: boolean;
+    };
+    MessageTemplatesResponseDto: {
+      templates: {
+        /** @enum {string} */
+        purpose:
+          | "follow_up"
+          | "trial_confirmation"
+          | "client_invite"
+          | "payment_reminder"
+          | "package_renewal"
+          | "check_in_nudge"
+          | "session_reminder";
+        body: string;
+        defaultBody: string;
+        isCustomised: boolean;
+      }[];
+    };
+    MessageTemplateUpdateDto: {
+      body: string;
+    };
+    PackagePresetsResponseDto: {
+      presets: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        /** @enum {string} */
+        kind: "session_pack" | "time_based" | "online_coaching";
+        sessionsIncluded: number | null;
+        durationDays: number | null;
+        sessionsPerWeek: number | null;
+        defaultPricePaise: number | null;
+        archived: boolean;
+      }[];
+    };
+    PackagePresetInputDto: {
+      name: string;
+      /** @enum {string} */
+      kind: "session_pack" | "time_based" | "online_coaching";
+      sessionsIncluded: number | null;
+      durationDays: number | null;
+      sessionsPerWeek: number | null;
+      defaultPricePaise: number | null;
+    };
+    PublicPageResponseDto: {
+      slug: string;
+      displayName: string;
+      businessName: string;
+      headline: string | null;
+      bio: string | null;
+      location: string | null;
+      coachingTypes: string[];
+      coachingModes: ("in_person" | "online" | "hybrid")[];
+      /** Format: uri */
+      avatarUrl: string | null;
+      form: {
+        version: number;
+        consentText: string;
+        fields: {
+          /** @enum {string} */
+          email: "hidden" | "optional" | "required";
+          schedule: boolean;
+          message: boolean;
+        };
+      };
+      formToken: string;
+    };
+    EnquiryRequestDto: {
+      slug: string;
+      fullName: string;
+      phone: string;
+      email?: "" | string;
+      /** @enum {string} */
+      goal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other";
+      /** @enum {string|null} */
+      preferredMode?: "in_person" | "online" | "hybrid" | null;
+      preferredSchedule?: string;
+      message?: string;
+      /**
+       * @default public_page
+       * @enum {string}
+       */
+      source:
+        | "public_page"
+        | "qr"
+        | "instagram"
+        | "whatsapp"
+        | "facebook"
+        | "google"
+        | "website"
+        | "referral"
+        | "other";
+      utm?: {
+        source?: string;
+        medium?: string;
+        campaign?: string;
+        content?: string;
+        term?: string;
+      };
+      /** @enum {boolean} */
+      consent: true;
+      consentVersion: number;
+      formToken: string;
+      website?: string;
+      turnstileToken?: string;
+    };
+    EnquiryResponseDto: {
+      /** @enum {boolean} */
+      ok: true;
     };
   };
   responses: never;
@@ -614,6 +1102,29 @@ export interface operations {
       };
     };
   };
+  AuthController_changePassword: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangePasswordRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
   HealthController_liveness: {
     parameters: {
       query?: never;
@@ -675,6 +1186,413 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_getWorkspaceSettings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkspaceSettingsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_updateLocale: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LocaleSettingsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkspaceSettingsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_updateCheckIns: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CheckInRulesDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkspaceSettingsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_updatePackagePolicy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PackagePolicyDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WorkspaceSettingsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_getPublicPage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicPageSettingsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_updatePublicPage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PublicPageSettingsRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicPageSettingsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_setPublished: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PublishRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicPageSettingsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_qrCode: {
+    parameters: {
+      query?: {
+        format?: "png" | "svg";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "image/png": string;
+          "image/svg+xml": string;
+        };
+      };
+    };
+  };
+  SettingsController_listTemplates: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MessageTemplatesResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_updateTemplate: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        purpose:
+          | "follow_up"
+          | "trial_confirmation"
+          | "client_invite"
+          | "payment_reminder"
+          | "package_renewal"
+          | "check_in_nudge"
+          | "session_reminder";
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["MessageTemplateUpdateDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MessageTemplatesResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_resetTemplate: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        purpose:
+          | "follow_up"
+          | "trial_confirmation"
+          | "client_invite"
+          | "payment_reminder"
+          | "package_renewal"
+          | "check_in_nudge"
+          | "session_reminder";
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MessageTemplatesResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_listPresets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PackagePresetsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_createPreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PackagePresetInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PackagePresetsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_updatePreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PackagePresetInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PackagePresetsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_archivePreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PackagePresetsResponseDto"];
+        };
+      };
+    };
+  };
+  SettingsController_restorePreset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PackagePresetsResponseDto"];
+        };
+      };
+    };
+  };
+  PublicPageController_getPage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicPageResponseDto"];
+        };
+      };
+    };
+  };
+  PublicPageController_submit: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EnquiryRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EnquiryResponseDto"];
         };
       };
     };

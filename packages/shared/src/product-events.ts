@@ -3,7 +3,14 @@
  * PII: no names, emails, phones, free text or health data — only ids, counts, enums and booleans.
  * Each step adds the events its feature needs; step 5.3 audits coverage against every metric.
  */
-export const PRODUCT_EVENTS = ["trainer_signed_up", "email_verified"] as const;
+export const PRODUCT_EVENTS = [
+  "trainer_signed_up",
+  "email_verified",
+  // Activation: public page published (§1A.5).
+  "public_page_published",
+  // Lead capture used: an enquiry arrived through the public page (§1A.5).
+  "lead_captured",
+] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENTS)[number];
 

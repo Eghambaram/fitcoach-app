@@ -17,6 +17,7 @@ const GENERIC_MESSAGES: Record<ErrorCode, string> = {
   INVALID_CREDENTIALS: "That email and password don't match.",
   EMAIL_NOT_VERIFIED: "Confirm your email address first.",
   TOKEN_INVALID: "This link is invalid or has expired. Request a new one.",
+  FORM_OUTDATED: "This form has changed since you opened it. Reload the page and try again.",
   FORBIDDEN: "You don't have access to this.",
   NOT_FOUND: "We couldn't find that.",
   METHOD_NOT_ALLOWED: "That action isn't supported here.",

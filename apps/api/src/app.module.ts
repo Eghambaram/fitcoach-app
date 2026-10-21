@@ -15,6 +15,8 @@ import { FilesModule } from "./modules/files/files.module";
 import { HealthModule } from "./modules/health/health.module";
 import { JobsModule } from "./modules/jobs/jobs.module";
 import { PlatformModule } from "./modules/platform/platform.module";
+import { PublicPageModule } from "./modules/public-page/public-page.module";
+import { SettingsModule } from "./modules/settings/settings.module";
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { PlatformModule } from "./modules/platform/platform.module";
     AuthModule,
     HealthModule,
     PlatformModule,
+    SettingsModule,
+    PublicPageModule,
   ],
   providers: [
     // Guard order (PROMPT §4.3): CSRF → session → role → workspace status.

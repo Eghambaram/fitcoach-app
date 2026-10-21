@@ -1,5 +1,6 @@
 import {
   acceptedResponseSchema,
+  changePasswordRequestSchema,
   emailOnlyRequestSchema,
   loginRequestSchema,
   meResponseSchema,
@@ -17,6 +18,7 @@ export class LoginRequestDto extends createZodDto(loginRequestSchema) {}
 export class EmailOnlyRequestDto extends createZodDto(emailOnlyRequestSchema) {}
 export class TokenRequestDto extends createZodDto(tokenRequestSchema) {}
 export class ResetPasswordRequestDto extends createZodDto(resetPasswordRequestSchema) {}
+export class ChangePasswordRequestDto extends createZodDto(changePasswordRequestSchema) {}
 export class SessionIdParamDto extends createZodDto(z.object({ id: z.string().uuid() })) {}
 
 export class AcceptedResponseDto extends createZodDto(acceptedResponseSchema) {}

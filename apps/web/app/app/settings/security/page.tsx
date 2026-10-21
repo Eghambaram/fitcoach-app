@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/shared/page-header";
 import { ErrorState } from "@/components/shared/status";
 import { Card } from "@/components/ui/card";
+import { ChangePasswordForm } from "@/features/settings/change-password-form";
 import { SessionsList } from "@/features/settings/sessions-list";
 import { serverApi } from "@/lib/api/server";
 
@@ -21,9 +22,12 @@ export default async function SecuritySettingsPage() {
         <PageHeader
           className="mt-2"
           title="Security"
-          description="Devices where you're signed in."
+          description="Your password and the devices where you're signed in."
         />
       </div>
+      <Card className="p-5">
+        <ChangePasswordForm />
+      </Card>
       <Card className="p-2 sm:p-4">
         {response.ok && data ? (
           <SessionsList sessions={data.sessions} />

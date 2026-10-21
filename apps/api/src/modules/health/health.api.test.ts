@@ -23,7 +23,13 @@ describe("health endpoints", () => {
   });
 
   it("GET /v1/health/ready reports the database, job queue and storage as OK", async () => {
-    const response = await request(app.getHttpServer()).get("/v1/health/ready");
+    // Readiness is polled in real use (deploy smoke); a check can time out while parallel test files
+    // keep the machine busy hashing passwords, so allow a few tries.
+    let response = await request(app.getHttpServer()).get("/v1/health/ready");
+    for (let attempt = 1; attempt < 5 && response.status !== 200; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      response = await request(app.getHttpServer()).get("/v1/health/ready");
+    }
 
     expect(response.status).toBe(200);
     const body = readinessResponseSchema.parse(response.body);

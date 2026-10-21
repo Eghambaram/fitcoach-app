@@ -10,7 +10,7 @@ import {
 } from "@fitcoach/shared";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { type FieldPath, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useOnline } from "@/components/shared/offline-banner";
@@ -20,6 +20,7 @@ import { Field } from "@/components/ui/field";
 import { Checkbox, Input, Select } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { ApiRequestError, applyFieldErrors } from "@/lib/api/errors";
+import { useTimeZones } from "@/lib/time-zones";
 import { cn } from "@/lib/utils";
 import { FormAlert } from "./auth-layout";
 import { PasswordInput } from "./password-input";
@@ -58,30 +59,6 @@ const MODE_LABELS: Record<CoachingMode, { label: string; description: string }> 
   online: { label: "Online", description: "Video calls and remote coaching" },
   hybrid: { label: "Hybrid", description: "A mix of both" },
 };
-
-/**
- * Time zones for the select. The server renders only the default (its ICU list can differ from the
- * browser's); the browser's full list replaces it after hydration. ICU still calls India
- * "Asia/Calcutta", so our default is added explicitly.
- */
-const SERVER_TIME_ZONES = [DEFAULT_TIMEZONE];
-let browserTimeZones: string[] | undefined;
-
-function getBrowserTimeZones(): string[] {
-  browserTimeZones ??= [
-    DEFAULT_TIMEZONE,
-    ...Intl.supportedValuesOf("timeZone").filter(
-      (zone) => zone !== "Asia/Calcutta" && zone !== DEFAULT_TIMEZONE,
-    ),
-  ];
-  return browserTimeZones;
-}
-
-const noSubscription = () => () => undefined;
-
-function useTimeZones(): string[] {
-  return useSyncExternalStore(noSubscription, getBrowserTimeZones, () => SERVER_TIME_ZONES);
-}
 
 export function SignupForm({ inviteRequired }: { inviteRequired: boolean }) {
   const router = useRouter();

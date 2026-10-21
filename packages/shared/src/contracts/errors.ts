@@ -11,6 +11,8 @@ export const ERROR_CODES = {
   INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
   EMAIL_NOT_VERIFIED: "EMAIL_NOT_VERIFIED",
   TOKEN_INVALID: "TOKEN_INVALID",
+  /** The public enquiry form changed or its token expired since the page was loaded: reload. */
+  FORM_OUTDATED: "FORM_OUTDATED",
   FORBIDDEN: "FORBIDDEN",
   NOT_FOUND: "NOT_FOUND",
   METHOD_NOT_ALLOWED: "METHOD_NOT_ALLOWED",

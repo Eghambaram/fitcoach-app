@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import {
+  type ChangePasswordRequest,
   ERROR_CODES,
   type LoginRequest,
   type MeResponse,
@@ -8,12 +9,13 @@ import {
   type SignupRequest,
   type WorkspaceStatus,
 } from "@fitcoach/shared";
-import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, ne, sql } from "drizzle-orm";
 import { ClsService } from "nestjs-cls";
 import { DomainError } from "../../common/errors/domain-error";
 import type { AppClsStore, AuthContext } from "../../common/request-context";
 import { hashPassword, verifyAgainstDummy, verifyPassword } from "../../common/security/passwords";
 import { RateLimitService } from "../../common/security/rate-limit.service";
+import type { RequestMeta } from "../../common/security/request-meta";
 import { hashToken } from "../../common/security/tokens";
 import { AppConfig } from "../../config/env";
 import { DbContext } from "../../db/db-context";
@@ -33,11 +35,7 @@ import { consumeAuthToken, issueAuthToken } from "./auth-tokens";
 import { type NewSession, SessionsService } from "./sessions.service";
 import { createTrainerAccount } from "./trainer-accounts";
 
-export interface RequestMeta {
-  ipHash?: string;
-  userAgent?: string;
-  requestId?: string;
-}
+export type { RequestMeta } from "../../common/security/request-meta";
 
 const MINUTE = 60;
 
@@ -512,5 +510,59 @@ export class AuthService {
     if (revoked.length === 0)
       throw DomainError.notFound("That session doesn't exist or has already ended.");
     return { current: id === auth.sessionId };
+  }
+
+  /**
+   * Changes the caller's password and signs out every other device (CLAUDE.md rule 9); the
+   * current session stays. Runs as fitcoach_app: users may only update their own password hash.
+   */
+  async changePassword(input: ChangePasswordRequest, meta: RequestMeta): Promise<void> {
+    const auth = this.requireAuth();
+    await this.rateLimit.consume({
+      key: `password-change:user:${auth.userId}`,
+      windowSeconds: 15 * MINUTE,
+      max: 10,
+    });
+    const [user] = await this.db.tx
+      .select({ passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, auth.userId));
+    const matches = user?.passwordHash
+      ? await verifyPassword(user.passwordHash, input.currentPassword)
+      : await verifyAgainstDummy(input.currentPassword);
+    if (!matches) {
+      throw new DomainError(
+        ERROR_CODES.INVALID_CREDENTIALS,
+        400,
+        "That's not your current password.",
+        { currentPassword: ["That's not your current password."] },
+      );
+    }
+
+    const passwordHash = await hashPassword(input.newPassword);
+    await this.db.tx.update(users).set({ passwordHash }).where(eq(users.id, auth.userId));
+    const revoked = await this.db.tx
+      .update(sessions)
+      .set({ revokedAt: sql`now()`, revokedReason: "password_changed" })
+      .where(
+        and(
+          eq(sessions.userId, auth.userId),
+          isNull(sessions.revokedAt),
+          ne(sessions.id, auth.sessionId),
+        ),
+      )
+      .returning({ id: sessions.id });
+    await recordAudit(this.db.tx, {
+      actorKind: auth.actor,
+      actorUserId: auth.userId,
+      workspaceId: auth.workspaceId,
+      action: "user.password_changed",
+      targetType: "user",
+      targetId: auth.userId,
+      after: { otherSessionsRevoked: revoked.length },
+      ipHash: meta.ipHash,
+      userAgent: meta.userAgent,
+      requestId: meta.requestId,
+    });
   }
 }

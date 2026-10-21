@@ -88,6 +88,10 @@ export const trainerSettings = pgTable(
     lateCancelUsesSession: boolean("late_cancel_uses_session").notNull().default(true),
     lowSessionsThreshold: integer("low_sessions_threshold").notNull().default(2),
     expiryWarningDays: integer("expiry_warning_days").notNull().default(7),
+    /** Check-in & attention rules (§8.12): expected cadence and "needs attention" thresholds. */
+    checkInFrequency: text("check_in_frequency").notNull().default("daily"),
+    noCheckInDays: integer("no_check_in_days").notNull().default(3),
+    noMeasurementDays: integer("no_measurement_days").notNull().default(14),
     ...timestamps,
   },
   (t) => [
@@ -96,6 +100,9 @@ export const trainerSettings = pgTable(
     check("trainer_settings_late_cancel_window", sql`${t.lateCancelWindowHours} between 0 and 168`),
     check("trainer_settings_low_sessions", sql`${t.lowSessionsThreshold} between 0 and 50`),
     check("trainer_settings_expiry_warning", sql`${t.expiryWarningDays} between 0 and 60`),
+    check("trainer_settings_check_in_frequency", sql`${t.checkInFrequency} in ('daily', 'weekly')`),
+    check("trainer_settings_no_check_in_days", sql`${t.noCheckInDays} between 1 and 60`),
+    check("trainer_settings_no_measurement_days", sql`${t.noMeasurementDays} between 1 and 180`),
   ],
 );
 

@@ -4,10 +4,11 @@ import type { AcceptedResponse, MeResponse, OkResponse, SessionsResponse } from 
 import type { Request, Response } from "express";
 import { AllowInactiveWorkspace, Public, Roles } from "../../common/auth/decorators";
 import { clearSessionCookie, setSessionCookie } from "../../common/auth/session-cookie";
-import { hashIp } from "../../common/security/ip-hash";
+import { requestMeta } from "../../common/security/request-meta";
 import { AppConfig } from "../../config/env";
 import {
   AcceptedResponseDto,
+  ChangePasswordRequestDto,
   EmailOnlyRequestDto,
   LoginRequestDto,
   MeResponseDto,
@@ -32,13 +33,8 @@ export class AuthController {
     private readonly config: AppConfig,
   ) {}
 
-  private meta(request: Request & { id?: unknown }): RequestMeta {
-    const userAgent = request.headers["user-agent"];
-    return {
-      ipHash: hashIp(request.ip, this.config.ipHashSalt),
-      userAgent: typeof userAgent === "string" ? userAgent.slice(0, 300) : undefined,
-      requestId: typeof request.id === "string" ? request.id : undefined,
-    };
+  private meta(request: Request): RequestMeta {
+    return requestMeta(request, this.config.ipHashSalt);
   }
 
   /** Always 202, whether or not the email already has an account (non-enumerating). */
@@ -149,6 +145,20 @@ export class AuthController {
   ): Promise<OkResponse> {
     const { current } = await this.auth.revokeSession(params.id);
     if (current) clearSessionCookie(response, this.config.secureCookies);
+    return OK;
+  }
+
+  /** Signed in: change password; every other session is signed out. */
+  @Roles("trainer")
+  @AllowInactiveWorkspace()
+  @Post("password/change")
+  @HttpCode(200)
+  @ApiOkResponse({ type: OkResponseDto })
+  async changePassword(
+    @Body() body: ChangePasswordRequestDto,
+    @Req() request: Request,
+  ): Promise<OkResponse> {
+    await this.auth.changePassword(body, this.meta(request));
     return OK;
   }
 }

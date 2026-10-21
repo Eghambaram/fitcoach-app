@@ -31,3 +31,29 @@ export type MessageTemplatePlaceholder = (typeof MESSAGE_TEMPLATE_PLACEHOLDERS)[
 /** Package kinds (PROMPT §8.3A). */
 export const PACKAGE_KINDS = ["session_pack", "time_based", "online_coaching"] as const;
 export type PackageKind = (typeof PACKAGE_KINDS)[number];
+
+const PLACEHOLDER_TOKEN = /\{([^{}]*)\}/g;
+
+/**
+ * Placeholders in a template body that aren't in MESSAGE_TEMPLATE_PLACEHOLDERS, e.g. "{name}" or
+ * "{First_Name}". Saving a template with any of these is refused (PROMPT §8.12).
+ */
+export function findUnknownPlaceholders(body: string): string[] {
+  const known = new Set<string>(MESSAGE_TEMPLATE_PLACEHOLDERS);
+  const unknown = new Set<string>();
+  for (const [, name = ""] of body.matchAll(PLACEHOLDER_TOKEN)) {
+    if (!known.has(name)) unknown.add(`{${name}}`);
+  }
+  return [...unknown];
+}
+
+/** Fills known placeholders; ones without a value stay as written so the trainer can see the gap. */
+export function renderTemplate(
+  body: string,
+  values: Partial<Record<MessageTemplatePlaceholder, string>>,
+): string {
+  return body.replace(PLACEHOLDER_TOKEN, (token, name: string) => {
+    const value = values[name as MessageTemplatePlaceholder];
+    return value === undefined ? token : value;
+  });
+}

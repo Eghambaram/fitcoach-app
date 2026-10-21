@@ -20,7 +20,9 @@ async function signInAndOpenProfile(page: Page, email: string, password: string)
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL(/\/app\/dashboard$/);
   await page.goto("/app/settings/profile");
-  await expect(page.getByRole("heading", { name: "Profile", level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Profile & public page", level: 1 }),
+  ).toBeVisible();
 }
 
 test("a trainer uploads a profile photo, stored as WebP, and can remove it", async ({

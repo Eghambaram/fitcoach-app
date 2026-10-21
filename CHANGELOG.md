@@ -6,6 +6,13 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 2.1 settings basics and public enquiry page (PROMPT §8.2, §8.12):
+  - **Public page `/coach/[slug]`:** trainer photo, name, headline, location, coaching types, mode cards and about. The enquiry form follows the trainer's field settings, with versioned consent and a privacy note. Protections: hidden honeypot, signed time-to-submit token, Postgres rate limits (per hashed IP and per workspace) and optional Cloudflare Turnstile.
+  - **`POST /v1/public/enquiries`:** a narrow SystemDb service writes lead + consent (pinned to the form version) + activity + notification + product event + audit entry in one transaction.
+  - **Settings:** Profile & public page (details, address, coaching types and modes, enquiry form fields, consent wording, publish/unpublish); Share (link, server-generated QR as PNG/SVG, Web Share, per-source `?src=` links, form preview); Message templates (seven purposes, placeholder buttons, unknown placeholders refused, reset to default); Packages (presets with price in paise, archive/restore, no-show/late-cancel policy and alerts); Check-ins & attention; Units & locale; Security (change password, which signs out other devices); a read-only beta plan card.
+  - **Tables with RLS:** `trainer_public_pages`, `lead_forms` (immutable versions), `leads`, `lead_activities` and `lead_consents` (insert-only), `notifications` (recipient may only mark read); check-in rule columns on `trainer_settings`. Existing workspaces are backfilled with an unpublished page and form v1.
+  - **Product events:** `public_page_published`, `lead_captured`. New error code `FORM_OUTDATED`. Optional `TURNSTILE_SECRET_KEY` / `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. ADR-0044.
+  - **Tests:** RLS for every new table, incl. cross-tenant composite FKs; API integration for every settings section, incl. a tampering case, plus the enquiry flow (honeypot, too fast, forged or outdated form, required email, rate limit, CSRF, workspace tampering); unit tests for the form token, Turnstile and the shared contracts; component tests for the enquiry form and template editor; e2e for publish → share → enquiry from a private window, with axe.
 - Step 1.6 deployment (PROMPT §17.1–§17.6): `apps/api/Dockerfile` and `apps/web/Dockerfile` built from the repo root with `turbo prune` (API via `pnpm deploy --prod`; web as Next.js standalone on `HOSTNAME=::`), `.dockerignore`, `apps/api/railway.json` (pre-deploy migrations, `/v1/health`, draining) and `apps/web/railway.json` (`/healthz`), both with `watchPatterns`.
 - `docker compose --profile full`: the same images run locally, with a one-shot `api-migrate` service standing in for Railway's pre-deploy command.
 - CI split into `verify` (gates + Testcontainers suites) and `e2e` (Playwright against the Docker images, migrated from zero). New `Staging smoke` workflow after each Railway staging deploy (or by hand): web liveness, readiness through `/api`, and `e2e/smoke.spec.ts` against `STAGING_WEB_URL`. Playwright supports `E2E_EXTERNAL_SERVERS=1` and `E2E_BASE_URL`.
@@ -36,6 +43,12 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 - Root scripts from the CLAUDE.md command table (later-step commands print which step implements them), Vitest in every package, Playwright (desktop + mobile, axe check), GitHub Actions CI, `.env.example` files, `docs/local-development.md`.
 - ADR-0035 (NestJS 11 / TypeScript 5.9 / ESLint 9 pins), ADR-0036 (RustFS replaces MinIO), ADR-0037 (muted text token darkened for AA contrast).
 - Step 0.1 plan: `docs/architecture.md`, ADR-0001–0025 for decisions D1–D25 (`docs/decisions/`), `docs/mvp-plan.md` with the step-to-spec map, risks and open questions.
+
+### Fixed
+
+- The typed API client resolved every response to `any`: it emitted `createClient.Client<…>` into its declaration file. It now declares its return type, so the web is type-checked against the real contracts again.
+- OpenAPI: bare nullable scalars (`z.string().nullable()`) were published as arrays of strings (e.g. sessions' `userAgent`); they're now `string | null`.
+- The enquiry form's optional training-mode radio sends `null` when untouched; the contract accepts it (previously the form would silently refuse to send).
 
 ### Changed
 

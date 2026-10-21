@@ -34,6 +34,8 @@ const envSchema = z
     EMAIL_FROM: z.string().min(3),
     SMTP_URL: z.string().url().optional(),
     RESEND_API_KEY: z.string().min(10).optional(),
+    /** Cloudflare Turnstile on the public enquiry form (§8.2). Optional: honeypot, time-to-submit and rate limits always apply. */
+    TURNSTILE_SECRET_KEY: z.string().min(10).optional(),
     // Object storage (PROMPT §17.3, §17.7): Cloudflare R2 deployed, RustFS locally. All or nothing —
     // without them uploads are "not configured" rather than failing.
     STORAGE_ENDPOINT: z.string().url().optional(),
@@ -146,6 +148,8 @@ export abstract class AppConfig {
   };
   /** null when STORAGE_* isn't set: uploads answer "not configured" (CLAUDE.md rule 20). */
   abstract readonly storage: StorageConfig | null;
+  /** null when Turnstile isn't configured: the enquiry form works without the challenge. */
+  abstract readonly turnstileSecretKey: string | null;
   abstract readonly logLevel: (typeof LOG_LEVELS)[number];
 }
 
@@ -204,6 +208,7 @@ export function parseEnv(source: NodeJS.ProcessEnv): AppConfig {
             hardLimitBytes: env.STORAGE_HARD_LIMIT_BYTES,
           }
         : null,
+    turnstileSecretKey: env.TURNSTILE_SECRET_KEY ?? null,
     logLevel: env.LOG_LEVEL,
   };
 }

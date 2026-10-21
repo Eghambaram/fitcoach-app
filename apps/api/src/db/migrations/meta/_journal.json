@@ -50,6 +50,20 @@
       "when": 1792492799209,
       "tag": "0006_files_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792554303767,
+      "tag": "0007_leads_public_page",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792554341802,
+      "tag": "0008_leads_public_page_rls",
+      "breakpoints": true
     }
   ]
 }

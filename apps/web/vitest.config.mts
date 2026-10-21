@@ -11,6 +11,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    // Form tests type with userEvent in jsdom, which is slow when test files run in parallel.
+    testTimeout: 15_000,
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["node_modules", ".next"],
   },

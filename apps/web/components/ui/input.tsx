@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, SelectHTMLAttributes } from "react";
+import type { ComponentProps, InputHTMLAttributes, SelectHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const controlStyles =
@@ -6,6 +6,15 @@ const controlStyles =
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(controlStyles, className)} {...props} />;
+}
+
+export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
+  return (
+    <textarea
+      className={cn(controlStyles, "h-auto min-h-24 py-3 leading-relaxed", className)}
+      {...props}
+    />
+  );
 }
 
 export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {

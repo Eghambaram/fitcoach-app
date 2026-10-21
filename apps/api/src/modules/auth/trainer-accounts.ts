@@ -1,11 +1,19 @@
-import { ERROR_CODES, normalizePhone, type SignupRequest } from "@fitcoach/shared";
+import {
+  DEFAULT_CONSENT_TEXT,
+  DEFAULT_ENQUIRY_FORM_FIELDS,
+  ERROR_CODES,
+  normalizePhone,
+  type SignupRequest,
+} from "@fitcoach/shared";
 import { eq, isNull, sql } from "drizzle-orm";
 import { DomainError } from "../../common/errors/domain-error";
 import type { Tx } from "../../db/database";
 import {
+  leadForms,
   messageTemplates,
   packagePresets,
   profiles,
+  trainerPublicPages,
   trainerSettings,
   users,
   workspaceMembers,
@@ -32,8 +40,8 @@ export interface CreateTrainerAccountOptions {
 
 /**
  * Creates everything a new trainer needs in ONE transaction (PROMPT §10.4): user, profile, workspace,
- * membership, settings, the beta plan, and copies of the default message templates and package
- * presets. Runs as fitcoach_system — signup happens before a session exists.
+ * membership, settings, the beta plan, an unpublished public page with enquiry form v1, and copies of
+ * the default message templates and package presets. Runs as fitcoach_system — signup happens before a session exists.
  * The caller has already checked the email is free and consumed the beta code in the same transaction.
  */
 export async function createTrainerAccount(
@@ -91,6 +99,17 @@ export async function createTrainerAccount(
     workspaceId: workspace.id,
     planId: BETA_PLAN_ID,
     maxActiveClients: options.clientLimit,
+  });
+  // The page starts unpublished; publishing it is the first-run checklist's first item (§8.1).
+  await tx
+    .insert(trainerPublicPages)
+    .values({ workspaceId: workspace.id, location: input.business.city || null });
+  await tx.insert(leadForms).values({
+    workspaceId: workspace.id,
+    version: 1,
+    consentText: DEFAULT_CONSENT_TEXT,
+    fields: DEFAULT_ENQUIRY_FORM_FIELDS,
+    createdByUserId: user.id,
   });
 
   // Copy the global defaults (workspace_id IS NULL) so the trainer can edit their own versions.

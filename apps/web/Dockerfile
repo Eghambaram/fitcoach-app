@@ -18,8 +18,11 @@ COPY --from=prune /repo/out/full/ ./
 # Railway passes service variables with the same name as build args.
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_APP_ENV=production
+# Optional: enables the Turnstile challenge on the public enquiry form.
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV \
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY \
     NEXT_TELEMETRY_DISABLED=1
 # No API calls during the build: private networking doesn't exist yet (PROMPT §4.2).
 RUN pnpm turbo run build --filter=@fitcoach/web

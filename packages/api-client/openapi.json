@@ -341,6 +341,37 @@
         ]
       }
     },
+    "/v1/auth/password/change": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/v1/health": {
       "get": {
         "operationId": "HealthController_liveness",
@@ -411,6 +442,571 @@
         },
         "tags": [
           "platform"
+        ]
+      }
+    },
+    "/v1/settings": {
+      "get": {
+        "operationId": "SettingsController_getWorkspaceSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/locale": {
+      "put": {
+        "operationId": "SettingsController_updateLocale",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocaleSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/check-ins": {
+      "put": {
+        "operationId": "SettingsController_updateCheckIns",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckInRulesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/package-policy": {
+      "put": {
+        "operationId": "SettingsController_updatePackagePolicy",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackagePolicyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/public-page": {
+      "get": {
+        "operationId": "SettingsController_getPublicPage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPageSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "SettingsController_updatePublicPage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPageSettingsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPageSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/public-page/publish": {
+      "post": {
+        "operationId": "SettingsController_setPublished",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPageSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/public-page/qr": {
+      "get": {
+        "operationId": "SettingsController_qrCode",
+        "parameters": [
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "png",
+              "type": "string",
+              "enum": [
+                "png",
+                "svg"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/svg+xml": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/message-templates": {
+      "get": {
+        "operationId": "SettingsController_listTemplates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageTemplatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/message-templates/{purpose}": {
+      "put": {
+        "operationId": "SettingsController_updateTemplate",
+        "parameters": [
+          {
+            "name": "purpose",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "follow_up",
+                "trial_confirmation",
+                "client_invite",
+                "payment_reminder",
+                "package_renewal",
+                "check_in_nudge",
+                "session_reminder"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageTemplateUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageTemplatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/message-templates/{purpose}/reset": {
+      "post": {
+        "operationId": "SettingsController_resetTemplate",
+        "parameters": [
+          {
+            "name": "purpose",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "follow_up",
+                "trial_confirmation",
+                "client_invite",
+                "payment_reminder",
+                "package_renewal",
+                "check_in_nudge",
+                "session_reminder"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageTemplatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/package-presets": {
+      "get": {
+        "operationId": "SettingsController_listPresets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackagePresetsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      },
+      "post": {
+        "operationId": "SettingsController_createPreset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackagePresetInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackagePresetsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/package-presets/{id}": {
+      "put": {
+        "operationId": "SettingsController_updatePreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackagePresetInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackagePresetsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/package-presets/{id}/archive": {
+      "post": {
+        "operationId": "SettingsController_archivePreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackagePresetsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/package-presets/{id}/restore": {
+      "post": {
+        "operationId": "SettingsController_restorePreset",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackagePresetsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/public/pages/{slug}": {
+      "get": {
+        "operationId": "PublicPageController_getPage",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "minLength": 3,
+              "maxLength": 40,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPageResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "public"
+        ]
+      }
+    },
+    "/v1/public/enquiries": {
+      "post": {
+        "operationId": "PublicPageController_submit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnquiryRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnquiryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "public"
         ]
       }
     }
@@ -755,10 +1351,8 @@
                   "type": "string"
                 },
                 "userAgent": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string",
+                  "nullable": true
                 },
                 "current": {
                   "type": "boolean"
@@ -777,6 +1371,25 @@
         },
         "required": [
           "sessions"
+        ]
+      },
+      "ChangePasswordRequestDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
         ]
       },
       "LivenessResponseDto": {
@@ -883,6 +1496,881 @@
         "required": [
           "status",
           "checks"
+        ]
+      },
+      "WorkspaceSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              },
+              "timezone": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "country": {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit",
+              "timezone",
+              "country"
+            ]
+          },
+          "checkIns": {
+            "type": "object",
+            "properties": {
+              "checkInFrequency": {
+                "type": "string",
+                "enum": [
+                  "daily",
+                  "weekly"
+                ]
+              },
+              "noCheckInDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 60
+              },
+              "noMeasurementDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 180
+              }
+            },
+            "required": [
+              "checkInFrequency",
+              "noCheckInDays",
+              "noMeasurementDays"
+            ]
+          },
+          "packagePolicy": {
+            "type": "object",
+            "properties": {
+              "noShowUsesSession": {
+                "type": "boolean"
+              },
+              "lateCancelWindowHours": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 168
+              },
+              "lateCancelUsesSession": {
+                "type": "boolean"
+              },
+              "lowSessionsThreshold": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 50
+              },
+              "expiryWarningDays": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 60
+              }
+            },
+            "required": [
+              "noShowUsesSession",
+              "lateCancelWindowHours",
+              "lateCancelUsesSession",
+              "lowSessionsThreshold",
+              "expiryWarningDays"
+            ]
+          },
+          "plan": {
+            "type": "object",
+            "properties": {
+              "planName": {
+                "type": "string"
+              },
+              "maxActiveClients": {
+                "type": "integer",
+                "exclusiveMinimum": true,
+                "maximum": 9007199254740991,
+                "minimum": 0
+              },
+              "trialEndsAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "nullable": true
+              }
+            },
+            "required": [
+              "planName",
+              "maxActiveClients",
+              "trialEndsAt"
+            ]
+          }
+        },
+        "required": [
+          "locale",
+          "checkIns",
+          "packagePolicy",
+          "plan"
+        ]
+      },
+      "LocaleSettingsDto": {
+        "type": "object",
+        "properties": {
+          "weightUnit": {
+            "type": "string",
+            "enum": [
+              "kg",
+              "lb"
+            ]
+          },
+          "lengthUnit": {
+            "type": "string",
+            "enum": [
+              "cm",
+              "in"
+            ]
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "required": [
+          "weightUnit",
+          "lengthUnit",
+          "timezone",
+          "country"
+        ]
+      },
+      "CheckInRulesDto": {
+        "type": "object",
+        "properties": {
+          "checkInFrequency": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly"
+            ]
+          },
+          "noCheckInDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60
+          },
+          "noMeasurementDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 180
+          }
+        },
+        "required": [
+          "checkInFrequency",
+          "noCheckInDays",
+          "noMeasurementDays"
+        ]
+      },
+      "PackagePolicyDto": {
+        "type": "object",
+        "properties": {
+          "noShowUsesSession": {
+            "type": "boolean"
+          },
+          "lateCancelWindowHours": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 168
+          },
+          "lateCancelUsesSession": {
+            "type": "boolean"
+          },
+          "lowSessionsThreshold": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "expiryWarningDays": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 60
+          }
+        },
+        "required": [
+          "noShowUsesSession",
+          "lateCancelWindowHours",
+          "lateCancelUsesSession",
+          "lowSessionsThreshold",
+          "expiryWarningDays"
+        ]
+      },
+      "PublicPageSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "businessName": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "headline": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "coachingTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coachingModes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "in_person",
+                "online",
+                "hybrid"
+              ]
+            }
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "form": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "enum": [
+                  "hidden",
+                  "optional",
+                  "required"
+                ]
+              },
+              "schedule": {
+                "type": "boolean"
+              },
+              "message": {
+                "type": "boolean"
+              },
+              "consentText": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer",
+                "exclusiveMinimum": true,
+                "maximum": 9007199254740991,
+                "minimum": 0
+              }
+            },
+            "required": [
+              "email",
+              "schedule",
+              "message",
+              "consentText",
+              "version"
+            ]
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "displayName",
+          "businessName",
+          "slug",
+          "headline",
+          "bio",
+          "location",
+          "coachingTypes",
+          "coachingModes",
+          "avatarUrl",
+          "form",
+          "isPublished",
+          "publishedAt",
+          "publicUrl"
+        ]
+      },
+      "PublicPageSettingsRequestDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "businessName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "slug": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 40,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "headline": {
+            "default": "",
+            "type": "string",
+            "maxLength": 120
+          },
+          "bio": {
+            "default": "",
+            "type": "string",
+            "maxLength": 1000
+          },
+          "location": {
+            "default": "",
+            "type": "string",
+            "maxLength": 120
+          },
+          "coachingTypes": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 40
+            }
+          },
+          "coachingModes": {
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "in_person",
+                "online",
+                "hybrid"
+              ]
+            }
+          },
+          "form": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "enum": [
+                  "hidden",
+                  "optional",
+                  "required"
+                ]
+              },
+              "schedule": {
+                "type": "boolean"
+              },
+              "message": {
+                "type": "boolean"
+              },
+              "consentText": {
+                "type": "string",
+                "minLength": 20,
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "email",
+              "schedule",
+              "message",
+              "consentText"
+            ]
+          }
+        },
+        "required": [
+          "displayName",
+          "businessName",
+          "slug",
+          "coachingTypes",
+          "coachingModes",
+          "form"
+        ]
+      },
+      "PublishRequestDto": {
+        "type": "object",
+        "properties": {
+          "published": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "published"
+        ]
+      },
+      "MessageTemplatesResponseDto": {
+        "type": "object",
+        "properties": {
+          "templates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "purpose": {
+                  "type": "string",
+                  "enum": [
+                    "follow_up",
+                    "trial_confirmation",
+                    "client_invite",
+                    "payment_reminder",
+                    "package_renewal",
+                    "check_in_nudge",
+                    "session_reminder"
+                  ]
+                },
+                "body": {
+                  "type": "string"
+                },
+                "defaultBody": {
+                  "type": "string"
+                },
+                "isCustomised": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "purpose",
+                "body",
+                "defaultBody",
+                "isCustomised"
+              ]
+            }
+          }
+        },
+        "required": [
+          "templates"
+        ]
+      },
+      "MessageTemplateUpdateDto": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "PackagePresetsResponseDto": {
+        "type": "object",
+        "properties": {
+          "presets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "session_pack",
+                    "time_based",
+                    "online_coaching"
+                  ]
+                },
+                "sessionsIncluded": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "durationDays": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "sessionsPerWeek": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "defaultPricePaise": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "archived": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "kind",
+                "sessionsIncluded",
+                "durationDays",
+                "sessionsPerWeek",
+                "defaultPricePaise",
+                "archived"
+              ]
+            }
+          }
+        },
+        "required": [
+          "presets"
+        ]
+      },
+      "PackagePresetInputDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "session_pack",
+              "time_based",
+              "online_coaching"
+            ]
+          },
+          "sessionsIncluded": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "nullable": true
+          },
+          "durationDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 730,
+            "nullable": true
+          },
+          "sessionsPerWeek": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 14,
+            "nullable": true
+          },
+          "defaultPricePaise": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000,
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "sessionsIncluded",
+          "durationDays",
+          "sessionsPerWeek",
+          "defaultPricePaise"
+        ]
+      },
+      "PublicPageResponseDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "businessName": {
+            "type": "string"
+          },
+          "headline": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "coachingTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coachingModes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "in_person",
+                "online",
+                "hybrid"
+              ]
+            }
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "form": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "exclusiveMinimum": true,
+                "maximum": 9007199254740991,
+                "minimum": 0
+              },
+              "consentText": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "enum": [
+                      "hidden",
+                      "optional",
+                      "required"
+                    ]
+                  },
+                  "schedule": {
+                    "type": "boolean"
+                  },
+                  "message": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "email",
+                  "schedule",
+                  "message"
+                ]
+              }
+            },
+            "required": [
+              "version",
+              "consentText",
+              "fields"
+            ]
+          },
+          "formToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "displayName",
+          "businessName",
+          "headline",
+          "bio",
+          "location",
+          "coachingTypes",
+          "coachingModes",
+          "avatarUrl",
+          "form",
+          "formToken"
+        ]
+      },
+      "EnquiryRequestDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 40
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  ""
+                ]
+              },
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              }
+            ]
+          },
+          "goal": {
+            "type": "string",
+            "enum": [
+              "lose_weight",
+              "build_muscle",
+              "get_stronger",
+              "improve_fitness",
+              "sports_performance",
+              "other"
+            ]
+          },
+          "preferredMode": {
+            "type": "string",
+            "enum": [
+              "in_person",
+              "online",
+              "hybrid",
+              null
+            ],
+            "nullable": true
+          },
+          "preferredSchedule": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "source": {
+            "default": "public_page",
+            "type": "string",
+            "enum": [
+              "public_page",
+              "qr",
+              "instagram",
+              "whatsapp",
+              "facebook",
+              "google",
+              "website",
+              "referral",
+              "other"
+            ]
+          },
+          "utm": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "medium": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "campaign": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "content": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "term": {
+                "type": "string",
+                "maxLength": 100
+              }
+            }
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "consentVersion": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "formToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "turnstileToken": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "slug",
+          "fullName",
+          "phone",
+          "goal",
+          "consent",
+          "consentVersion",
+          "formToken"
+        ]
+      },
+      "EnquiryResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "ok"
         ]
       }
     }
