@@ -127,9 +127,11 @@ test("settings sections load and save", async ({ page, playwright, request }) =>
 
   await page.goto("/app/settings/packages");
   await page.getByRole("button", { name: "Add package" }).click();
-  await page.getByLabel("Name").fill("10 sessions");
-  await page.getByLabel("Sessions").fill("10");
-  await page.getByLabel("Default price (₹)").fill("12000");
-  await page.getByRole("button", { name: "Save package" }).click();
+  // Scope to the drawer: the page behind it has a "Low sessions alert at" field too.
+  const drawer = page.getByRole("dialog", { name: "Add package" });
+  await drawer.getByLabel("Name", { exact: true }).fill("10 sessions");
+  await drawer.getByLabel("Sessions", { exact: true }).fill("10");
+  await drawer.getByLabel("Default price (₹)").fill("12000");
+  await drawer.getByRole("button", { name: "Save package" }).click();
   await expect(page.getByText("₹12,000")).toBeVisible();
 });
