@@ -6,6 +6,15 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 2.2 leads list and drawer (PROMPT §8.2):
+  - **`/app/leads`:** KPI cards (open, new this week, from your page in the last 30 days); stage tabs with counts; search across name, phone, email, goal and source (pg_trgm); source and mode filters; sort; "show archived"; keyset "Load more"; CSV export. Filters live in the URL. The layout is a table on desktop and cards on mobile, with empty and no-results states.
+  - **Add Lead:** name, a phone or an email, goal and source required; E.164 normalisation with the workspace country; a non-blocking "Possible match" panel for the same phone or email.
+  - **Lead drawer** (`?lead=<id>`, `/app/leads/<id>` redirects there): Overview with copy buttons and inline edit, stage control incl. "Mark lost" with reason and "try again after", the enquiry message and the consent given (with its form version), Activity timeline, private append-only Notes, archive/restore, and delete for untouched leads. Call and WhatsApp shortcuts; Book trial and Convert are shown as "coming soon".
+  - **API** `/v1/leads`: list, summary, export.csv, duplicates, create, get, patch, stage, notes, archive, restore, delete. New error code `CONFLICT_STATE`.
+  - **Database:** lead columns `location`, `interested_service`, `lost_reason`, `nurture_until`, `archived_at`; more activity types and a note-length check; trigram indexes; trainer INSERT/UPDATE/DELETE policies on `leads` (never `converted`, fixed origin columns) and signed trainer timeline entries. ADR-0045.
+  - **Tests:** RLS for every new write path incl. tampering; API integration for search, filters, paging, counts, duplicates, edit, stage, notes, delete-vs-archive, CSV formula neutralising, cross-trainer 404s and suspended read-only; component tests for the form and timeline; e2e for add → stage → note → edit → duplicate → search/tab on desktop and mobile.
+- The Leads navigation item is now live.
+
 - Step 2.1 settings basics and public enquiry page (PROMPT §8.2, §8.12):
   - **Public page `/coach/[slug]`:** trainer photo, name, headline, location, coaching types, mode cards and about. The enquiry form follows the trainer's field settings, with versioned consent and a privacy note. Protections: hidden honeypot, signed time-to-submit token, Postgres rate limits (per hashed IP and per workspace) and optional Cloudflare Turnstile.
   - **`POST /v1/public/enquiries`:** a narrow SystemDb service writes lead + consent (pinned to the form version) + activity + notification + product event + audit entry in one transaction.

@@ -64,6 +64,20 @@
       "when": 1792554341802,
       "tag": "0008_leads_public_page_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792648187690,
+      "tag": "0009_leads_crm",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792648202105,
+      "tag": "0010_leads_crm_rls",
+      "breakpoints": true
     }
   ]
 }

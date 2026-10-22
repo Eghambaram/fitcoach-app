@@ -14,6 +14,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { FilesModule } from "./modules/files/files.module";
 import { HealthModule } from "./modules/health/health.module";
 import { JobsModule } from "./modules/jobs/jobs.module";
+import { LeadsModule } from "./modules/leads/leads.module";
 import { PlatformModule } from "./modules/platform/platform.module";
 import { PublicPageModule } from "./modules/public-page/public-page.module";
 import { SettingsModule } from "./modules/settings/settings.module";
@@ -32,6 +33,7 @@ import { SettingsModule } from "./modules/settings/settings.module";
     HealthModule,
     PlatformModule,
     SettingsModule,
+    LeadsModule,
     PublicPageModule,
   ],
   providers: [

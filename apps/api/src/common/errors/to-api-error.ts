@@ -28,6 +28,7 @@ const GENERIC_MESSAGES: Record<ErrorCode, string> = {
   RATE_LIMITED: "Too many attempts. Please wait a moment and try again.",
   CONFLICT_DUPLICATE: "This already exists.",
   CONFLICT_APPOINTMENT: "This time overlaps another appointment.",
+  CONFLICT_STATE: "That can’t be done right now. Reload and try again.",
   INVALID_REFERENCE: "Something this depends on no longer exists.",
   PLAN_LIMIT: "You've reached the limit of your plan.",
   WORKSPACE_READ_ONLY: "This workspace is read-only right now.",

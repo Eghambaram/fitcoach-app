@@ -24,6 +24,7 @@ export function createHttpHelpers(getApp: () => INestApplication, getSystem: () 
       ip,
       post: (path: string, body?: object) => withHeaders(agent.post(path)).send(body ?? {}),
       put: (path: string, body?: object) => withHeaders(agent.put(path)).send(body ?? {}),
+      patch: (path: string, body?: object) => withHeaders(agent.patch(path)).send(body ?? {}),
       get: (path: string) => agent.get(path).set("x-forwarded-for", ip),
       delete: (path: string) => withHeaders(agent.delete(path)),
       /** Multipart upload of one file field, like the browser's FormData. */

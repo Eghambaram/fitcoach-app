@@ -468,6 +468,150 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/leads": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["LeadsController_list"];
+    put?: never;
+    post: operations["LeadsController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["LeadsController_summary"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/export.csv": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["LeadsController_exportCsv"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/duplicates": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_duplicates"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["LeadsController_get"];
+    put?: never;
+    post?: never;
+    delete: operations["LeadsController_remove"];
+    options?: never;
+    head?: never;
+    patch: operations["LeadsController_update"];
+    trace?: never;
+  };
+  "/v1/leads/{id}/stage": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_changeStage"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/{id}/notes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_addNote"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/{id}/archive": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_archive"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/{id}/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_restore"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/public/pages/{slug}": {
     parameters: {
       query?: never;
@@ -759,6 +903,253 @@ export interface components {
       durationDays: number | null;
       sessionsPerWeek: number | null;
       defaultPricePaise: number | null;
+    };
+    LeadListResponseDto: {
+      items: {
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+        phoneE164: string | null;
+        email: string | null;
+        /** @enum {string} */
+        goal:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other";
+        /** @enum {string|null} */
+        trainingMode: "in_person" | "online" | "hybrid" | null;
+        /** @enum {string} */
+        source:
+          | "public_page"
+          | "qr"
+          | "instagram"
+          | "whatsapp"
+          | "facebook"
+          | "google"
+          | "website"
+          | "referral"
+          | "walk_in"
+          | "other";
+        /** @enum {string} */
+        stage: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
+        /** Format: date-time */
+        lastContactAt: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        archived: boolean;
+      }[];
+      nextCursor: string | null;
+    };
+    LeadsSummaryResponseDto: {
+      stageCounts: {
+        all: number;
+        new: number;
+        contacted: number;
+        trial_booked: number;
+        interested: number;
+        converted: number;
+        lost: number;
+      };
+      kpis: {
+        open: number;
+        newThisWeek: number;
+        fromPublicPage30Days: number;
+      };
+    };
+    DuplicateCheckRequestDto: {
+      phone?: string;
+      email?: string;
+      /** Format: uuid */
+      excludeLeadId?: string;
+    };
+    DuplicateCheckResponseDto: {
+      matches: {
+        /** @enum {string} */
+        kind: "lead";
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+        /** @enum {string} */
+        stage: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
+        matchedOn: ("phone" | "email")[];
+      }[];
+    };
+    CreateLeadRequestDto: {
+      fullName: string;
+      phone?: string;
+      email?: "" | string;
+      /** @enum {string} */
+      goal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other";
+      /** @enum {string} */
+      source:
+        | "public_page"
+        | "qr"
+        | "instagram"
+        | "whatsapp"
+        | "facebook"
+        | "google"
+        | "website"
+        | "referral"
+        | "walk_in"
+        | "other";
+      /** @enum {string|null} */
+      trainingMode?: "in_person" | "online" | "hybrid" | null;
+      preferredSchedule?: string;
+      location?: string;
+      interestedService?: string;
+      referrer?: string;
+      campaign?: string;
+      note?: string;
+    };
+    LeadDetailResponseDto: {
+      /** Format: uuid */
+      id: string;
+      fullName: string;
+      phoneE164: string | null;
+      email: string | null;
+      /** @enum {string} */
+      goal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other";
+      /** @enum {string|null} */
+      trainingMode: "in_person" | "online" | "hybrid" | null;
+      /** @enum {string} */
+      source:
+        | "public_page"
+        | "qr"
+        | "instagram"
+        | "whatsapp"
+        | "facebook"
+        | "google"
+        | "website"
+        | "referral"
+        | "walk_in"
+        | "other";
+      /** @enum {string} */
+      stage: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
+      /** Format: date-time */
+      lastContactAt: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      archived: boolean;
+      preferredSchedule: string | null;
+      message: string | null;
+      location: string | null;
+      interestedService: string | null;
+      referrer: string | null;
+      campaign: string | null;
+      utm: {
+        [key: string]: string;
+      };
+      /** @enum {string} */
+      createdVia: "public_page" | "manual";
+      /** @enum {string|null} */
+      lostReason:
+        | "price"
+        | "timing"
+        | "location"
+        | "chose_another_coach"
+        | "no_response"
+        | "not_a_fit"
+        | "other"
+        | null;
+      nurtureUntil: string | null;
+      consent: {
+        version: number;
+        text: string;
+        /** Format: date-time */
+        consentedAt: string;
+      } | null;
+      activities: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        type:
+          | "enquiry_received"
+          | "created"
+          | "details_updated"
+          | "stage_changed"
+          | "note"
+          | "archived"
+          | "restored";
+        data: {
+          [key: string]: unknown;
+        };
+        /** @enum {string} */
+        actorKind: "trainer" | "system";
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      notes: {
+        /** Format: uuid */
+        id: string;
+        body: string;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      canDelete: boolean;
+    };
+    UpdateLeadRequestDto: {
+      fullName: string;
+      phone?: string;
+      email?: "" | string;
+      /** @enum {string} */
+      goal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other";
+      /** @enum {string} */
+      source:
+        | "public_page"
+        | "qr"
+        | "instagram"
+        | "whatsapp"
+        | "facebook"
+        | "google"
+        | "website"
+        | "referral"
+        | "walk_in"
+        | "other";
+      /** @enum {string|null} */
+      trainingMode?: "in_person" | "online" | "hybrid" | null;
+      preferredSchedule?: string;
+      location?: string;
+      interestedService?: string;
+      referrer?: string;
+      campaign?: string;
+    };
+    ChangeLeadStageRequestDto: {
+      /** @enum {string} */
+      stage: "new" | "contacted" | "trial_booked" | "interested" | "lost";
+      /** @enum {string} */
+      lostReason?:
+        | "price"
+        | "timing"
+        | "location"
+        | "chose_another_coach"
+        | "no_response"
+        | "not_a_fit"
+        | "other";
+      nurtureUntil?: string;
+    };
+    LeadNoteRequestDto: {
+      body: string;
     };
     PublicPageResponseDto: {
       slug: string;
@@ -1549,6 +1940,318 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PackagePresetsResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_list: {
+    parameters: {
+      query?: {
+        q?: string;
+        source?:
+          | "public_page"
+          | "qr"
+          | "instagram"
+          | "whatsapp"
+          | "facebook"
+          | "google"
+          | "website"
+          | "referral"
+          | "walk_in"
+          | "other";
+        mode?: "in_person" | "online" | "hybrid";
+        archived?: unknown;
+        stage?: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
+        sort?: "newest" | "oldest" | "name" | "last_contact";
+        cursor?: string;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadListResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateLeadRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_summary: {
+    parameters: {
+      query?: {
+        q?: string;
+        source?:
+          | "public_page"
+          | "qr"
+          | "instagram"
+          | "whatsapp"
+          | "facebook"
+          | "google"
+          | "website"
+          | "referral"
+          | "walk_in"
+          | "other";
+        mode?: "in_person" | "online" | "hybrid";
+        archived?: unknown;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadsSummaryResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_exportCsv: {
+    parameters: {
+      query?: {
+        q?: string;
+        source?:
+          | "public_page"
+          | "qr"
+          | "instagram"
+          | "whatsapp"
+          | "facebook"
+          | "google"
+          | "website"
+          | "referral"
+          | "walk_in"
+          | "other";
+        mode?: "in_person" | "online" | "hybrid";
+        archived?: unknown;
+        stage?: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/csv": string;
+        };
+      };
+    };
+  };
+  LeadsController_duplicates: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DuplicateCheckRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DuplicateCheckResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_remove: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateLeadRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_changeStage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChangeLeadStageRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_addNote: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LeadNoteRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_archive: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_restore: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
         };
       };
     };

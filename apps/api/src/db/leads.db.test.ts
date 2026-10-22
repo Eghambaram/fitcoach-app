@@ -171,20 +171,12 @@ describe("public page, enquiry form, leads and notifications RLS", () => {
     }
   });
 
-  it("lets nobody rewrite lead history, and the app no lead writes yet", async () => {
+  // Trainer lead writes (step 2.2) are covered in leads-crm.db.test.ts.
+  it("lets nobody rewrite lead history or mark a lead converted by hand", async () => {
     await withContext(app, trainerContext(a), async (client) => {
-      expect(
-        await sqlStateIn(
-          client,
-          `insert into leads (workspace_id, full_name, phone_e164, goal, source, created_via)
-           values ($1, 'X', '+919876543211', 'other', 'other', 'manual')`,
-          [a.workspaceId],
-        ),
-      ).toBe("42501");
       expect(
         await sqlStateIn(client, "update leads set stage = 'converted' where id = $1", [leadA]),
       ).toBe("42501");
-      expect(await sqlStateIn(client, "delete from leads where id = $1", [leadA])).toBe("42501");
       expect(await sqlStateIn(client, "delete from lead_consents")).toBe("42501");
       expect(await sqlStateIn(client, "update lead_activities set type = 'stage_changed'")).toBe(
         "42501",

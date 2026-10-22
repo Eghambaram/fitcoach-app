@@ -35,7 +35,7 @@ export interface NavItem {
  */
 export const TRAINER_NAV: readonly NavItem[] = [
   { label: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard, available: true },
-  { label: "Leads", href: "/app/leads", icon: UserPlus, available: false },
+  { label: "Leads", href: "/app/leads", icon: UserPlus, available: true },
   { label: "Clients", href: "/app/clients", icon: Users, available: false },
   { label: "Calendar", href: "/app/calendar", icon: CalendarDays, available: false },
   { label: "Programs", href: "/app/programs", icon: ListChecks, available: false },

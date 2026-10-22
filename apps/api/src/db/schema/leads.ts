@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
   foreignKey,
   index,
   integer,
@@ -110,12 +111,19 @@ export const leads = pgTable(
     campaign: text("campaign"),
     utm: jsonb("utm").notNull().default({}),
     referrer: text("referrer"),
+    location: text("location"),
+    interestedService: text("interested_service"),
     stage: text("stage").notNull().default("new"),
+    lostReason: text("lost_reason"),
+    /** "Try again after" for lost leads (a local date, no time). */
+    nurtureUntil: date("nurture_until"),
     createdVia: text("created_via").notNull(),
     createdByUserId: uuid("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
     lastContactAt: timestamp("last_contact_at", { withTimezone: true }),
+    /** Archived leads leave the list but keep their history (delete is only for untouched leads). */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [
@@ -157,6 +165,23 @@ export const leads = pgTable(
       sql`${t.stage} in ('new', 'contacted', 'trial_booked', 'interested', 'converted', 'lost')`,
     ),
     check("leads_created_via", sql`${t.createdVia} in ('public_page', 'manual')`),
+    check("leads_location_length", sql`${t.location} is null or char_length(${t.location}) <= 120`),
+    check(
+      "leads_interested_service_length",
+      sql`${t.interestedService} is null or char_length(${t.interestedService}) <= 120`,
+    ),
+    check(
+      "leads_lost_reason",
+      sql`${t.lostReason} is null or ${t.lostReason} in ('price', 'timing', 'location', 'chose_another_coach', 'no_response', 'not_a_fit', 'other')`,
+    ),
+    check(
+      "leads_lost_fields_only_when_lost",
+      sql`${t.stage} = 'lost' or (${t.lostReason} is null and ${t.nurtureUntil} is null)`,
+    ),
+    // Search (PROMPT §8.2, pg_trgm): name, email and phone with ILIKE '%…%'.
+    index("leads_full_name_trgm_idx").using("gin", sql`${t.fullName} gin_trgm_ops`),
+    index("leads_email_trgm_idx").using("gin", sql`(${t.email}::text) gin_trgm_ops`),
+    index("leads_phone_trgm_idx").using("gin", sql`${t.phoneE164} gin_trgm_ops`),
   ],
 );
 
@@ -181,7 +206,14 @@ export const leadActivities = pgTable(
     }).onDelete("cascade"),
     index("lead_activities_workspace_lead_created_at_idx").on(t.workspaceId, t.leadId, t.createdAt),
     index("lead_activities_actor_user_id_idx").on(t.actorUserId),
-    check("lead_activities_type", sql`${t.type} in ('enquiry_received', 'stage_changed')`),
+    check(
+      "lead_activities_type",
+      sql`${t.type} in ('enquiry_received', 'created', 'details_updated', 'stage_changed', 'note', 'archived', 'restored')`,
+    ),
+    check(
+      "lead_activities_note_body",
+      sql`${t.type} <> 'note' or char_length(${t.data} ->> 'body') between 1 and 2000`,
+    ),
     check("lead_activities_data_object", sql`jsonb_typeof(${t.data}) = 'object'`),
     check("lead_activities_actor_kind", sql`${t.actorKind} in ('trainer', 'system')`),
   ],

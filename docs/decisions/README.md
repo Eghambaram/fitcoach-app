@@ -49,3 +49,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0042](0042-railway-staging-pipeline.md)          | Railway staging pipeline: one image per app, e2e against the images, smoke via web origin   |
 | [0043](0043-migrate-on-container-start.md)        | Migrations run when the API container starts, not as a Railway pre-deploy command           |
 | [0044](0044-public-enquiry-page.md)               | Public enquiry page: signed form token, silent bot drops, versioned consent, narrow service |
+| [0045](0045-leads-list-scope.md)                  | Leads list and drawer: honest KPIs, URL filters, keyset paging, notes as timeline entries   |
