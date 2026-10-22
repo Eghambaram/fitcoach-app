@@ -57,7 +57,7 @@ test("a trainer publishes their page and a visitor sends an enquiry from a priva
   await page.getByLabel("Your name").fill("Asha Rao");
   await page.getByLabel("Headline").fill("Strength coaching for busy people");
   await page.getByLabel("Location").fill("Pune");
-  await page.getByLabel("Add a coaching type").fill("Strength");
+  await page.getByRole("textbox", { name: "Coaching types" }).fill("Strength");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Saved.")).toBeVisible();
@@ -127,11 +127,12 @@ test("settings sections load and save", async ({ page, playwright, request }) =>
 
   await page.goto("/app/settings/packages");
   await page.getByRole("button", { name: "Add package" }).click();
-  // Scope to the drawer: the page behind it has a "Low sessions alert at" field too.
+  // Scope to the drawer (the page behind has a "Low sessions alert at" field too) and match by
+  // accessible name: the required asterisk is part of the label text but hidden from assistive tech.
   const drawer = page.getByRole("dialog", { name: "Add package" });
-  await drawer.getByLabel("Name", { exact: true }).fill("10 sessions");
-  await drawer.getByLabel("Sessions", { exact: true }).fill("10");
-  await drawer.getByLabel("Default price (₹)").fill("12000");
+  await drawer.getByRole("textbox", { name: "Name", exact: true }).fill("10 sessions");
+  await drawer.getByRole("spinbutton", { name: "Sessions", exact: true }).fill("10");
+  await drawer.getByRole("spinbutton", { name: "Default price (₹)" }).fill("12000");
   await drawer.getByRole("button", { name: "Save package" }).click();
   await expect(page.getByText("₹12,000")).toBeVisible();
 });

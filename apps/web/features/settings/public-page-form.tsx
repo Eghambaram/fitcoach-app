@@ -66,15 +66,22 @@ function defaults(page: PublicPageSettingsResponse): PublicPageSettingsInput {
   };
 }
 
-/** Tag-style input for coaching types ("Strength", "Yoga"…): Enter or Add to add, × to remove. */
+/**
+ * Tag-style input for coaching types ("Strength", "Yoga"…): Enter or Add to add, × to remove.
+ * `id` and the aria props come from the surrounding Field and go on the text input.
+ */
 function CoachingTypesInput({
   value,
   onChange,
-  invalid,
+  id,
+  "aria-describedby": describedBy,
+  "aria-invalid": invalid,
 }: {
   value: string[];
   onChange: (next: string[]) => void;
-  invalid: boolean;
+  id?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: boolean;
 }) {
   const [draft, setDraft] = useState("");
   const full = value.length >= COACHING_TYPES_MAX;
@@ -125,7 +132,8 @@ function CoachingTypesInput({
           placeholder={full ? `Up to ${COACHING_TYPES_MAX} types` : "e.g. Strength, Yoga, Mobility"}
           disabled={full}
           maxLength={40}
-          aria-label="Add a coaching type"
+          id={id}
+          aria-describedby={describedBy}
           aria-invalid={invalid || undefined}
         />
         <Button variant="outline" onClick={add} disabled={full || !draft.trim()}>
@@ -203,23 +211,19 @@ export function PublicPageForm({ page }: { page: PublicPageSettingsResponse }) {
         >
           <Textarea rows={5} maxLength={1000} {...register("bio")} />
         </Field>
-        <Field
-          label="Coaching types"
-          error={errors.coachingTypes?.message ?? errors.coachingTypes?.root?.message}
-          hint={`Shown as tags on your page. Up to ${COACHING_TYPES_MAX}.`}
-        >
-          <Controller
-            control={control}
-            name="coachingTypes"
-            render={({ field }) => (
-              <CoachingTypesInput
-                value={field.value ?? []}
-                onChange={field.onChange}
-                invalid={Boolean(errors.coachingTypes)}
-              />
-            )}
-          />
-        </Field>
+        <Controller
+          control={control}
+          name="coachingTypes"
+          render={({ field }) => (
+            <Field
+              label="Coaching types"
+              error={errors.coachingTypes?.message ?? errors.coachingTypes?.root?.message}
+              hint={`Type one and press Enter or Add. Shown as tags on your page, up to ${COACHING_TYPES_MAX}.`}
+            >
+              <CoachingTypesInput value={field.value ?? []} onChange={field.onChange} />
+            </Field>
+          )}
+        />
         <fieldset
           className="flex flex-col gap-2"
           aria-describedby={errors.coachingModes ? "modes-error" : undefined}

@@ -43,7 +43,11 @@ const EMPTY: PackagePresetInput = {
   defaultPricePaise: null,
 };
 
-const optionalNumber = { setValueAs: (value: string) => (value === "" ? null : Number(value)) };
+/** Empty → null. RHF also passes the untouched default (null), and Number(null) would be 0. */
+const optionalNumber = {
+  setValueAs: (value: unknown) =>
+    value === "" || value === null || value === undefined ? null : Number(value),
+};
 
 export function presetSummary(preset: PackagePresetInput): string {
   const parts = [
@@ -132,15 +136,16 @@ function PresetForm({ preset, onDone }: { preset: PackagePreset | null; onDone: 
           />
         </Field>
       </div>
-      <Field
-        label="Default price (₹)"
-        error={errors.defaultPricePaise?.message}
-        hint="Optional. Pre-filled when you sell this package; you can change it each time."
-      >
-        <Controller
-          control={control}
-          name="defaultPricePaise"
-          render={({ field }) => (
+      {/* Field wraps the input itself (inside the Controller) so its label and hint reach the input. */}
+      <Controller
+        control={control}
+        name="defaultPricePaise"
+        render={({ field }) => (
+          <Field
+            label="Default price (₹)"
+            error={errors.defaultPricePaise?.message}
+            hint="Optional. Pre-filled when you sell this package; you can change it each time."
+          >
             <Input
               type="number"
               inputMode="decimal"
@@ -154,9 +159,9 @@ function PresetForm({ preset, onDone }: { preset: PackagePreset | null; onDone: 
               }
               onBlur={field.onBlur}
             />
-          )}
-        />
-      </Field>
+          </Field>
+        )}
+      />
     </form>
   );
 }
