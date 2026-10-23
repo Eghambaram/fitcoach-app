@@ -92,6 +92,20 @@
       "when": 1792734168752,
       "tag": "0012_follow_ups_communication_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792762624430,
+      "tag": "0013_clients_conversion",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792762635506,
+      "tag": "0014_clients_conversion_rls",
+      "breakpoints": true
     }
   ]
 }

@@ -31,6 +31,8 @@ const GENERIC_MESSAGES: Record<ErrorCode, string> = {
   CONFLICT_STATE: "That can’t be done right now. Reload and try again.",
   INVALID_REFERENCE: "Something this depends on no longer exists.",
   PLAN_LIMIT: "You've reached the limit of your plan.",
+  IDEMPOTENCY_KEY_REUSED:
+    "This request was already sent with different details. Reload and try again.",
   WORKSPACE_READ_ONLY: "This workspace is read-only right now.",
   WORKSPACE_INACTIVE: "This workspace isn't active.",
   INTERNAL_ERROR: "Something went wrong on our side. Please try again.",
@@ -45,6 +47,9 @@ const PG_ERRORS: Record<string, () => MappedError> = {
   "23505": () => generic(ERROR_CODES.CONFLICT_DUPLICATE, 409),
   "23P01": () => generic(ERROR_CODES.CONFLICT_APPOINTMENT, 409),
   "23503": () => generic(ERROR_CODES.INVALID_REFERENCE, 422),
+  // Raised by app.enforce_active_client_limit() (migration 0014) when a client would become active
+  // past the workspace's plan limit.
+  FC001: () => generic(ERROR_CODES.PLAN_LIMIT, 409),
   // insufficient_privilege, incl. "new row violates row-level security policy": a guard should have
   // stopped this first, so it is logged as unexpected but shown as a plain 403.
   "42501": () => ({ ...generic(ERROR_CODES.FORBIDDEN, 403), unexpected: true }),

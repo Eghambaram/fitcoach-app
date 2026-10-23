@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { normalizePhone } from "../phone";
+import { CLIENT_STATUSES } from "./clients";
 import { COACHING_MODES, emailSchema } from "./auth";
 import { FOLLOW_UP_STATES, leadFollowUpSchema, whatsAppLinkSchema } from "./follow-ups";
 import { FITNESS_GOALS, LEAD_SOURCES, LEAD_STAGES, type LeadStage } from "./leads";
@@ -235,6 +236,7 @@ export const LEAD_ACTIVITY_TYPES = [
   "follow_up_rescheduled",
   "follow_up_completed",
   "follow_up_skipped",
+  "converted",
   /** A `communication_logs` entry, merged into the timeline when it is read. */
   "contact_logged",
 ] as const;
@@ -282,6 +284,9 @@ export const leadDetailResponseSchema = leadListItemSchema.extend({
   notes: z.array(leadNoteSchema),
   /** Open follow-ups (soonest first), then the most recent finished ones. */
   followUps: z.array(leadFollowUpSchema),
+  /** Set by the conversion transaction (step 2.4). */
+  convertedClientId: z.string().uuid().nullable(),
+  convertedAt: z.string().datetime().nullable(),
   /** Deleting is allowed only while nothing has happened beyond creation; otherwise archive. */
   canDelete: z.boolean(),
 });
@@ -296,14 +301,24 @@ export const duplicateCheckRequestSchema = z.object({
 export type DuplicateCheckRequest = z.infer<typeof duplicateCheckRequestSchema>;
 
 export const duplicateCheckResponseSchema = z.object({
+  /** Leads and (non-archived) clients of the workspace with the same phone or email. */
   matches: z.array(
-    z.object({
-      kind: z.enum(["lead"]),
-      id: z.string().uuid(),
-      fullName: z.string(),
-      stage: z.enum(LEAD_STAGES),
-      matchedOn: z.array(z.enum(["phone", "email"])),
-    }),
+    z.discriminatedUnion("kind", [
+      z.object({
+        kind: z.literal("lead"),
+        id: z.string().uuid(),
+        fullName: z.string(),
+        stage: z.enum(LEAD_STAGES),
+        matchedOn: z.array(z.enum(["phone", "email"])),
+      }),
+      z.object({
+        kind: z.literal("client"),
+        id: z.string().uuid(),
+        fullName: z.string(),
+        status: z.enum(CLIENT_STATUSES),
+        matchedOn: z.array(z.enum(["phone", "email"])),
+      }),
+    ]),
   ),
 });
 export type DuplicateCheckResponse = z.infer<typeof duplicateCheckResponseSchema>;

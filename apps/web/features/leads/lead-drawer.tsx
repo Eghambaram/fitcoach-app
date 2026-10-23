@@ -61,6 +61,7 @@ import {
   useLogWhatsAppSent,
   WhatsAppButton,
 } from "./follow-ups";
+import { ConvertLeadForm } from "./convert-lead";
 import { CallLink, formatDateTime, formatDay, StagePill } from "./lead-display";
 import { LeadForm } from "./lead-form";
 
@@ -113,7 +114,9 @@ export function describeActivity(activity: LeadActivity): string {
       return `Follow-up done: ${action}${outcome ? ` — ${outcome}` : ""}`;
     }
     case "follow_up_skipped":
-      return `Follow-up skipped: ${FOLLOW_UP_ACTION_LABELS[data.actionType as FollowUpAction] ?? "Follow-up"}`;
+      return `Follow-up skipped: ${FOLLOW_UP_ACTION_LABELS[data.actionType as FollowUpAction] ?? "Follow-up"}${data.reason === "converted" ? " (lead converted)" : ""}`;
+    case "converted":
+      return data.linked ? "Linked to an existing client" : "Converted to a client";
     case "contact_logged": {
       const channel = CONTACT_CHANNEL_LABELS[data.channel as ContactChannel] ?? "Contact";
       const outcome = CONTACT_OUTCOME_LABELS[data.outcome as ContactOutcome] ?? "";
@@ -319,7 +322,7 @@ function NotesTab({
       ) : (
         <ul className="flex flex-col gap-3">
           {lead.notes.map((note) => (
-            <li key={note.id} className="rounded-control bg-muted p-3 text-sm">
+            <li key={note.id} className="rounded-control border border-border bg-card p-3 text-sm">
               <p className="whitespace-pre-line">{note.body}</p>
               <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(note.createdAt)}</p>
             </li>
@@ -537,6 +540,14 @@ function LeadBody({
 
   return (
     <div className="flex flex-col gap-5">
+      {lead.stage === "converted" && lead.convertedAt ? (
+        <p
+          role="status"
+          className="rounded-control bg-success-soft p-3 text-sm font-medium text-success"
+        >
+          Converted to a client on {formatDateTime(lead.convertedAt)}. Their history stays here.
+        </p>
+      ) : null}
       <div className="flex items-center gap-4">
         <Avatar name={lead.fullName} className="size-14 text-lg" />
         <div className="min-w-0">
@@ -682,7 +693,12 @@ function LeadBody({
                   <p className="mt-2 text-muted-foreground">“{lead.consent.text}”</p>
                 </details>
               ) : null}
-              <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+              <div
+                className={cn(
+                  "flex flex-wrap gap-2 border-t border-border pt-4",
+                  lead.stage === "converted" && "hidden",
+                )}
+              >
                 <Button
                   variant="ghost"
                   disabled={!online}
@@ -798,6 +814,7 @@ export function LeadDrawer({
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [converting, setConverting] = useState(false);
   const query = useQuery({
     queryKey: ["lead", leadId],
     queryFn: () =>
@@ -828,13 +845,19 @@ export function LeadDrawer({
                 <CalendarPlus aria-hidden="true" />
                 Book trial
               </Button>
-              <Button disabled className="flex-1">
+              <Button
+                className="flex-1"
+                disabled={lead.archived}
+                onClick={() => setConverting(true)}
+              >
                 <UserPlus aria-hidden="true" />
                 Convert to client
               </Button>
             </div>
             <p className="text-center text-xs text-muted-foreground">
-              Booking trials and converting leads are coming soon.
+              {lead.archived
+                ? "Restore this lead to convert it. Booking trials is coming soon."
+                : "Booking trials is coming soon."}
             </p>
           </div>
         ) : undefined
@@ -862,6 +885,24 @@ export function LeadDrawer({
           }}
         />
       ) : null}
+      <Modal
+        open={converting && lead !== undefined}
+        onOpenChange={setConverting}
+        title="Convert to client"
+        description="Their details and history come with them."
+      >
+        {converting && lead ? (
+          <ConvertLeadForm
+            lead={lead}
+            onConverted={(next) => {
+              setConverting(false);
+              void queryClient.invalidateQueries({ queryKey: ["lead", lead.id] });
+              router.push(next);
+              router.refresh();
+            }}
+          />
+        ) : null}
+      </Modal>
     </Drawer>
   );
 }

@@ -644,6 +644,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/leads/{id}/convert": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_convert"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/leads/{id}/archive": {
     parameters: {
       query?: never;
@@ -1050,16 +1066,28 @@ export interface components {
       excludeLeadId?: string;
     };
     DuplicateCheckResponseDto: {
-      matches: {
-        /** @enum {string} */
-        kind: "lead";
-        /** Format: uuid */
-        id: string;
-        fullName: string;
-        /** @enum {string} */
-        stage: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
-        matchedOn: ("phone" | "email")[];
-      }[];
+      matches: (
+        | {
+            /** @enum {string} */
+            kind: "lead";
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            /** @enum {string} */
+            stage: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
+            matchedOn: ("phone" | "email")[];
+          }
+        | {
+            /** @enum {string} */
+            kind: "client";
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            /** @enum {string} */
+            status: "onboarding_draft" | "active" | "paused" | "archived";
+            matchedOn: ("phone" | "email")[];
+          }
+      )[];
     };
     CreateLeadRequestDto: {
       fullName: string;
@@ -1191,6 +1219,7 @@ export interface components {
           | "follow_up_rescheduled"
           | "follow_up_completed"
           | "follow_up_skipped"
+          | "converted"
           | "contact_logged";
         data: {
           [key: string]: unknown;
@@ -1233,6 +1262,10 @@ export interface components {
         /** Format: date-time */
         createdAt: string;
       }[];
+      /** Format: uuid */
+      convertedClientId: string | null;
+      /** Format: date-time */
+      convertedAt: string | null;
       canDelete: boolean;
     };
     UpdateLeadRequestDto: {
@@ -1343,6 +1376,17 @@ export interface components {
         | "package_renewal"
         | "check_in_nudge"
         | "session_reminder";
+    };
+    ConvertLeadRequestDto: {
+      /** Format: uuid */
+      linkClientId?: string;
+      coachingStartOn?: string;
+    };
+    ConvertLeadResponseDto: {
+      /** Format: uuid */
+      clientId: string;
+      linkedExisting: boolean;
+      next: string;
     };
     PublicPageResponseDto: {
       slug: string;
@@ -2508,6 +2552,34 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_convert: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description UUID per user intent */
+        "Idempotency-Key"?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ConvertLeadRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ConvertLeadResponseDto"];
         };
       };
     };
