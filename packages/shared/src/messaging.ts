@@ -1,3 +1,5 @@
+import { toWhatsAppNumber } from "./phone";
+
 /**
  * WhatsApp click-to-chat message templates (PROMPT §8.12, D20). One template per purpose per workspace.
  * Defaults ship as reference rows in the migrations and are copied into each new workspace at signup.
@@ -45,6 +47,22 @@ export function findUnknownPlaceholders(body: string): string[] {
     if (!known.has(name)) unknown.add(`{${name}}`);
   }
   return [...unknown];
+}
+
+/** The first word of a name, for `{first_name}`. */
+export function firstName(fullName: string): string {
+  return fullName.trim().split(/\s+/)[0] ?? "";
+}
+
+/**
+ * WhatsApp click-to-chat (PROMPT §11, CLAUDE.md rule 20d): `https://wa.me/<E.164 digits>?text=…`,
+ * URL-encoded. Opening it never sends anything; the trainer presses Send in WhatsApp.
+ */
+export function buildWhatsAppUrl(phoneE164: string, text: string): string {
+  const digits = toWhatsAppNumber(phoneE164);
+  return text
+    ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
+    : `https://wa.me/${digits}`;
 }
 
 /** Fills known placeholders; ones without a value stay as written so the trainer can see the gap. */

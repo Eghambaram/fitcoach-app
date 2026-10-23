@@ -1,6 +1,7 @@
 export * from "./contracts/auth";
 export * from "./contracts/errors";
 export * from "./contracts/files";
+export * from "./contracts/follow-ups";
 export * from "./contracts/health";
 export * from "./contracts/lead-crm";
 export * from "./contracts/leads";

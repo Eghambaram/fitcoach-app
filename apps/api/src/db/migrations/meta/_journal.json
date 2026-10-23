@@ -78,6 +78,20 @@
       "when": 1792648202105,
       "tag": "0010_leads_crm_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792734154995,
+      "tag": "0011_follow_ups_communication",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792734168752,
+      "tag": "0012_follow_ups_communication_rls",
+      "breakpoints": true
     }
   ]
 }

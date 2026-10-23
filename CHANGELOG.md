@@ -6,6 +6,14 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 2.3 follow-ups, communication log and WhatsApp templates (PROMPT §8.2, §8.10, §11):
+  - **Follow-ups:** schedule from the lead drawer or a list row (action, date and time in the workspace time zone, notes, in-app reminder preference); a Next Action card with Overdue / Due today; edit open ones; finish as done (with an outcome) or skipped, optionally logging the contact and booking the next follow-up in the same transaction.
+  - **Log contact:** channel, outcome and note, written to the append-only `communication_logs`; shown in the Activity timeline; maintains `last_contact_at`; a New lead becomes Contacted.
+  - **WhatsApp click-to-chat:** `WhatsAppLinkBuilder` renders the workspace `follow_up` template (`{first_name}`, `{trainer_name}`), URL-encodes it into `wa.me`, then asks "Did you send it?". Only "Yes" logs anything.
+  - **Leads list:** a Next follow-up column (red with an icon when due), an overdue dot on mobile, a Follow-ups due KPI, a follow-up filter (due, overdue, today, next 7 days, none), "Next follow-up" as the default sort, and a Next follow-up column in the CSV.
+  - **API:** `POST /v1/leads/:id/follow-ups`, `PATCH /v1/leads/:id/follow-ups/:followUpId`, `POST /v1/leads/:id/follow-ups/:followUpId/complete`, `POST /v1/leads/:id/contacts`; list items and lead detail carry `nextFollowUpAt`, `followUpState`, `whatsApp`, and detail carries `followUps`.
+  - **Database:** `lead_follow_ups` and `communication_logs` with RLS (follow-ups final once finished, contact log append-only for both roles), composite FKs incl. follow-up ↔ same lead, `leads.next_follow_up_at`, and triggers for both derived lead columns. ADR-0046.
+  - **Tests:** RLS (cross-tenant, signed rows, finished-is-final, append-only, foreign follow-up refused, empty/client context, suspended); API (time zone, past/far dates, today/overdue/filters/KPIs/keyset sort, atomic complete with rollback, double submit, template rendering, tampering, archived); unit tests for URL encoding and the "Did you send it?" flow; e2e on desktop and mobile.
 - Step 2.2 leads list and drawer (PROMPT §8.2):
   - **`/app/leads`:** KPI cards (open, new this week, from your page in the last 30 days); stage tabs with counts; search across name, phone, email, goal and source (pg_trgm); source and mode filters; sort; "show archived"; keyset "Load more"; CSV export. Filters live in the URL. The layout is a table on desktop and cards on mobile, with empty and no-results states.
   - **Add Lead:** name, a phone or an email, goal and source required; E.164 normalisation with the workspace country; a non-blocking "Possible match" panel for the same phone or email.

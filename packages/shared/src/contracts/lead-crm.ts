@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { normalizePhone } from "../phone";
 import { COACHING_MODES, emailSchema } from "./auth";
+import { FOLLOW_UP_STATES, leadFollowUpSchema, whatsAppLinkSchema } from "./follow-ups";
 import { FITNESS_GOALS, LEAD_SOURCES, LEAD_STAGES, type LeadStage } from "./leads";
 
-/** Lead CRM contracts (PROMPT §8.2, step 2.2): list, counts, add, edit, stage, notes, duplicates. */
+/** Lead CRM contracts (PROMPT §8.2): list, counts, add, edit, stage, notes, duplicates, follow-ups. */
 
 export const LEAD_STAGE_LABELS: Record<LeadStage, string> = {
   new: "New",
@@ -53,10 +54,11 @@ export const LOST_REASON_LABELS: Record<LostReason, string> = {
   other: "Other",
 };
 
-export const LEAD_SORTS = ["newest", "oldest", "name", "last_contact"] as const;
+export const LEAD_SORTS = ["next_follow_up", "newest", "oldest", "name", "last_contact"] as const;
 export type LeadSort = (typeof LEAD_SORTS)[number];
 
 export const LEAD_SORT_LABELS: Record<LeadSort, string> = {
+  next_follow_up: "Next follow-up",
   newest: "Newest first",
   oldest: "Oldest first",
   name: "Name A–Z",
@@ -66,6 +68,18 @@ export const LEAD_SORT_LABELS: Record<LeadSort, string> = {
 export const LEAD_LIST_LIMIT_MAX = 100;
 /** CSV export cap; a beta workspace is far below it. */
 export const LEAD_EXPORT_MAX = 5_000;
+
+/** Follow-up range filter; days are in the workspace time zone. */
+export const LEAD_FOLLOW_UP_FILTERS = ["due", "overdue", "today", "next_7_days", "none"] as const;
+export type LeadFollowUpFilter = (typeof LEAD_FOLLOW_UP_FILTERS)[number];
+
+export const LEAD_FOLLOW_UP_FILTER_LABELS: Record<LeadFollowUpFilter, string> = {
+  due: "Due (today or overdue)",
+  overdue: "Overdue",
+  today: "Due today",
+  next_7_days: "Next 7 days",
+  none: "No follow-up",
+};
 
 /** Query-string booleans: "true"/"1" → true; anything else → false. */
 const queryBoolean = z
@@ -78,13 +92,14 @@ export const leadFiltersSchema = z.object({
   q: z.string().trim().max(100).optional(),
   source: z.enum(LEAD_SOURCES).optional(),
   mode: z.enum(COACHING_MODES).optional(),
+  followUp: z.enum(LEAD_FOLLOW_UP_FILTERS).optional(),
   archived: queryBoolean,
 });
 export type LeadFilters = z.infer<typeof leadFiltersSchema>;
 
 export const leadListQuerySchema = leadFiltersSchema.extend({
   stage: z.enum(LEAD_STAGES).optional(),
-  sort: z.enum(LEAD_SORTS).default("newest"),
+  sort: z.enum(LEAD_SORTS).default("next_follow_up"),
   cursor: z.string().max(400).optional(),
   limit: z.coerce.number().int().min(1).max(LEAD_LIST_LIMIT_MAX).default(25),
 });
@@ -101,8 +116,13 @@ export const leadListItemSchema = z.object({
   source: z.enum(LEAD_SOURCES),
   stage: z.enum(LEAD_STAGES),
   lastContactAt: z.string().datetime().nullable(),
+  /** The earliest open follow-up, and whether it is overdue, due today or later. */
+  nextFollowUpAt: z.string().datetime().nullable(),
+  followUpState: z.enum(FOLLOW_UP_STATES).nullable(),
   createdAt: z.string().datetime(),
   archived: z.boolean(),
+  /** Click-to-chat prefilled from the `follow_up` template; null without a phone number. */
+  whatsApp: whatsAppLinkSchema.nullable(),
 });
 export type LeadListItem = z.infer<typeof leadListItemSchema>;
 
@@ -128,6 +148,9 @@ export const leadsSummaryResponseSchema = z.object({
     open: z.number().int(),
     newThisWeek: z.number().int(),
     fromPublicPage30Days: z.number().int(),
+    /** Open follow-ups due today or earlier, on leads that aren't archived. */
+    followUpsDue: z.number().int(),
+    followUpsOverdue: z.number().int(),
   }),
 });
 export type LeadsSummaryResponse = z.infer<typeof leadsSummaryResponseSchema>;
@@ -208,13 +231,20 @@ export const LEAD_ACTIVITY_TYPES = [
   "note",
   "archived",
   "restored",
+  "follow_up_scheduled",
+  "follow_up_rescheduled",
+  "follow_up_completed",
+  "follow_up_skipped",
+  /** A `communication_logs` entry, merged into the timeline when it is read. */
+  "contact_logged",
 ] as const;
 export type LeadActivityType = (typeof LEAD_ACTIVITY_TYPES)[number];
 
 export const leadActivitySchema = z.object({
   id: z.string().uuid(),
   type: z.enum(LEAD_ACTIVITY_TYPES),
-  /** Type-specific: `{ from, to, lostReason }`, `{ fields }`, `{ source }`. */
+  /** Type-specific: `{ from, to, lostReason }`, `{ fields }`, `{ source }`, `{ actionType, dueAt }`,
+   * `{ channel, outcome, note }`. */
   data: z.record(z.string(), z.unknown()),
   actorKind: z.enum(["trainer", "system"]),
   createdAt: z.string().datetime(),
@@ -250,6 +280,8 @@ export const leadDetailResponseSchema = leadListItemSchema.extend({
   /** Timeline, newest first. Notes are listed separately. */
   activities: z.array(leadActivitySchema),
   notes: z.array(leadNoteSchema),
+  /** Open follow-ups (soonest first), then the most recent finished ones. */
+  followUps: z.array(leadFollowUpSchema),
   /** Deleting is allowed only while nothing has happened beyond creation; otherwise archive. */
   canDelete: z.boolean(),
 });

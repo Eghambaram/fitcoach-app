@@ -13,10 +13,12 @@ import {
 import { ApiOkResponse, ApiProduces, ApiTags } from "@nestjs/swagger";
 import {
   changeLeadStageRequestSchema,
+  completeFollowUpRequestSchema,
   createLeadRequestSchema,
   duplicateCheckRequestSchema,
   duplicateCheckResponseSchema,
   type DuplicateCheckResponse,
+  followUpRequestSchema,
   LEAD_STAGES,
   leadDetailResponseSchema,
   type LeadDetailResponse,
@@ -27,6 +29,7 @@ import {
   leadNoteRequestSchema,
   leadsSummaryResponseSchema,
   type LeadsSummaryResponse,
+  logContactRequestSchema,
   type OkResponse,
   updateLeadRequestSchema,
 } from "@fitcoach/shared";
@@ -34,6 +37,7 @@ import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { Roles } from "../../common/auth/decorators";
 import { OkResponseDto } from "../auth/auth.dto";
+import { LeadFollowUpsService } from "./lead-follow-ups.service";
 import { LeadsService } from "./leads.service";
 
 class LeadListQueryDto extends createZodDto(leadListQuerySchema) {}
@@ -51,13 +55,22 @@ class LeadDetailResponseDto extends createZodDto(leadDetailResponseSchema) {}
 class DuplicateCheckRequestDto extends createZodDto(duplicateCheckRequestSchema) {}
 class DuplicateCheckResponseDto extends createZodDto(duplicateCheckResponseSchema) {}
 class LeadIdParamDto extends createZodDto(z.object({ id: z.string().uuid() })) {}
+class FollowUpParamsDto extends createZodDto(
+  z.object({ id: z.string().uuid(), followUpId: z.string().uuid() }),
+) {}
+class FollowUpRequestDto extends createZodDto(followUpRequestSchema) {}
+class CompleteFollowUpRequestDto extends createZodDto(completeFollowUpRequestSchema) {}
+class LogContactRequestDto extends createZodDto(logContactRequestSchema) {}
 
 /** Lead CRM (PROMPT §8.2). The workspace comes from the session only (CLAUDE.md rule 1). */
 @ApiTags("leads")
 @Roles("trainer")
 @Controller("leads")
 export class LeadsController {
-  constructor(private readonly leads: LeadsService) {}
+  constructor(
+    private readonly leads: LeadsService,
+    private readonly followUps: LeadFollowUpsService,
+  ) {}
 
   @Get()
   @ApiOkResponse({ type: LeadListResponseDto })
@@ -131,6 +144,47 @@ export class LeadsController {
     @Body() body: LeadNoteRequestDto,
   ): Promise<LeadDetailResponse> {
     return this.leads.addNote(params.id, body.body);
+  }
+
+  @Post(":id/follow-ups")
+  @HttpCode(201)
+  @ApiOkResponse({ type: LeadDetailResponseDto })
+  scheduleFollowUp(
+    @Param() params: LeadIdParamDto,
+    @Body() body: FollowUpRequestDto,
+  ): Promise<LeadDetailResponse> {
+    return this.followUps.schedule(params.id, body);
+  }
+
+  @Patch(":id/follow-ups/:followUpId")
+  @ApiOkResponse({ type: LeadDetailResponseDto })
+  rescheduleFollowUp(
+    @Param() params: FollowUpParamsDto,
+    @Body() body: FollowUpRequestDto,
+  ): Promise<LeadDetailResponse> {
+    return this.followUps.reschedule(params.id, params.followUpId, body);
+  }
+
+  /** Done (with an outcome) or skipped; can log the contact and schedule the next one, atomically. */
+  @Post(":id/follow-ups/:followUpId/complete")
+  @HttpCode(200)
+  @ApiOkResponse({ type: LeadDetailResponseDto })
+  completeFollowUp(
+    @Param() params: FollowUpParamsDto,
+    @Body() body: CompleteFollowUpRequestDto,
+  ): Promise<LeadDetailResponse> {
+    return this.followUps.complete(params.id, params.followUpId, body);
+  }
+
+  /** "Log contact" (PROMPT §8.10). For WhatsApp, only after the trainer confirms they sent it. */
+  @Post(":id/contacts")
+  @HttpCode(201)
+  @ApiOkResponse({ type: LeadDetailResponseDto })
+  logContact(
+    @Param() params: LeadIdParamDto,
+    @Body() body: LogContactRequestDto,
+  ): Promise<LeadDetailResponse> {
+    return this.followUps.logContact(params.id, body);
   }
 
   @Post(":id/archive")

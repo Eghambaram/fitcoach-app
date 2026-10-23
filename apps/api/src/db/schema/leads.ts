@@ -91,7 +91,7 @@ export const leadForms = pgTable(
   ],
 );
 
-/** Lead CRM (PROMPT §8.2). Columns for follow-ups, conversion and lost reasons arrive with their steps. */
+/** Lead CRM (PROMPT §8.2). Conversion columns arrive with step 2.4. */
 export const leads = pgTable(
   "leads",
   {
@@ -121,7 +121,10 @@ export const leads = pgTable(
     createdByUserId: uuid("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
+    /** Maintained by triggers on `communication_logs` (latest contact). */
     lastContactAt: timestamp("last_contact_at", { withTimezone: true }),
+    /** Maintained by triggers on `lead_follow_ups` (earliest open follow-up). */
+    nextFollowUpAt: timestamp("next_follow_up_at", { withTimezone: true }),
     /** Archived leads leave the list but keep their history (delete is only for untouched leads). */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     ...timestamps,
@@ -133,6 +136,7 @@ export const leads = pgTable(
     index("leads_workspace_phone_idx").on(t.workspaceId, t.phoneE164),
     index("leads_workspace_email_idx").on(t.workspaceId, t.email),
     index("leads_created_by_user_id_idx").on(t.createdByUserId),
+    index("leads_workspace_next_follow_up_at_idx").on(t.workspaceId, t.nextFollowUpAt),
     check("leads_full_name_length", sql`char_length(${t.fullName}) between 1 and 80`),
     check("leads_contact", sql`${t.phoneE164} is not null or ${t.email} is not null`),
     check(
@@ -208,7 +212,7 @@ export const leadActivities = pgTable(
     index("lead_activities_actor_user_id_idx").on(t.actorUserId),
     check(
       "lead_activities_type",
-      sql`${t.type} in ('enquiry_received', 'created', 'details_updated', 'stage_changed', 'note', 'archived', 'restored')`,
+      sql`${t.type} in ('enquiry_received', 'created', 'details_updated', 'stage_changed', 'note', 'archived', 'restored', 'follow_up_scheduled', 'follow_up_rescheduled', 'follow_up_completed', 'follow_up_skipped')`,
     ),
     check(
       "lead_activities_note_body",
@@ -216,6 +220,136 @@ export const leadActivities = pgTable(
     ),
     check("lead_activities_data_object", sql`jsonb_typeof(${t.data}) = 'object'`),
     check("lead_activities_actor_kind", sql`${t.actorKind} in ('trainer', 'system')`),
+  ],
+);
+
+/**
+ * Lead follow-ups (PROMPT §8.2). Open ones can be rescheduled; finishing one (done or skipped) is
+ * final. Never deleted. Triggers keep `leads.next_follow_up_at` in step.
+ */
+export const leadFollowUps = pgTable(
+  "lead_follow_ups",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    leadId: uuid("lead_id").notNull(),
+    actionType: text("action_type").notNull(),
+    dueAt: timestamp("due_at", { withTimezone: true }).notNull(),
+    status: text("status").notNull().default("open"),
+    notes: text("notes"),
+    reminder: text("reminder").notNull().default("none"),
+    outcome: text("outcome"),
+    outcomeNote: text("outcome_note"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    completedByUserId: uuid("completed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => [
+    foreignKey({
+      name: "lead_follow_ups_lead_fk",
+      columns: [t.workspaceId, t.leadId],
+      foreignColumns: [leads.workspaceId, leads.id],
+    }).onDelete("cascade"),
+    unique("lead_follow_ups_workspace_lead_id_key").on(t.workspaceId, t.leadId, t.id),
+    index("lead_follow_ups_workspace_lead_status_idx").on(t.workspaceId, t.leadId, t.status),
+    index("lead_follow_ups_workspace_open_due_idx")
+      .on(t.workspaceId, t.dueAt)
+      .where(sql`${t.status} = 'open'`),
+    index("lead_follow_ups_created_by_user_id_idx").on(t.createdByUserId),
+    index("lead_follow_ups_completed_by_user_id_idx").on(t.completedByUserId),
+    check(
+      "lead_follow_ups_action_type",
+      sql`${t.actionType} in ('whatsapp', 'call', 'email', 'trial_confirmation', 'package_discussion', 'other')`,
+    ),
+    check("lead_follow_ups_status", sql`${t.status} in ('open', 'done', 'skipped')`),
+    check("lead_follow_ups_reminder", sql`${t.reminder} in ('none', 'in_app')`),
+    check(
+      "lead_follow_ups_outcome",
+      sql`${t.outcome} is null or ${t.outcome} in ('message_sent', 'spoke', 'no_answer', 'left_message', 'replied', 'other')`,
+    ),
+    check(
+      "lead_follow_ups_notes_length",
+      sql`${t.notes} is null or char_length(${t.notes}) <= 500`,
+    ),
+    check(
+      "lead_follow_ups_outcome_note_length",
+      sql`${t.outcomeNote} is null or char_length(${t.outcomeNote}) <= 500`,
+    ),
+    // PROMPT §10.3, made two-way: finished ⇔ completed_at, done ⇒ outcome, open ⇒ no outcome.
+    check("lead_follow_ups_completed", sql`(${t.status} = 'open') = (${t.completedAt} is null)`),
+    check("lead_follow_ups_done_outcome", sql`${t.status} <> 'done' or ${t.outcome} is not null`),
+    check(
+      "lead_follow_ups_open_no_outcome",
+      sql`${t.status} <> 'open' or (${t.outcome} is null and ${t.outcomeNote} is null)`,
+    ),
+  ],
+);
+
+/**
+ * Contacts the trainer logged (PROMPT §8.10): calls, messages, emails. Append-only. A WhatsApp row
+ * exists only when the trainer confirmed "Sent" (CLAUDE.md rule 20d) — it never claims delivery.
+ * Triggers keep `leads.last_contact_at` in step. Client contacts join with the clients table.
+ */
+export const communicationLogs = pgTable(
+  "communication_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    leadId: uuid("lead_id").notNull(),
+    followUpId: uuid("follow_up_id"),
+    channel: text("channel").notNull(),
+    outcome: text("outcome").notNull(),
+    note: text("note"),
+    /** The message template used, when the message was prefilled by the app. */
+    templatePurpose: text("template_purpose"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "communication_logs_lead_fk",
+      columns: [t.workspaceId, t.leadId],
+      foreignColumns: [leads.workspaceId, leads.id],
+    }).onDelete("cascade"),
+    // The follow-up must belong to the same lead (and tenant).
+    foreignKey({
+      name: "communication_logs_follow_up_fk",
+      columns: [t.workspaceId, t.leadId, t.followUpId],
+      foreignColumns: [leadFollowUps.workspaceId, leadFollowUps.leadId, leadFollowUps.id],
+    }).onDelete("cascade"),
+    index("communication_logs_workspace_lead_occurred_at_idx").on(
+      t.workspaceId,
+      t.leadId,
+      t.occurredAt,
+    ),
+    index("communication_logs_workspace_follow_up_idx").on(t.workspaceId, t.followUpId),
+    index("communication_logs_actor_user_id_idx").on(t.actorUserId),
+    check(
+      "communication_logs_channel",
+      sql`${t.channel} in ('whatsapp', 'call', 'email', 'in_person', 'other')`,
+    ),
+    check(
+      "communication_logs_outcome",
+      sql`${t.outcome} in ('message_sent', 'spoke', 'no_answer', 'left_message', 'replied', 'other')`,
+    ),
+    check(
+      "communication_logs_note_length",
+      sql`${t.note} is null or char_length(${t.note}) <= 1000`,
+    ),
+    check(
+      "communication_logs_template_purpose",
+      sql`${t.templatePurpose} is null or ${t.templatePurpose} in ('follow_up', 'trial_confirmation', 'client_invite', 'payment_reminder', 'package_renewal', 'check_in_nudge', 'session_reminder')`,
+    ),
+    check(
+      "communication_logs_occurred_at",
+      sql`${t.occurredAt} <= ${t.createdAt} + interval '5 minutes'`,
+    ),
   ],
 );
 

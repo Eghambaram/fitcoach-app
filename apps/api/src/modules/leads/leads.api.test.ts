@@ -180,7 +180,13 @@ describe("list, search, filters, pagination and counts", () => {
         converted: 0,
         lost: 1,
       },
-      kpis: { open: 1, newThisWeek: 2, fromPublicPage30Days: 0 },
+      kpis: {
+        open: 1,
+        newThisWeek: 2,
+        fromPublicPage30Days: 0,
+        followUpsDue: 0,
+        followUpsOverdue: 0,
+      },
     });
     const filtered = await trainer.http.get("/v1/leads/summary?source=instagram");
     expect(filtered.body.stageCounts).toMatchObject({ all: 1, lost: 1, new: 0 });
