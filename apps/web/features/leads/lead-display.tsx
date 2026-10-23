@@ -1,5 +1,5 @@
-import { LEAD_STAGE_LABELS, type LeadStage, toWhatsAppNumber } from "@fitcoach/shared";
-import { MessageCircle, Phone } from "lucide-react";
+import { LEAD_STAGE_LABELS, type LeadStage } from "@fitcoach/shared";
+import { Phone } from "lucide-react";
 import { type PillTone, StatusPill } from "@/components/shared/status";
 import { cn } from "@/lib/utils";
 
@@ -48,8 +48,8 @@ export function formatDateTime(iso: string): string {
   });
 }
 
-/** Call / WhatsApp shortcuts. WhatsApp opens a plain chat; message templates arrive in step 2.3. */
-export function ContactLinks({
+/** Call shortcut; WhatsApp is `WhatsAppButton` (it asks "Did you send it?" before logging). */
+export function CallLink({
   name,
   phone,
   size = "sm",
@@ -59,30 +59,17 @@ export function ContactLinks({
   size?: "sm" | "lg";
 }) {
   if (!phone) return null;
-  const box = cn(
-    "flex items-center justify-center rounded-control border border-border bg-card hover:bg-muted",
-    size === "sm" ? "size-11" : "h-11 flex-1 gap-2 px-4 text-sm font-semibold",
-  );
   return (
-    <>
-      <a
-        href={`tel:${phone}`}
-        className={box}
-        aria-label={size === "sm" ? `Call ${name}` : undefined}
-      >
-        <Phone className="size-4" aria-hidden="true" />
-        {size === "lg" ? "Call" : null}
-      </a>
-      <a
-        href={`https://wa.me/${toWhatsAppNumber(phone)}`}
-        target="_blank"
-        rel="noreferrer"
-        className={box}
-        aria-label={size === "sm" ? `WhatsApp ${name}` : undefined}
-      >
-        <MessageCircle className="size-4" aria-hidden="true" />
-        {size === "lg" ? "WhatsApp" : null}
-      </a>
-    </>
+    <a
+      href={`tel:${phone}`}
+      className={cn(
+        "flex items-center justify-center rounded-control border border-border bg-card hover:bg-muted",
+        size === "sm" ? "size-11" : "h-11 flex-1 gap-2 px-4 text-sm font-semibold",
+      )}
+      aria-label={size === "sm" ? `Call ${name}` : undefined}
+    >
+      <Phone className="size-4" aria-hidden="true" />
+      {size === "lg" ? "Call" : null}
+    </a>
   );
 }

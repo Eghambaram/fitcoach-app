@@ -8,6 +8,7 @@ import {
   ERROR_CODES,
   FITNESS_GOAL_LABELS,
   type FitnessGoal,
+  type FollowUpState,
   LEAD_EXPORT_MAX,
   LEAD_SOURCE_LABELS,
   LEAD_STAGE_LABELS,
@@ -15,6 +16,7 @@ import {
   type LeadActivity,
   type LeadDetailResponse,
   type LeadFilters,
+  type LeadFollowUp,
   type LeadListItem,
   type LeadListQuery,
   type LeadListResponse,
@@ -24,12 +26,15 @@ import {
   type LeadStage,
   LOST_REASON_LABELS,
   type LostReason,
+  type MessageTemplatePurpose,
   normalizePhone,
   OPEN_LEAD_STAGES,
   type UpdateLeadRequest,
+  type WhatsAppLink,
 } from "@fitcoach/shared";
 import {
   and,
+  asc,
   desc,
   eq,
   inArray,
@@ -45,13 +50,25 @@ import { ClsService } from "nestjs-cls";
 import { DomainError } from "../../common/errors/domain-error";
 import type { AppClsStore, AuthContext } from "../../common/request-context";
 import { DbContext } from "../../db/db-context";
-import { leadActivities, leadConsents, leadForms, leads, workspaces } from "../../db/schema";
+import {
+  communicationLogs,
+  leadActivities,
+  leadConsents,
+  leadFollowUps,
+  leadForms,
+  leads,
+  workspaces,
+} from "../../db/schema";
+import {
+  type MessageContext,
+  WhatsAppLinkBuilder,
+} from "../../integrations/whatsapp/whatsapp-link-builder";
 import { recordAudit } from "../audit/audit.service";
 
-type Trainer = AuthContext & { workspaceId: string };
-type LeadRow = typeof leads.$inferSelect;
+export type Trainer = AuthContext & { workspaceId: string };
+export type LeadRow = typeof leads.$inferSelect;
 
-const leadNotFound = () => DomainError.notFound("That lead doesn't exist.");
+export const leadNotFound = () => DomainError.notFound("That lead doesn't exist.");
 const badCursor = () =>
   new DomainError(ERROR_CODES.VALIDATION_FAILED, 400, "This list is out of date. Reload it.", {
     cursor: ["Invalid cursor"],
@@ -85,7 +102,25 @@ function likePattern(term: string): string {
   return `%${term.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
 }
 
-function toListItem(row: LeadRow): LeadListItem {
+/** A timestamp's calendar day in the workspace time zone (CLAUDE.md rule 19). */
+export const localDay = (column: SQL | typeof leads.nextFollowUpAt, timezone: string) =>
+  sql`(${column} at time zone ${timezone})::date`;
+export const today = (timezone: string) => sql`(now() at time zone ${timezone})::date`;
+
+/** Overdue (an earlier day), today, or upcoming; null when there's nothing due. */
+export function followUpStateSql(column: SQL | typeof leads.nextFollowUpAt, timezone: string) {
+  return sql<FollowUpState | null>`case
+    when ${column} is null then null
+    when ${localDay(column, timezone)} < ${today(timezone)} then 'overdue'
+    when ${localDay(column, timezone)} = ${today(timezone)} then 'today'
+    else 'upcoming' end`;
+}
+
+function toListItem(
+  row: LeadRow,
+  followUpState: FollowUpState | null,
+  whatsApp: WhatsAppLink | null,
+): LeadListItem {
   return {
     id: row.id,
     fullName: row.fullName,
@@ -96,8 +131,11 @@ function toListItem(row: LeadRow): LeadListItem {
     source: row.source as LeadSource,
     stage: row.stage as LeadStage,
     lastContactAt: isoOrNull(row.lastContactAt),
+    nextFollowUpAt: isoOrNull(row.nextFollowUpAt),
+    followUpState: row.nextFollowUpAt ? followUpState : null,
     createdAt: iso(row.createdAt),
     archived: row.archivedAt !== null,
+    whatsApp,
   };
 }
 
@@ -106,6 +144,12 @@ const SORTS: Record<
   LeadSort,
   { key: SQL; direction: "asc" | "desc"; encode: (row: LeadRow) => string; cast: string }
 > = {
+  next_follow_up: {
+    key: sql`coalesce(${leads.nextFollowUpAt}, 'infinity'::timestamptz)`,
+    direction: "asc",
+    encode: (row) => (row.nextFollowUpAt ? iso(row.nextFollowUpAt) : "infinity"),
+    cast: "timestamptz",
+  },
   newest: {
     key: sql`${leads.createdAt}`,
     direction: "desc",
@@ -171,15 +215,16 @@ export class LeadsService {
   constructor(
     private readonly db: DbContext,
     private readonly cls: ClsService<AppClsStore>,
+    private readonly whatsApp: WhatsAppLinkBuilder,
   ) {}
 
-  private trainer(): Trainer {
+  trainer(): Trainer {
     const auth = this.cls.get("auth");
     if (!auth || auth.actor !== "trainer" || !auth.workspaceId) throw DomainError.forbidden();
     return { ...auth, workspaceId: auth.workspaceId };
   }
 
-  private async workspace(trainer: Trainer): Promise<{ country: string; timezone: string }> {
+  async workspace(trainer: Trainer): Promise<{ country: string; timezone: string }> {
     const [row] = await this.db.tx
       .select({ country: workspaces.country, timezone: workspaces.timezone })
       .from(workspaces)
@@ -188,12 +233,29 @@ export class LeadsService {
     return row;
   }
 
-  /** Conditions for search, source, mode and archived (everything but stage). */
-  private filterConditions(trainer: Trainer, filters: LeadFilters): SQL[] {
+  messageContext(trainer: Trainer, purpose: MessageTemplatePurpose): Promise<MessageContext> {
+    return this.whatsApp.context(trainer.workspaceId, trainer.userId, purpose);
+  }
+
+  /** Conditions for search, source, mode, follow-up range and archived (everything but stage). */
+  private filterConditions(trainer: Trainer, filters: LeadFilters, timezone: string): SQL[] {
     const conditions: SQL[] = [eq(leads.workspaceId, trainer.workspaceId)];
     conditions.push(filters.archived ? isNotNull(leads.archivedAt) : isNull(leads.archivedAt));
     if (filters.source) conditions.push(eq(leads.source, filters.source));
     if (filters.mode) conditions.push(eq(leads.trainingMode, filters.mode));
+    if (filters.followUp) {
+      const due = localDay(leads.nextFollowUpAt, timezone);
+      const now = today(timezone);
+      conditions.push(
+        {
+          due: sql`${due} <= ${now}`,
+          overdue: sql`${due} < ${now}`,
+          today: sql`${due} = ${now}`,
+          next_7_days: sql`${due} >= ${now} and ${due} < ${now} + 7`,
+          none: sql`${leads.nextFollowUpAt} is null`,
+        }[filters.followUp],
+      );
+    }
     const term = filters.q?.trim();
     if (term) {
       const pattern = likePattern(term);
@@ -224,8 +286,9 @@ export class LeadsService {
 
   async list(query: LeadListQuery): Promise<LeadListResponse> {
     const trainer = this.trainer();
+    const { timezone } = await this.workspace(trainer);
     const sort = SORTS[query.sort];
-    const conditions = this.filterConditions(trainer, query);
+    const conditions = this.filterConditions(trainer, query, timezone);
     if (query.stage) conditions.push(eq(leads.stage, query.stage));
     if (query.cursor) {
       const [value, id] = decodeCursor(query.cursor);
@@ -235,16 +298,19 @@ export class LeadsService {
 
     const order = sort.direction === "desc" ? sql`desc` : sql`asc`;
     const rows = await this.db.tx
-      .select()
+      .select({ lead: leads, followUpState: followUpStateSql(leads.nextFollowUpAt, timezone) })
       .from(leads)
       .where(and(...conditions))
       .orderBy(sql`${sort.key} ${order}`, sql`${leads.id} ${order}`)
       .limit(query.limit + 1);
 
     const page = rows.slice(0, query.limit);
-    const last = page.at(-1);
+    const last = page.at(-1)?.lead;
+    const message = await this.messageContext(trainer, "follow_up");
     return {
-      items: page.map(toListItem),
+      items: page.map(({ lead, followUpState }) =>
+        toListItem(lead, followUpState, this.whatsApp.build(message, lead)),
+      ),
       nextCursor:
         rows.length > query.limit && last ? encodeCursor(sort.encode(last), last.id) : null,
     };
@@ -257,7 +323,7 @@ export class LeadsService {
     const byStage = await this.db.tx
       .select({ stage: leads.stage, count: sql<number>`count(*)::int` })
       .from(leads)
-      .where(and(...this.filterConditions(trainer, filters)))
+      .where(and(...this.filterConditions(trainer, filters, timezone)))
       .groupBy(leads.stage);
     const stageCounts = Object.fromEntries(LEAD_STAGES.map((stage) => [stage, 0])) as Record<
       LeadStage,
@@ -274,20 +340,43 @@ export class LeadsService {
       })
       .from(leads)
       .where(eq(leads.workspaceId, trainer.workspaceId));
+    const due = localDay(sql`${leadFollowUps.dueAt}`, timezone);
+    const [followUps] = await this.db.tx
+      .select({
+        due: sql<number>`count(*) filter (where ${due} <= ${today(timezone)})::int`,
+        overdue: sql<number>`count(*) filter (where ${due} < ${today(timezone)})::int`,
+      })
+      .from(leadFollowUps)
+      .innerJoin(
+        leads,
+        and(eq(leads.workspaceId, leadFollowUps.workspaceId), eq(leads.id, leadFollowUps.leadId)),
+      )
+      .where(
+        and(
+          eq(leadFollowUps.workspaceId, trainer.workspaceId),
+          eq(leadFollowUps.status, "open"),
+          isNull(leads.archivedAt),
+          ne(leads.stage, "converted"),
+        ),
+      );
 
     return {
       stageCounts: {
         all: Object.values(stageCounts).reduce((sum, count) => sum + count, 0),
         ...stageCounts,
       },
-      kpis: kpis ?? { open: 0, newThisWeek: 0, fromPublicPage30Days: 0 },
+      kpis: {
+        ...(kpis ?? { open: 0, newThisWeek: 0, fromPublicPage30Days: 0 }),
+        followUpsDue: followUps?.due ?? 0,
+        followUpsOverdue: followUps?.overdue ?? 0,
+      },
     };
   }
 
   async exportCsv(filters: LeadFilters & { stage?: LeadStage }): Promise<string> {
     const trainer = this.trainer();
     const { timezone } = await this.workspace(trainer);
-    const conditions = this.filterConditions(trainer, filters);
+    const conditions = this.filterConditions(trainer, filters, timezone);
     if (filters.stage) conditions.push(eq(leads.stage, filters.stage));
     const rows = await this.db.tx
       .select()
@@ -321,6 +410,7 @@ export class LeadsService {
       "Campaign",
       "Created",
       "Last contact",
+      "Next follow-up",
     ];
     const lines = rows.map((row) =>
       [
@@ -343,12 +433,15 @@ export class LeadsService {
         csvCell(row.lastContactAt ? when.format(row.lastContactAt).replace(",", "") : null, {
           freeText: false,
         }),
+        csvCell(row.nextFollowUpAt ? when.format(row.nextFollowUpAt).replace(",", "") : null, {
+          freeText: false,
+        }),
       ].join(","),
     );
     return `${BYTE_ORDER_MARK}${[header.map((name) => csvCell(name, { freeText: false })).join(","), ...lines].join("\r\n")}\r\n`;
   }
 
-  private async findLead(trainer: Trainer, id: string): Promise<LeadRow> {
+  async findLead(trainer: Trainer, id: string): Promise<LeadRow> {
     const [row] = await this.db.tx
       .select()
       .from(leads)
@@ -392,7 +485,33 @@ export class LeadsService {
       .orderBy(desc(leadConsents.consentedAt))
       .limit(1);
 
-    const activities: LeadActivity[] = [];
+    const contacts = await this.db.tx
+      .select()
+      .from(communicationLogs)
+      .where(
+        and(
+          eq(communicationLogs.workspaceId, trainer.workspaceId),
+          eq(communicationLogs.leadId, id),
+        ),
+      )
+      .orderBy(desc(communicationLogs.occurredAt), desc(communicationLogs.id))
+      .limit(300);
+    const followUps = await this.followUps(trainer, id);
+    const message = await this.messageContext(trainer, "follow_up");
+
+    const activities: LeadActivity[] = contacts.map((contact) => ({
+      id: contact.id,
+      type: "contact_logged",
+      data: {
+        channel: contact.channel,
+        outcome: contact.outcome,
+        note: contact.note,
+        templatePurpose: contact.templatePurpose,
+        followUpId: contact.followUpId,
+      },
+      actorKind: "trainer",
+      createdAt: iso(contact.occurredAt),
+    }));
     const notes: LeadDetailResponse["notes"] = [];
     for (const entry of history) {
       const data = (entry.data ?? {}) as Record<string, unknown>;
@@ -413,8 +532,12 @@ export class LeadsService {
       }
     }
 
+    // Stable sort: entries written in one transaction share a time and keep their merge order.
+    activities.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const nextOpen = followUps.find((followUp) => followUp.status === "open");
+
     return {
-      ...toListItem(lead),
+      ...toListItem(lead, nextOpen?.state ?? null, this.whatsApp.build(message, lead)),
       preferredSchedule: lead.preferredSchedule,
       message: lead.message,
       location: lead.location,
@@ -430,8 +553,53 @@ export class LeadsService {
         : null,
       activities,
       notes,
-      canDelete: history.every((entry) => ORIGIN_ACTIVITIES.includes(entry.type)),
+      followUps,
+      canDelete:
+        contacts.length === 0 && history.every((entry) => ORIGIN_ACTIVITIES.includes(entry.type)),
     };
+  }
+
+  /** Open follow-ups soonest first, then the 20 most recently finished. */
+  private async followUps(trainer: Trainer, leadId: string): Promise<LeadFollowUp[]> {
+    const { timezone } = await this.workspace(trainer);
+    const local = sql`${leadFollowUps.dueAt} at time zone ${timezone}`;
+    const columns = {
+      row: leadFollowUps,
+      dueDate: sql<string>`to_char(${local}, 'YYYY-MM-DD')`,
+      dueTime: sql<string>`to_char(${local}, 'HH24:MI')`,
+      state: followUpStateSql(sql`${leadFollowUps.dueAt}`, timezone),
+    };
+    const scope = and(
+      eq(leadFollowUps.workspaceId, trainer.workspaceId),
+      eq(leadFollowUps.leadId, leadId),
+    );
+    const open = await this.db.tx
+      .select(columns)
+      .from(leadFollowUps)
+      .where(and(scope, eq(leadFollowUps.status, "open")))
+      .orderBy(asc(leadFollowUps.dueAt), asc(leadFollowUps.id));
+    const finished = await this.db.tx
+      .select(columns)
+      .from(leadFollowUps)
+      .where(and(scope, ne(leadFollowUps.status, "open")))
+      .orderBy(desc(leadFollowUps.completedAt), desc(leadFollowUps.id))
+      .limit(20);
+
+    return [...open, ...finished].map(({ row, dueDate, dueTime, state }) => ({
+      id: row.id,
+      actionType: row.actionType as LeadFollowUp["actionType"],
+      dueAt: iso(row.dueAt),
+      dueDate,
+      dueTime,
+      status: row.status as LeadFollowUp["status"],
+      state: row.status === "open" ? state : null,
+      notes: row.notes,
+      reminder: row.reminder as LeadFollowUp["reminder"],
+      outcome: row.outcome as LeadFollowUp["outcome"],
+      outcomeNote: row.outcomeNote,
+      completedAt: isoOrNull(row.completedAt),
+      createdAt: iso(row.createdAt),
+    }));
   }
 
   /** Possible matches on normalised phone or email (PROMPT §8.2). Clients join in step 2.4. */
@@ -504,7 +672,7 @@ export class LeadsService {
     };
   }
 
-  private async log(
+  async log(
     trainer: Trainer,
     leadId: string,
     type: LeadActivity["type"],
@@ -623,7 +791,17 @@ export class LeadsService {
         ),
       )
       .limit(1);
-    if (touched) {
+    const [contacted] = await this.db.tx
+      .select({ id: communicationLogs.id })
+      .from(communicationLogs)
+      .where(
+        and(
+          eq(communicationLogs.workspaceId, trainer.workspaceId),
+          eq(communicationLogs.leadId, id),
+        ),
+      )
+      .limit(1);
+    if (touched || contacted) {
       throw new DomainError(
         ERROR_CODES.CONFLICT_STATE,
         409,

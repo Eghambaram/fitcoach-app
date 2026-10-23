@@ -580,6 +580,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/leads/{id}/follow-ups": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_scheduleFollowUp"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/{id}/follow-ups/{followUpId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["LeadsController_rescheduleFollowUp"];
+    trace?: never;
+  };
+  "/v1/leads/{id}/follow-ups/{followUpId}/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_completeFollowUp"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/leads/{id}/contacts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["LeadsController_logContact"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/leads/{id}/archive": {
     parameters: {
       query?: never;
@@ -938,8 +1002,26 @@ export interface components {
         /** Format: date-time */
         lastContactAt: string | null;
         /** Format: date-time */
+        nextFollowUpAt: string | null;
+        /** @enum {string|null} */
+        followUpState: "overdue" | "today" | "upcoming" | null;
+        /** Format: date-time */
         createdAt: string;
         archived: boolean;
+        whatsApp: {
+          /** @enum {string} */
+          purpose:
+            | "follow_up"
+            | "trial_confirmation"
+            | "client_invite"
+            | "payment_reminder"
+            | "package_renewal"
+            | "check_in_nudge"
+            | "session_reminder";
+          text: string;
+          /** Format: uri */
+          url: string;
+        } | null;
       }[];
       nextCursor: string | null;
     };
@@ -957,6 +1039,8 @@ export interface components {
         open: number;
         newThisWeek: number;
         fromPublicPage30Days: number;
+        followUpsDue: number;
+        followUpsOverdue: number;
       };
     };
     DuplicateCheckRequestDto: {
@@ -1043,8 +1127,26 @@ export interface components {
       /** Format: date-time */
       lastContactAt: string | null;
       /** Format: date-time */
+      nextFollowUpAt: string | null;
+      /** @enum {string|null} */
+      followUpState: "overdue" | "today" | "upcoming" | null;
+      /** Format: date-time */
       createdAt: string;
       archived: boolean;
+      whatsApp: {
+        /** @enum {string} */
+        purpose:
+          | "follow_up"
+          | "trial_confirmation"
+          | "client_invite"
+          | "payment_reminder"
+          | "package_renewal"
+          | "check_in_nudge"
+          | "session_reminder";
+        text: string;
+        /** Format: uri */
+        url: string;
+      } | null;
       preferredSchedule: string | null;
       message: string | null;
       location: string | null;
@@ -1084,7 +1186,12 @@ export interface components {
           | "stage_changed"
           | "note"
           | "archived"
-          | "restored";
+          | "restored"
+          | "follow_up_scheduled"
+          | "follow_up_rescheduled"
+          | "follow_up_completed"
+          | "follow_up_skipped"
+          | "contact_logged";
         data: {
           [key: string]: unknown;
         };
@@ -1097,6 +1204,32 @@ export interface components {
         /** Format: uuid */
         id: string;
         body: string;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      followUps: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        actionType:
+          "whatsapp" | "call" | "email" | "trial_confirmation" | "package_discussion" | "other";
+        /** Format: date-time */
+        dueAt: string;
+        dueDate: string;
+        dueTime: string;
+        /** @enum {string} */
+        status: "open" | "done" | "skipped";
+        /** @enum {string|null} */
+        state: "overdue" | "today" | "upcoming" | null;
+        notes: string | null;
+        /** @enum {string} */
+        reminder: "none" | "in_app";
+        /** @enum {string|null} */
+        outcome:
+          "message_sent" | "spoke" | "no_answer" | "left_message" | "replied" | "other" | null;
+        outcomeNote: string | null;
+        /** Format: date-time */
+        completedAt: string | null;
         /** Format: date-time */
         createdAt: string;
       }[];
@@ -1150,6 +1283,66 @@ export interface components {
     };
     LeadNoteRequestDto: {
       body: string;
+    };
+    FollowUpRequestDto: {
+      /** @enum {string} */
+      actionType:
+        "whatsapp" | "call" | "email" | "trial_confirmation" | "package_discussion" | "other";
+      dueDate: string;
+      dueTime: string;
+      notes?: string;
+      /**
+       * @default none
+       * @enum {string}
+       */
+      reminder: "none" | "in_app";
+    };
+    CompleteFollowUpRequestDto: {
+      /** @enum {string} */
+      status: "done" | "skipped";
+      /** @enum {string} */
+      outcome?: "message_sent" | "spoke" | "no_answer" | "left_message" | "replied" | "other";
+      outcomeNote?: string;
+      /** @default false */
+      logContact: boolean;
+      /** @enum {string} */
+      templatePurpose?:
+        | "follow_up"
+        | "trial_confirmation"
+        | "client_invite"
+        | "payment_reminder"
+        | "package_renewal"
+        | "check_in_nudge"
+        | "session_reminder";
+      next?: {
+        /** @enum {string} */
+        actionType:
+          "whatsapp" | "call" | "email" | "trial_confirmation" | "package_discussion" | "other";
+        dueDate: string;
+        dueTime: string;
+        notes?: string;
+        /**
+         * @default none
+         * @enum {string}
+         */
+        reminder: "none" | "in_app";
+      };
+    };
+    LogContactRequestDto: {
+      /** @enum {string} */
+      channel: "whatsapp" | "call" | "email" | "in_person" | "other";
+      /** @enum {string} */
+      outcome: "message_sent" | "spoke" | "no_answer" | "left_message" | "replied" | "other";
+      note?: string;
+      /** @enum {string} */
+      templatePurpose?:
+        | "follow_up"
+        | "trial_confirmation"
+        | "client_invite"
+        | "payment_reminder"
+        | "package_renewal"
+        | "check_in_nudge"
+        | "session_reminder";
     };
     PublicPageResponseDto: {
       slug: string;
@@ -1960,9 +2153,10 @@ export interface operations {
           | "walk_in"
           | "other";
         mode?: "in_person" | "online" | "hybrid";
+        followUp?: "due" | "overdue" | "today" | "next_7_days" | "none";
         archived?: unknown;
         stage?: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
-        sort?: "newest" | "oldest" | "name" | "last_contact";
+        sort?: "next_follow_up" | "newest" | "oldest" | "name" | "last_contact";
         cursor?: string;
         limit?: number;
       };
@@ -2021,6 +2215,7 @@ export interface operations {
           | "walk_in"
           | "other";
         mode?: "in_person" | "online" | "hybrid";
+        followUp?: "due" | "overdue" | "today" | "next_7_days" | "none";
         archived?: unknown;
       };
       header?: never;
@@ -2055,6 +2250,7 @@ export interface operations {
           | "walk_in"
           | "other";
         mode?: "in_person" | "online" | "hybrid";
+        followUp?: "due" | "overdue" | "today" | "next_7_days" | "none";
         archived?: unknown;
         stage?: "new" | "contacted" | "trial_booked" | "interested" | "converted" | "lost";
       };
@@ -2201,6 +2397,108 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["LeadNoteRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_scheduleFollowUp: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FollowUpRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_rescheduleFollowUp: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        followUpId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FollowUpRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_completeFollowUp: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        followUpId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CompleteFollowUpRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  LeadsController_logContact: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LogContactRequestDto"];
       };
     };
     responses: {

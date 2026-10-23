@@ -994,6 +994,21 @@
             }
           },
           {
+            "name": "followUp",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "due",
+                "overdue",
+                "today",
+                "next_7_days",
+                "none"
+              ]
+            }
+          },
+          {
             "name": "archived",
             "required": false,
             "in": "query",
@@ -1024,9 +1039,10 @@
             "required": false,
             "in": "query",
             "schema": {
-              "default": "newest",
+              "default": "next_follow_up",
               "type": "string",
               "enum": [
+                "next_follow_up",
                 "newest",
                 "oldest",
                 "name",
@@ -1148,6 +1164,21 @@
             }
           },
           {
+            "name": "followUp",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "due",
+                "overdue",
+                "today",
+                "next_7_days",
+                "none"
+              ]
+            }
+          },
+          {
             "name": "archived",
             "required": false,
             "in": "query",
@@ -1218,6 +1249,21 @@
                 "in_person",
                 "online",
                 "hybrid"
+              ]
+            }
+          },
+          {
+            "name": "followUp",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "due",
+                "overdue",
+                "today",
+                "next_7_days",
+                "none"
               ]
             }
           },
@@ -1462,6 +1508,194 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LeadNoteRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/v1/leads/{id}/follow-ups": {
+      "post": {
+        "operationId": "LeadsController_scheduleFollowUp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUpRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/v1/leads/{id}/follow-ups/{followUpId}": {
+      "patch": {
+        "operationId": "LeadsController_rescheduleFollowUp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "followUpId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUpRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/v1/leads/{id}/follow-ups/{followUpId}/complete": {
+      "post": {
+        "operationId": "LeadsController_completeFollowUp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "followUpId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteFollowUpRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/v1/leads/{id}/contacts": {
+      "post": {
+        "operationId": "LeadsController_logContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogContactRequestDto"
               }
             }
           }
@@ -2789,6 +3023,22 @@
                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
                   "nullable": true
                 },
+                "nextFollowUpAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                  "nullable": true
+                },
+                "followUpState": {
+                  "type": "string",
+                  "enum": [
+                    "overdue",
+                    "today",
+                    "upcoming",
+                    null
+                  ],
+                  "nullable": true
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time",
@@ -2796,6 +3046,36 @@
                 },
                 "archived": {
                   "type": "boolean"
+                },
+                "whatsApp": {
+                  "type": "object",
+                  "properties": {
+                    "purpose": {
+                      "type": "string",
+                      "enum": [
+                        "follow_up",
+                        "trial_confirmation",
+                        "client_invite",
+                        "payment_reminder",
+                        "package_renewal",
+                        "check_in_nudge",
+                        "session_reminder"
+                      ]
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "purpose",
+                    "text",
+                    "url"
+                  ],
+                  "nullable": true
                 }
               },
               "required": [
@@ -2808,8 +3088,11 @@
                 "source",
                 "stage",
                 "lastContactAt",
+                "nextFollowUpAt",
+                "followUpState",
                 "createdAt",
-                "archived"
+                "archived",
+                "whatsApp"
               ]
             }
           },
@@ -2893,12 +3176,24 @@
                 "type": "integer",
                 "minimum": -9007199254740991,
                 "maximum": 9007199254740991
+              },
+              "followUpsDue": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "followUpsOverdue": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "required": [
               "open",
               "newThisWeek",
-              "fromPublicPage30Days"
+              "fromPublicPage30Days",
+              "followUpsDue",
+              "followUpsOverdue"
             ]
           }
         },
@@ -3152,6 +3447,22 @@
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
             "nullable": true
           },
+          "nextFollowUpAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
+          },
+          "followUpState": {
+            "type": "string",
+            "enum": [
+              "overdue",
+              "today",
+              "upcoming",
+              null
+            ],
+            "nullable": true
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -3159,6 +3470,36 @@
           },
           "archived": {
             "type": "boolean"
+          },
+          "whatsApp": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "type": "string",
+                "enum": [
+                  "follow_up",
+                  "trial_confirmation",
+                  "client_invite",
+                  "payment_reminder",
+                  "package_renewal",
+                  "check_in_nudge",
+                  "session_reminder"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "purpose",
+              "text",
+              "url"
+            ],
+            "nullable": true
           },
           "preferredSchedule": {
             "type": "string",
@@ -3265,7 +3606,12 @@
                     "stage_changed",
                     "note",
                     "archived",
-                    "restored"
+                    "restored",
+                    "follow_up_scheduled",
+                    "follow_up_rescheduled",
+                    "follow_up_completed",
+                    "follow_up_skipped",
+                    "contact_logged"
                   ]
                 },
                 "data": {
@@ -3320,6 +3666,115 @@
               ]
             }
           },
+          "followUps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "actionType": {
+                  "type": "string",
+                  "enum": [
+                    "whatsapp",
+                    "call",
+                    "email",
+                    "trial_confirmation",
+                    "package_discussion",
+                    "other"
+                  ]
+                },
+                "dueAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "dueDate": {
+                  "type": "string",
+                  "maxLength": 10
+                },
+                "dueTime": {
+                  "type": "string",
+                  "maxLength": 5
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "done",
+                    "skipped"
+                  ]
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "overdue",
+                    "today",
+                    "upcoming",
+                    null
+                  ],
+                  "nullable": true
+                },
+                "notes": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "reminder": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "in_app"
+                  ]
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "message_sent",
+                    "spoke",
+                    "no_answer",
+                    "left_message",
+                    "replied",
+                    "other",
+                    null
+                  ],
+                  "nullable": true
+                },
+                "outcomeNote": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "completedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                }
+              },
+              "required": [
+                "id",
+                "actionType",
+                "dueAt",
+                "dueDate",
+                "dueTime",
+                "status",
+                "state",
+                "notes",
+                "reminder",
+                "outcome",
+                "outcomeNote",
+                "completedAt",
+                "createdAt"
+              ]
+            }
+          },
           "canDelete": {
             "type": "boolean"
           }
@@ -3334,8 +3789,11 @@
           "source",
           "stage",
           "lastContactAt",
+          "nextFollowUpAt",
+          "followUpState",
           "createdAt",
           "archived",
+          "whatsApp",
           "preferredSchedule",
           "message",
           "location",
@@ -3349,6 +3807,7 @@
           "consent",
           "activities",
           "notes",
+          "followUps",
           "canDelete"
         ]
       },
@@ -3488,6 +3947,180 @@
         },
         "required": [
           "body"
+        ]
+      },
+      "FollowUpRequestDto": {
+        "type": "object",
+        "properties": {
+          "actionType": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "call",
+              "email",
+              "trial_confirmation",
+              "package_discussion",
+              "other"
+            ]
+          },
+          "dueDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "dueTime": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "reminder": {
+            "default": "none",
+            "type": "string",
+            "enum": [
+              "none",
+              "in_app"
+            ]
+          }
+        },
+        "required": [
+          "actionType",
+          "dueDate",
+          "dueTime"
+        ]
+      },
+      "CompleteFollowUpRequestDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "done",
+              "skipped"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "message_sent",
+              "spoke",
+              "no_answer",
+              "left_message",
+              "replied",
+              "other"
+            ]
+          },
+          "outcomeNote": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "logContact": {
+            "default": false,
+            "type": "boolean"
+          },
+          "templatePurpose": {
+            "type": "string",
+            "enum": [
+              "follow_up",
+              "trial_confirmation",
+              "client_invite",
+              "payment_reminder",
+              "package_renewal",
+              "check_in_nudge",
+              "session_reminder"
+            ]
+          },
+          "next": {
+            "type": "object",
+            "properties": {
+              "actionType": {
+                "type": "string",
+                "enum": [
+                  "whatsapp",
+                  "call",
+                  "email",
+                  "trial_confirmation",
+                  "package_discussion",
+                  "other"
+                ]
+              },
+              "dueDate": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "dueTime": {
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "reminder": {
+                "default": "none",
+                "type": "string",
+                "enum": [
+                  "none",
+                  "in_app"
+                ]
+              }
+            },
+            "required": [
+              "actionType",
+              "dueDate",
+              "dueTime"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "LogContactRequestDto": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "call",
+              "email",
+              "in_person",
+              "other"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "message_sent",
+              "spoke",
+              "no_answer",
+              "left_message",
+              "replied",
+              "other"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "templatePurpose": {
+            "type": "string",
+            "enum": [
+              "follow_up",
+              "trial_confirmation",
+              "client_invite",
+              "payment_reminder",
+              "package_renewal",
+              "check_in_nudge",
+              "session_reminder"
+            ]
+          }
+        },
+        "required": [
+          "channel",
+          "outcome"
         ]
       },
       "PublicPageResponseDto": {

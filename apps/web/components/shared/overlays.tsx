@@ -67,6 +67,7 @@ export function ConfirmDialog({
   onConfirm,
   destructive = false,
   pending = false,
+  cancelLabel = "Cancel",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -76,6 +77,7 @@ export function ConfirmDialog({
   onConfirm: () => void;
   destructive?: boolean;
   pending?: boolean;
+  cancelLabel?: string;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -94,12 +96,59 @@ export function ConfirmDialog({
           </Dialog.Description>
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Dialog.Close asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{cancelLabel}</Button>
             </Dialog.Close>
             <Button variant={destructive ? "danger" : "dark"} loading={pending} onClick={onConfirm}>
               {confirmLabel}
             </Button>
           </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+/** A small centred dialog for a short form (it can open on top of a drawer). */
+export function Modal({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-charcoal/40" />
+        <Dialog.Content
+          className={cn(
+            "fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md",
+            "-translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-card bg-card p-6 shadow-drawer",
+          )}
+          {...(description ? {} : { "aria-describedby": undefined })}
+        >
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
+              {description ? (
+                <Dialog.Description className="mt-1 text-sm text-muted-foreground">
+                  {description}
+                </Dialog.Description>
+              ) : null}
+            </div>
+            <Dialog.Close asChild>
+              <Button variant="ghost" size="icon" aria-label="Close">
+                <X aria-hidden="true" />
+              </Button>
+            </Dialog.Close>
+          </div>
+          {children}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

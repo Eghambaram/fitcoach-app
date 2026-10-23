@@ -4,6 +4,8 @@ import {
   COACHING_MODE_LABELS,
   COACHING_MODES,
   FITNESS_GOAL_LABELS,
+  LEAD_FOLLOW_UP_FILTER_LABELS,
+  LEAD_FOLLOW_UP_FILTERS,
   LEAD_SORT_LABELS,
   LEAD_SORTS,
   LEAD_SOURCE_LABELS,
@@ -15,22 +17,48 @@ import {
   type LeadsSummaryResponse,
 } from "@fitcoach/shared";
 import { useMutation } from "@tanstack/react-query";
-import { Download, Globe2, Inbox, Plus, Share2, UserPlus, Users } from "lucide-react";
+import {
+  AlarmClock,
+  CalendarClock,
+  Download,
+  Globe2,
+  Inbox,
+  Plus,
+  Share2,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { type DataColumn, DataList, FilterBar } from "@/components/shared/data-list";
 import { useOnline } from "@/components/shared/offline-banner";
-import { Drawer } from "@/components/shared/overlays";
+import { Drawer, Modal } from "@/components/shared/overlays";
 import { KpiCard, PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/status";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Select } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
-import { ContactLinks, formatDay, StagePill } from "./lead-display";
+import { FollowUpForm, FollowUpWhen, useLogWhatsAppSent, WhatsAppButton } from "./follow-ups";
+import { CallLink, formatDay, StagePill } from "./lead-display";
 import { LeadDrawer } from "./lead-drawer";
 import { LeadForm } from "./lead-form";
 import { LEAD_PARAMS } from "./lead-params";
+
+/** Row WhatsApp: logs the message only after "Yes, I sent it", and only for open leads. */
+function RowWhatsApp({ lead }: { lead: LeadListItem }) {
+  const router = useRouter();
+  const sent = useLogWhatsAppSent(lead.id, () => router.refresh());
+  const loggable = !lead.archived && lead.stage !== "converted";
+  return (
+    <WhatsAppButton
+      link={lead.whatsApp}
+      name={lead.fullName}
+      pending={sent.isPending}
+      onSent={loggable ? (purpose) => sent.mutate(purpose) : undefined}
+    />
+  );
+}
 
 export function LeadsScreen({
   list,
@@ -55,6 +83,7 @@ export function LeadsScreen({
   const more = extra?.base === list ? extra.items : [];
   const cursor = extra?.base === list ? extra.cursor : list.nextCursor;
   const [adding, setAdding] = useState(false);
+  const [scheduling, setScheduling] = useState<LeadListItem | null>(null);
 
   const openLead = params.get("lead");
   const stage = params.get("stage") ?? "all";
@@ -107,14 +136,20 @@ export function LeadsScreen({
   ).toString();
 
   const nameButton = (lead: LeadListItem) => (
-    <button
-      type="button"
-      onClick={() => update({ lead: lead.id })}
-      className="min-h-11 text-left font-semibold hover:underline"
-    >
-      {lead.fullName}
-    </button>
+    <span className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => update({ lead: lead.id })}
+        className="min-h-11 text-left font-semibold hover:underline"
+      >
+        {lead.fullName}
+      </button>
+      {lead.followUpState === "overdue" ? (
+        <span className="size-2 rounded-full bg-danger" aria-hidden="true" />
+      ) : null}
+    </span>
   );
+  const canFollowUp = (lead: LeadListItem) => !lead.archived && lead.stage !== "converted";
 
   const columns: DataColumn<LeadListItem>[] = [
     { key: "name", header: "Name", cell: nameButton, desktopOnly: true },
@@ -128,18 +163,40 @@ export function LeadsScreen({
     },
     { key: "stage", header: "Stage", cell: (lead) => <StagePill stage={lead.stage} /> },
     {
+      key: "nextFollowUp",
+      header: "Next follow-up",
+      cell: (lead) => <FollowUpWhen at={lead.nextFollowUpAt} state={lead.followUpState} />,
+    },
+    {
       key: "lastContact",
       header: "Last contact",
       cell: (lead) => (lead.lastContactAt ? formatDay(lead.lastContactAt) : "—"),
       desktopOnly: true,
     },
-    { key: "added", header: "Added", cell: (lead) => formatDay(lead.createdAt) },
+    {
+      key: "added",
+      header: "Added",
+      cell: (lead) => formatDay(lead.createdAt),
+      desktopOnly: true,
+    },
     {
       key: "actions",
       header: "Actions",
       cell: (lead) => (
         <div className="flex gap-1">
-          <ContactLinks name={lead.fullName} phone={lead.phoneE164} />
+          <CallLink name={lead.fullName} phone={lead.phoneE164} />
+          <RowWhatsApp lead={lead} />
+          {canFollowUp(lead) ? (
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label={`Schedule a follow-up with ${lead.fullName}`}
+              disabled={!online}
+              onClick={() => setScheduling(lead)}
+            >
+              <CalendarClock aria-hidden="true" />
+            </Button>
+          ) : null}
         </div>
       ),
     },
@@ -168,7 +225,7 @@ export function LeadsScreen({
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Open leads"
           value={summary.kpis.open}
@@ -180,6 +237,16 @@ export function LeadsScreen({
           value={summary.kpis.newThisWeek}
           caption="Since Monday"
           icon={UserPlus}
+        />
+        <KpiCard
+          label="Follow-ups due"
+          value={summary.kpis.followUpsDue}
+          caption={
+            summary.kpis.followUpsOverdue > 0
+              ? `${summary.kpis.followUpsOverdue} overdue`
+              : "Today or earlier"
+          }
+          icon={AlarmClock}
         />
         <KpiCard
           label="From your page"
@@ -250,10 +317,25 @@ export function LeadsScreen({
               ))}
             </Select>
             <Select
+              aria-label="Follow-up"
+              value={params.get("followUp") ?? ""}
+              onChange={(event) => update({ followUp: event.target.value })}
+              className="sm:w-48"
+            >
+              <option value="">Any follow-up</option>
+              {LEAD_FOLLOW_UP_FILTERS.map((filter) => (
+                <option key={filter} value={filter}>
+                  {LEAD_FOLLOW_UP_FILTER_LABELS[filter]}
+                </option>
+              ))}
+            </Select>
+            <Select
               aria-label="Sort"
-              value={params.get("sort") ?? "newest"}
+              value={params.get("sort") ?? "next_follow_up"}
               onChange={(event) =>
-                update({ sort: event.target.value === "newest" ? null : event.target.value })
+                update({
+                  sort: event.target.value === "next_follow_up" ? null : event.target.value,
+                })
               }
               className="sm:w-44"
             >
@@ -330,6 +412,23 @@ export function LeadsScreen({
           />
         ) : null}
       </Drawer>
+
+      <Modal
+        open={scheduling !== null}
+        onOpenChange={(open) => (open ? null : setScheduling(null))}
+        title="Schedule a follow-up"
+        description={scheduling?.fullName}
+      >
+        {scheduling ? (
+          <FollowUpForm
+            leadId={scheduling.id}
+            onSaved={() => {
+              setScheduling(null);
+              router.refresh();
+            }}
+          />
+        ) : null}
+      </Modal>
 
       <LeadDrawer
         leadId={openLead}

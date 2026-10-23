@@ -2,12 +2,19 @@
 
 import {
   COACHING_MODE_LABELS,
+  CONTACT_CHANNEL_LABELS,
+  CONTACT_OUTCOME_LABELS,
+  type ContactChannel,
+  type ContactOutcome,
   FITNESS_GOAL_LABELS,
+  FOLLOW_UP_ACTION_LABELS,
+  type FollowUpAction,
   LEAD_NOTE_MAX,
   LEAD_SOURCE_LABELS,
   LEAD_STAGE_LABELS,
   type LeadActivity,
   type LeadDetailResponse,
+  type LeadFollowUp,
   type LeadSource,
   type LeadStage,
   LOST_REASON_LABELS,
@@ -15,16 +22,28 @@ import {
   type LostReason,
   MANUAL_LEAD_STAGES,
   type ManualLeadStage,
+  type MessageTemplatePurpose,
 } from "@fitcoach/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, CalendarPlus, Pencil, RotateCcw, Trash2, UserPlus } from "lucide-react";
+import {
+  AlarmClock,
+  Archive,
+  CalendarClock,
+  CalendarPlus,
+  Check,
+  MessageSquarePlus,
+  Pencil,
+  RotateCcw,
+  Trash2,
+  UserPlus,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Tabs } from "radix-ui";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { useOnline } from "@/components/shared/offline-banner";
-import { ConfirmDialog, Drawer } from "@/components/shared/overlays";
-import { ErrorState } from "@/components/shared/status";
+import { ConfirmDialog, Drawer, Modal } from "@/components/shared/overlays";
+import { ErrorState, StatusPill } from "@/components/shared/status";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
@@ -33,7 +52,16 @@ import { ApiRequestError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "../settings/copy-button";
 import { Avatar } from "../shell/app-shell";
-import { ContactLinks, formatDateTime, formatDay, StagePill } from "./lead-display";
+import {
+  CompleteFollowUpForm,
+  describeDue,
+  FollowUpForm,
+  formatDue,
+  LogContactForm,
+  useLogWhatsAppSent,
+  WhatsAppButton,
+} from "./follow-ups";
+import { CallLink, formatDateTime, formatDay, StagePill } from "./lead-display";
 import { LeadForm } from "./lead-form";
 
 const FIELD_LABELS: Record<string, string> = {
@@ -68,7 +96,28 @@ export function describeActivity(activity: LeadActivity): string {
       const reason = data.lostReason
         ? ` (${LOST_REASON_LABELS[data.lostReason as LostReason]})`
         : "";
-      return `Stage changed from ${from} to ${to}${reason}`;
+      return `Stage changed from ${from} to ${to}${reason}${data.automatic ? " (after a contact)" : ""}`;
+    }
+    case "follow_up_scheduled":
+    case "follow_up_rescheduled": {
+      const action = FOLLOW_UP_ACTION_LABELS[data.actionType as FollowUpAction] ?? "Follow-up";
+      const when =
+        typeof data.dueDate === "string" && typeof data.dueTime === "string"
+          ? ` for ${formatDue(data.dueDate, data.dueTime)}`
+          : "";
+      return `${activity.type === "follow_up_scheduled" ? "Follow-up scheduled" : "Follow-up moved"}: ${action}${when}`;
+    }
+    case "follow_up_completed": {
+      const action = FOLLOW_UP_ACTION_LABELS[data.actionType as FollowUpAction] ?? "Follow-up";
+      const outcome = CONTACT_OUTCOME_LABELS[data.outcome as ContactOutcome];
+      return `Follow-up done: ${action}${outcome ? ` — ${outcome}` : ""}`;
+    }
+    case "follow_up_skipped":
+      return `Follow-up skipped: ${FOLLOW_UP_ACTION_LABELS[data.actionType as FollowUpAction] ?? "Follow-up"}`;
+    case "contact_logged": {
+      const channel = CONTACT_CHANNEL_LABELS[data.channel as ContactChannel] ?? "Contact";
+      const outcome = CONTACT_OUTCOME_LABELS[data.outcome as ContactOutcome] ?? "";
+      return `${channel}: ${outcome}${data.templatePurpose ? " (from your template)" : ""}`;
     }
     case "archived":
       return "Archived";
@@ -281,6 +330,156 @@ function NotesTab({
   );
 }
 
+type FollowUpModal =
+  | { kind: "schedule" }
+  | { kind: "edit"; followUp: LeadFollowUp }
+  | { kind: "complete"; followUp: LeadFollowUp; sentTemplate?: MessageTemplatePurpose }
+  | { kind: "log" };
+
+/** The board's "Next Action" card: the soonest open follow-up, with Today/Overdue (§8.2). */
+function NextAction({
+  lead,
+  canAct,
+  onOpen,
+}: {
+  lead: LeadDetailResponse;
+  canAct: boolean;
+  onOpen: (modal: FollowUpModal) => void;
+}) {
+  const online = useOnline();
+  const open = lead.followUps.filter((followUp) => followUp.status === "open");
+  const [next, ...later] = open;
+
+  if (!next) {
+    return (
+      <section
+        aria-labelledby="next-action"
+        className="flex flex-col gap-3 rounded-card border border-border p-4"
+      >
+        <h3 id="next-action" className="font-semibold">
+          Next action
+        </h3>
+        <p className="text-sm text-muted-foreground">No follow-up scheduled.</p>
+        {canAct ? (
+          <Button
+            variant="outline"
+            className="self-start"
+            disabled={!online}
+            onClick={() => onOpen({ kind: "schedule" })}
+          >
+            <CalendarClock aria-hidden="true" />
+            Schedule follow-up
+          </Button>
+        ) : null}
+      </section>
+    );
+  }
+
+  const due = next.state === "overdue" || next.state === "today";
+  return (
+    <section
+      aria-labelledby="next-action"
+      className="flex flex-col gap-3 rounded-card border border-border p-4"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h3 id="next-action" className="font-semibold">
+          Next action
+        </h3>
+        {next.state === "overdue" ? <StatusPill tone="danger">Overdue</StatusPill> : null}
+        {next.state === "today" ? <StatusPill tone="warning">Due today</StatusPill> : null}
+      </div>
+      <div className="flex items-start gap-3">
+        <span
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-control",
+            due ? "bg-danger-soft text-danger" : "bg-muted text-foreground",
+          )}
+          aria-hidden="true"
+        >
+          <AlarmClock className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="font-semibold">{FOLLOW_UP_ACTION_LABELS[next.actionType]}</p>
+          <p className={cn("text-sm", due ? "font-medium text-danger" : "text-muted-foreground")}>
+            {describeDue(next.dueDate, next.dueTime, next.state)}
+          </p>
+          {next.notes ? <p className="mt-1 text-sm whitespace-pre-line">{next.notes}</p> : null}
+          {next.reminder === "in_app" ? (
+            <p className="mt-1 text-xs text-muted-foreground">In-app reminder requested</p>
+          ) : null}
+        </div>
+      </div>
+      {canAct ? (
+        <div className="flex flex-wrap gap-2">
+          {next.actionType === "whatsapp" && lead.whatsApp ? (
+            <WhatsAppButton
+              link={lead.whatsApp}
+              name={lead.fullName}
+              variant="wide"
+              onSent={(purpose) =>
+                onOpen({ kind: "complete", followUp: next, sentTemplate: purpose })
+              }
+            />
+          ) : null}
+          <Button
+            variant="dark"
+            className="flex-1"
+            disabled={!online}
+            onClick={() => onOpen({ kind: "complete", followUp: next })}
+          >
+            <Check aria-hidden="true" />
+            Done or skip
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={!online}
+            onClick={() => onOpen({ kind: "edit", followUp: next })}
+          >
+            <Pencil aria-hidden="true" />
+            Edit
+          </Button>
+        </div>
+      ) : null}
+      {later.length > 0 ? (
+        <div className="border-t border-border pt-3">
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">Also scheduled</p>
+          <ul className="flex flex-col gap-1">
+            {later.map((followUp) => (
+              <li key={followUp.id} className="flex items-center justify-between gap-2 text-sm">
+                <span>
+                  {FOLLOW_UP_ACTION_LABELS[followUp.actionType]} ·{" "}
+                  {describeDue(followUp.dueDate, followUp.dueTime, followUp.state)}
+                </span>
+                {canAct ? (
+                  <Button
+                    variant="ghost"
+                    disabled={!online}
+                    onClick={() => onOpen({ kind: "edit", followUp })}
+                    aria-label={`Edit ${FOLLOW_UP_ACTION_LABELS[followUp.actionType]} follow-up`}
+                  >
+                    <Pencil aria-hidden="true" />
+                  </Button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {canAct ? (
+        <Button
+          variant="ghost"
+          className="self-start"
+          disabled={!online}
+          onClick={() => onOpen({ kind: "schedule" })}
+        >
+          <CalendarClock aria-hidden="true" />
+          Add another follow-up
+        </Button>
+      ) : null}
+    </section>
+  );
+}
+
 function LeadBody({
   lead,
   onChanged,
@@ -295,6 +494,13 @@ function LeadBody({
   const online = useOnline();
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [modal, setModal] = useState<FollowUpModal | null>(null);
+  const canAct = !lead.archived && lead.stage !== "converted";
+  const whatsAppSent = useLogWhatsAppSent(lead.id, onChanged);
+  function saved(next: LeadDetailResponse) {
+    setModal(null);
+    onChanged(next);
+  }
 
   const archive = useMutation({
     mutationFn: (archived: boolean) =>
@@ -345,7 +551,25 @@ function LeadBody({
       </div>
 
       <div className="flex gap-2">
-        <ContactLinks name={lead.fullName} phone={lead.phoneE164} size="lg" />
+        <WhatsAppButton
+          link={lead.whatsApp}
+          name={lead.fullName}
+          variant="primary"
+          pending={whatsAppSent.isPending}
+          onSent={canAct ? (purpose) => whatsAppSent.mutate(purpose) : undefined}
+        />
+        <CallLink name={lead.fullName} phone={lead.phoneE164} size="lg" />
+        {canAct ? (
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={!online}
+            onClick={() => setModal({ kind: "schedule" })}
+          >
+            <CalendarClock aria-hidden="true" />
+            Schedule
+          </Button>
+        ) : null}
       </div>
 
       <Tabs.Root defaultValue="overview" className="flex flex-col gap-4">
@@ -436,6 +660,18 @@ function LeadBody({
                   <p className="whitespace-pre-line">{lead.message}</p>
                 </blockquote>
               ) : null}
+              <NextAction lead={lead} canAct={canAct} onOpen={setModal} />
+              {canAct ? (
+                <Button
+                  variant="outline"
+                  className="self-start"
+                  disabled={!online}
+                  onClick={() => setModal({ kind: "log" })}
+                >
+                  <MessageSquarePlus aria-hidden="true" />
+                  Log contact
+                </Button>
+              ) : null}
               <StageControl lead={lead} onChanged={onChanged} />
               {lead.consent ? (
                 <details className="rounded-control border border-border p-3 text-sm">
@@ -481,6 +717,11 @@ function LeadBody({
                 />
                 <div>
                   <p>{describeActivity(activity)}</p>
+                  {activity.type === "contact_logged" && typeof activity.data.note === "string" ? (
+                    <p className="whitespace-pre-line text-muted-foreground">
+                      {activity.data.note}
+                    </p>
+                  ) : null}
                   <p className="text-xs text-muted-foreground">
                     {formatDateTime(activity.createdAt)} ·{" "}
                     {activity.actorKind === "system" ? "Enquiry page" : "You"}
@@ -495,6 +736,41 @@ function LeadBody({
           <NotesTab lead={lead} onChanged={onChanged} />
         </Tabs.Content>
       </Tabs.Root>
+
+      <Modal
+        open={modal !== null}
+        onOpenChange={(open) => (open ? null : setModal(null))}
+        title={
+          modal?.kind === "complete"
+            ? "Finish follow-up"
+            : modal?.kind === "edit"
+              ? "Edit follow-up"
+              : modal?.kind === "log"
+                ? "Log contact"
+                : "Schedule a follow-up"
+        }
+        description={
+          modal?.kind === "log"
+            ? `A call, message or meeting with ${lead.fullName}.`
+            : modal?.kind === "complete"
+              ? `${FOLLOW_UP_ACTION_LABELS[modal.followUp.actionType]} · ${describeDue(modal.followUp.dueDate, modal.followUp.dueTime, modal.followUp.state)}`
+              : lead.fullName
+        }
+      >
+        {modal?.kind === "schedule" ? <FollowUpForm leadId={lead.id} onSaved={saved} /> : null}
+        {modal?.kind === "edit" ? (
+          <FollowUpForm leadId={lead.id} followUp={modal.followUp} onSaved={saved} />
+        ) : null}
+        {modal?.kind === "complete" ? (
+          <CompleteFollowUpForm
+            leadId={lead.id}
+            followUp={modal.followUp}
+            sentTemplate={modal.sentTemplate}
+            onSaved={saved}
+          />
+        ) : null}
+        {modal?.kind === "log" ? <LogContactForm leadId={lead.id} onSaved={saved} /> : null}
+      </Modal>
 
       <ConfirmDialog
         open={confirmDelete}
