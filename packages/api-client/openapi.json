@@ -1832,6 +1832,201 @@
         ]
       }
     },
+    "/v1/onboarding/drafts": {
+      "get": {
+        "operationId": "OnboardingController_listDrafts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "onboarding"
+        ]
+      },
+      "post": {
+        "operationId": "OnboardingController_createDraft",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDraftRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
+    "/v1/onboarding/drafts/{id}": {
+      "get": {
+        "operationId": "OnboardingController_getDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "onboarding"
+        ]
+      },
+      "put": {
+        "operationId": "OnboardingController_saveDraft",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveDraftRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
+    "/v1/onboarding/from-lead/{leadId}": {
+      "get": {
+        "operationId": "OnboardingController_fromLead",
+        "parameters": [
+          {
+            "name": "leadId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FromLeadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
+    "/v1/onboarding/finalize": {
+      "post": {
+        "operationId": "OnboardingController_finalize",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "UUID per user intent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalizeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
     "/v1/public/pages/{slug}": {
       "get": {
         "operationId": "PublicPageController_getPage",
@@ -4272,6 +4467,1034 @@
           "clientId",
           "linkedExisting",
           "next"
+        ]
+      },
+      "DraftsResponseDto": {
+        "type": "object",
+        "properties": {
+          "drafts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "clientId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "nullable": true
+                },
+                "fullName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "step": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                }
+              },
+              "required": [
+                "id",
+                "clientId",
+                "fullName",
+                "step",
+                "updatedAt"
+              ]
+            }
+          },
+          "units": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit"
+            ]
+          }
+        },
+        "required": [
+          "drafts",
+          "units"
+        ]
+      },
+      "CreateDraftRequestDto": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "step": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 254
+              },
+              "preferredContact": {
+                "type": "string",
+                "enum": [
+                  "whatsapp",
+                  "phone",
+                  "email"
+                ]
+              },
+              "dob": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "emergencyContactName": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "emergencyContactPhone": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "emergencyContactRelation": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "primaryGoal": {
+                "type": "string",
+                "enum": [
+                  "lose_weight",
+                  "build_muscle",
+                  "get_stronger",
+                  "improve_fitness",
+                  "sports_performance",
+                  "other"
+                ]
+              },
+              "secondaryGoals": {
+                "maxItems": 5,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "lose_weight",
+                    "build_muscle",
+                    "get_stronger",
+                    "improve_fitness",
+                    "sports_performance",
+                    "other"
+                  ]
+                }
+              },
+              "trainingMode": {
+                "type": "string",
+                "enum": [
+                  "in_person",
+                  "online",
+                  "hybrid"
+                ]
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "preferredSchedule": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "experience": {
+                "type": "string",
+                "enum": [
+                  "beginner",
+                  "intermediate",
+                  "advanced"
+                ]
+              },
+              "equipment": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "coachingStartOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "measuredOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "weight": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "height": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "body_fat": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "waist": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "chest": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "hips": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "limitations": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "consentDataProcessing": {
+                "type": "boolean"
+              },
+              "consentProgressPhotos": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "required": [
+          "step",
+          "data"
+        ]
+      },
+      "DraftDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "clientId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
+          },
+          "step": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 254
+              },
+              "preferredContact": {
+                "type": "string",
+                "enum": [
+                  "whatsapp",
+                  "phone",
+                  "email"
+                ]
+              },
+              "dob": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "emergencyContactName": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "emergencyContactPhone": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "emergencyContactRelation": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "primaryGoal": {
+                "type": "string",
+                "enum": [
+                  "lose_weight",
+                  "build_muscle",
+                  "get_stronger",
+                  "improve_fitness",
+                  "sports_performance",
+                  "other"
+                ]
+              },
+              "secondaryGoals": {
+                "maxItems": 5,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "lose_weight",
+                    "build_muscle",
+                    "get_stronger",
+                    "improve_fitness",
+                    "sports_performance",
+                    "other"
+                  ]
+                }
+              },
+              "trainingMode": {
+                "type": "string",
+                "enum": [
+                  "in_person",
+                  "online",
+                  "hybrid"
+                ]
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "preferredSchedule": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "experience": {
+                "type": "string",
+                "enum": [
+                  "beginner",
+                  "intermediate",
+                  "advanced"
+                ]
+              },
+              "equipment": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "coachingStartOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "measuredOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "weight": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "height": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "body_fat": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "waist": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "chest": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "hips": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "limitations": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "consentDataProcessing": {
+                "type": "boolean"
+              },
+              "consentProgressPhotos": {
+                "type": "boolean"
+              }
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
+          },
+          "units": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "clientId",
+          "step",
+          "data",
+          "updatedAt",
+          "units"
+        ]
+      },
+      "SaveDraftRequestDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "fullName": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 254
+              },
+              "preferredContact": {
+                "type": "string",
+                "enum": [
+                  "whatsapp",
+                  "phone",
+                  "email"
+                ]
+              },
+              "dob": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "emergencyContactName": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "emergencyContactPhone": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "emergencyContactRelation": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "primaryGoal": {
+                "type": "string",
+                "enum": [
+                  "lose_weight",
+                  "build_muscle",
+                  "get_stronger",
+                  "improve_fitness",
+                  "sports_performance",
+                  "other"
+                ]
+              },
+              "secondaryGoals": {
+                "maxItems": 5,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "lose_weight",
+                    "build_muscle",
+                    "get_stronger",
+                    "improve_fitness",
+                    "sports_performance",
+                    "other"
+                  ]
+                }
+              },
+              "trainingMode": {
+                "type": "string",
+                "enum": [
+                  "in_person",
+                  "online",
+                  "hybrid"
+                ]
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "preferredSchedule": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "experience": {
+                "type": "string",
+                "enum": [
+                  "beginner",
+                  "intermediate",
+                  "advanced"
+                ]
+              },
+              "equipment": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "coachingStartOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "measuredOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "weight": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "height": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "body_fat": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "waist": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "chest": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "hips": {
+                "type": "number",
+                "maximum": 1000
+              },
+              "limitations": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "consentDataProcessing": {
+                "type": "boolean"
+              },
+              "consentProgressPhotos": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "required": [
+          "step",
+          "data"
+        ]
+      },
+      "FromLeadResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "onboarding",
+              "onboarded"
+            ]
+          },
+          "clientId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "draft": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "nullable": true
+              },
+              "clientId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "nullable": true
+              },
+              "step": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "fullName": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254
+                  },
+                  "preferredContact": {
+                    "type": "string",
+                    "enum": [
+                      "whatsapp",
+                      "phone",
+                      "email"
+                    ]
+                  },
+                  "dob": {
+                    "type": "string",
+                    "maxLength": 10
+                  },
+                  "emergencyContactName": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "emergencyContactPhone": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "emergencyContactRelation": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "primaryGoal": {
+                    "type": "string",
+                    "enum": [
+                      "lose_weight",
+                      "build_muscle",
+                      "get_stronger",
+                      "improve_fitness",
+                      "sports_performance",
+                      "other"
+                    ]
+                  },
+                  "secondaryGoals": {
+                    "maxItems": 5,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "lose_weight",
+                        "build_muscle",
+                        "get_stronger",
+                        "improve_fitness",
+                        "sports_performance",
+                        "other"
+                      ]
+                    }
+                  },
+                  "trainingMode": {
+                    "type": "string",
+                    "enum": [
+                      "in_person",
+                      "online",
+                      "hybrid"
+                    ]
+                  },
+                  "location": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "preferredSchedule": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "experience": {
+                    "type": "string",
+                    "enum": [
+                      "beginner",
+                      "intermediate",
+                      "advanced"
+                    ]
+                  },
+                  "equipment": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "coachingStartOn": {
+                    "type": "string",
+                    "maxLength": 10
+                  },
+                  "measuredOn": {
+                    "type": "string",
+                    "maxLength": 10
+                  },
+                  "weight": {
+                    "type": "number",
+                    "maximum": 1000
+                  },
+                  "height": {
+                    "type": "number",
+                    "maximum": 1000
+                  },
+                  "body_fat": {
+                    "type": "number",
+                    "maximum": 1000
+                  },
+                  "waist": {
+                    "type": "number",
+                    "maximum": 1000
+                  },
+                  "chest": {
+                    "type": "number",
+                    "maximum": 1000
+                  },
+                  "hips": {
+                    "type": "number",
+                    "maximum": 1000
+                  },
+                  "limitations": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "consentDataProcessing": {
+                    "type": "boolean"
+                  },
+                  "consentProgressPhotos": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "nullable": true
+              },
+              "units": {
+                "type": "object",
+                "properties": {
+                  "weightUnit": {
+                    "type": "string",
+                    "enum": [
+                      "kg",
+                      "lb"
+                    ]
+                  },
+                  "lengthUnit": {
+                    "type": "string",
+                    "enum": [
+                      "cm",
+                      "in"
+                    ]
+                  }
+                },
+                "required": [
+                  "weightUnit",
+                  "lengthUnit"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "clientId",
+              "step",
+              "data",
+              "updatedAt",
+              "units"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "status",
+          "clientId",
+          "fullName",
+          "draft"
+        ]
+      },
+      "FinalizeRequestDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  ""
+                ]
+              },
+              {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              }
+            ]
+          },
+          "preferredContact": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "phone",
+              "email"
+            ]
+          },
+          "dob": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "emergencyContactName": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "emergencyContactPhone": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "emergencyContactRelation": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "primaryGoal": {
+            "type": "string",
+            "enum": [
+              "lose_weight",
+              "build_muscle",
+              "get_stronger",
+              "improve_fitness",
+              "sports_performance",
+              "other"
+            ]
+          },
+          "secondaryGoals": {
+            "default": [],
+            "maxItems": 5,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "lose_weight",
+                "build_muscle",
+                "get_stronger",
+                "improve_fitness",
+                "sports_performance",
+                "other"
+              ]
+            }
+          },
+          "trainingMode": {
+            "type": "string",
+            "enum": [
+              "in_person",
+              "online",
+              "hybrid"
+            ]
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "preferredSchedule": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "experience": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ]
+          },
+          "equipment": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "coachingStartOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "measuredOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "weight": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "minimum": 0
+          },
+          "height": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "minimum": 0
+          },
+          "body_fat": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "minimum": 0
+          },
+          "waist": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "minimum": 0
+          },
+          "chest": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "minimum": 0
+          },
+          "hips": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "minimum": 0
+          },
+          "limitations": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "consentDataProcessing": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "consentProgressPhotos": {
+            "default": false,
+            "type": "boolean"
+          },
+          "draftId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "clientId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "units": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit"
+            ]
+          }
+        },
+        "required": [
+          "fullName",
+          "primaryGoal",
+          "trainingMode",
+          "consentDataProcessing",
+          "units"
+        ]
+      },
+      "FinalizeResponseDto": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "measurementsRecorded": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "clientId",
+          "fullName",
+          "measurementsRecorded"
         ]
       },
       "PublicPageResponseDto": {

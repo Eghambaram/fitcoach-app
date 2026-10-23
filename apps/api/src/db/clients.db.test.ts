@@ -10,8 +10,8 @@ const insertLead = `
   values ($1, 'Meena S', $2, 'lose_weight', 'walk_in', 'manual', $3)
   returning id`;
 const insertClient = `
-  insert into clients (workspace_id, full_name, phone_e164, status, created_by_user_id, user_id, source_lead_id)
-  values ($1, 'Meena S', $2, $3, $4, $5, $6)
+  insert into clients (workspace_id, full_name, phone_e164, status, created_by_user_id, user_id, source_lead_id, onboarded_at)
+  values ($1, 'Meena S', $2, $3::text, $4, $5, $6, case when $3::text = 'onboarding_draft' then null else now() end)
   returning id`;
 
 let phoneCounter = 0;
@@ -79,9 +79,9 @@ describe("clients, activity events and conversion (step 2.4)", () => {
           null,
         ]),
       ).toBe("42501");
-      // No edits or deletes yet; those arrive with their screens.
-      expect(await sqlStateIn(client, "update clients set full_name = 'x'")).toBe("42501");
+      // Never deleted, and the login link is set only by the invite flow (step 4.1).
       expect(await sqlStateIn(client, "delete from clients")).toBe("42501");
+      expect(await sqlStateIn(client, "update clients set user_id = null")).toBe("42501");
     });
   });
 

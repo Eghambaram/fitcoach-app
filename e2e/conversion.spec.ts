@@ -69,10 +69,12 @@ test("a trainer converts a lead once, keeps its history, and links a repeat enqu
   // Double-click: one client.
   await sheet.getByRole("button", { name: "Convert & Continue" }).dblclick();
   await expect(page).toHaveURL(/\/app\/clients\/new\?fromLead=/);
-  await expect(page.getByText("Kiran Rao is now a client")).toBeVisible();
+  // Onboarding continues, prefilled from the lead.
+  await expect(page.getByRole("heading", { name: "Basic information" })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Full name" })).toHaveValue("Kiran Rao");
 
   // The lead keeps its notes and shows the conversion.
-  await page.getByRole("link", { name: "Back to the lead" }).click();
+  await page.goto("/app/leads?lead=" + new URL(page.url()).searchParams.get("fromLead"));
   const converted = page.getByRole("dialog", { name: "Kiran Rao" });
   await expect(converted.getByText(/Converted to a client on/)).toBeVisible();
   await expect(converted.getByRole("button", { name: "Convert to client" })).toHaveCount(0);

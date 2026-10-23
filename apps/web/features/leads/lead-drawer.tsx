@@ -37,6 +37,7 @@ import {
   Trash2,
   UserPlus,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Tabs } from "radix-ui";
 import { type ReactNode, useState } from "react";
@@ -541,12 +542,20 @@ function LeadBody({
   return (
     <div className="flex flex-col gap-5">
       {lead.stage === "converted" && lead.convertedAt ? (
-        <p
+        <div
           role="status"
-          className="rounded-control bg-success-soft p-3 text-sm font-medium text-success"
+          className="flex flex-col gap-2 rounded-control bg-success-soft p-3 text-sm"
         >
-          Converted to a client on {formatDateTime(lead.convertedAt)}. Their history stays here.
-        </p>
+          <p className="font-medium text-success">
+            Converted to a client on {formatDateTime(lead.convertedAt)}. Their history stays here.
+          </p>
+          <Link
+            href={`/app/clients/new?fromLead=${lead.id}`}
+            className="min-h-9 self-start font-semibold text-foreground underline"
+          >
+            Client onboarding
+          </Link>
+        </div>
       ) : null}
       <div className="flex items-center gap-4">
         <Avatar name={lead.fullName} className="size-14 text-lg" />

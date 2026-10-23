@@ -1,10 +1,13 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   foreignKey,
   index,
+  integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -53,6 +56,13 @@ export const clients = pgTable(
       .notNull()
       .default({ workoutSelfLogging: false, checkIns: true, progressSelfLogging: false }),
     emergencyContact: jsonb("emergency_contact"),
+    preferredContact: text("preferred_contact"),
+    experienceLevel: text("experience_level"),
+    equipment: text("equipment"),
+    /** Injuries, limitations, notes: trainer-only, never shown in the client portal (§8.4). */
+    limitations: text("limitations"),
+    /** When onboarding finished (the client became active). */
+    onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdByUserId: uuid("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
@@ -123,6 +133,26 @@ export const clients = pgTable(
       sql`${t.emergencyContact} is null or jsonb_typeof(${t.emergencyContact}) = 'object'`,
     ),
     check(
+      "clients_preferred_contact",
+      sql`${t.preferredContact} is null or ${t.preferredContact} in ('whatsapp', 'phone', 'email')`,
+    ),
+    check(
+      "clients_experience_level",
+      sql`${t.experienceLevel} is null or ${t.experienceLevel} in ('beginner', 'intermediate', 'advanced')`,
+    ),
+    check(
+      "clients_equipment_length",
+      sql`${t.equipment} is null or char_length(${t.equipment}) <= 200`,
+    ),
+    check(
+      "clients_limitations_length",
+      sql`${t.limitations} is null or char_length(${t.limitations}) <= 1000`,
+    ),
+    check(
+      "clients_onboarded",
+      sql`${t.status} = 'onboarding_draft' or ${t.onboardedAt} is not null`,
+    ),
+    check(
       "clients_timezone_length",
       sql`${t.timezone} is null or char_length(${t.timezone}) between 1 and 64`,
     ),
@@ -162,8 +192,207 @@ export const activityEvents = pgTable(
     index("activity_events_workspace_lead_idx").on(t.workspaceId, t.leadId),
     index("activity_events_workspace_client_idx").on(t.workspaceId, t.clientId),
     index("activity_events_actor_user_id_idx").on(t.actorUserId),
-    check("activity_events_type", sql`${t.type} in ('lead_converted')`),
+    check("activity_events_type", sql`${t.type} in ('lead_converted', 'client_onboarded')`),
     check("activity_events_subject", sql`num_nonnulls(${t.leadId}, ${t.clientId}) >= 1`),
     check("activity_events_data_object", sql`jsonb_typeof(${t.data}) = 'object'`),
+  ],
+);
+
+/**
+ * Onboarding drafts (PROMPT §8.4): the wizard's answers so far, resumable with `?draft=`. `client_id`
+ * is set for a client created by lead conversion. Finished drafts keep `finalized_at`; none are
+ * deleted.
+ */
+export const clientOnboardingDrafts = pgTable(
+  "client_onboarding_drafts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id"),
+    step: integer("step").notNull().default(1),
+    data: jsonb("data").notNull().default({}),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    foreignKey({
+      name: "client_onboarding_drafts_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    // One open draft per client.
+    uniqueIndex("client_onboarding_drafts_open_client_key")
+      .on(t.workspaceId, t.clientId)
+      .where(sql`${t.finalizedAt} is null and ${t.clientId} is not null`),
+    index("client_onboarding_drafts_workspace_open_idx")
+      .on(t.workspaceId, t.updatedAt)
+      .where(sql`${t.finalizedAt} is null`),
+    index("client_onboarding_drafts_created_by_user_id_idx").on(t.createdByUserId),
+    check("client_onboarding_drafts_step", sql`${t.step} between 1 and 4`),
+    check("client_onboarding_drafts_data_object", sql`jsonb_typeof(${t.data}) = 'object'`),
+    check("client_onboarding_drafts_data_size", sql`octet_length(${t.data}::text) <= 16384`),
+  ],
+);
+
+/** A client's goals (PROMPT §8.4): one active primary, optional secondary ones. */
+export const clientGoals = pgTable(
+  "client_goals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    clientId: uuid("client_id").notNull(),
+    kind: text("kind").notNull(),
+    goal: text("goal").notNull(),
+    targetText: text("target_text"),
+    targetDate: date("target_date"),
+    status: text("status").notNull().default("active"),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "client_goals_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    uniqueIndex("client_goals_active_primary_key")
+      .on(t.clientId)
+      .where(sql`${t.kind} = 'primary' and ${t.status} = 'active'`),
+    index("client_goals_workspace_client_idx").on(t.workspaceId, t.clientId),
+    index("client_goals_created_by_user_id_idx").on(t.createdByUserId),
+    check("client_goals_kind", sql`${t.kind} in ('primary', 'secondary')`),
+    check(
+      "client_goals_goal",
+      sql`${t.goal} in ('lose_weight', 'build_muscle', 'get_stronger', 'improve_fitness', 'sports_performance', 'other')`,
+    ),
+    check("client_goals_status", sql`${t.status} in ('active', 'achieved', 'dropped')`),
+    check(
+      "client_goals_target_text_length",
+      sql`${t.targetText} is null or char_length(${t.targetText}) <= 200`,
+    ),
+  ],
+);
+
+/**
+ * Consent records (PROMPT §8.4, §12.3): append-only; a withdrawal is a new row. Each keeps the
+ * notice version and the exact text shown.
+ */
+export const clientConsents = pgTable(
+  "client_consents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    clientId: uuid("client_id").notNull(),
+    kind: text("kind").notNull(),
+    status: text("status").notNull(),
+    noticeVersion: integer("notice_version").notNull(),
+    noticeText: text("notice_text").notNull(),
+    source: text("source").notNull(),
+    actorKind: text("actor_kind").notNull(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "client_consents_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    index("client_consents_workspace_client_idx").on(t.workspaceId, t.clientId, t.kind),
+    index("client_consents_actor_user_id_idx").on(t.actorUserId),
+    check("client_consents_kind", sql`${t.kind} in ('data_processing', 'progress_photos')`),
+    check("client_consents_status", sql`${t.status} in ('granted', 'declined', 'withdrawn')`),
+    check("client_consents_notice_version", sql`${t.noticeVersion} > 0`),
+    check(
+      "client_consents_notice_text_length",
+      sql`char_length(${t.noticeText}) between 20 and 2000`,
+    ),
+    check("client_consents_source", sql`${t.source} in ('onboarding', 'client_portal')`),
+    check("client_consents_actor_kind", sql`${t.actorKind} in ('trainer', 'client')`),
+  ],
+);
+
+/** Measurement types (PROMPT §8.8). Global seeded types have no workspace; custom types are v1.1. */
+export const measurementTypes = pgTable(
+  "measurement_types",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    name: text("name").notNull(),
+    unitKind: text("unit_kind").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("measurement_types_workspace_key").on(t.workspaceId, t.key).nullsNotDistinct(),
+    check("measurement_types_key_format", sql`${t.key} ~ '^[a-z][a-z0-9_]{1,40}$'`),
+    check("measurement_types_name_length", sql`char_length(${t.name}) between 1 and 60`),
+    check(
+      "measurement_types_unit_kind",
+      sql`${t.unitKind} in ('mass', 'length', 'percent', 'count')`,
+    ),
+  ],
+);
+
+/**
+ * Measurements (PROMPT §8.8, CLAUDE.md rule 16): append-only, canonical units (kg, cm, %). A
+ * correction voids the row (`voided_at`, reason) and inserts a new one.
+ */
+export const measurements = pgTable(
+  "measurements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    clientId: uuid("client_id").notNull(),
+    typeId: uuid("type_id")
+      .notNull()
+      .references(() => measurementTypes.id),
+    value: numeric("value", { precision: 9, scale: 2, mode: "number" }).notNull(),
+    measuredOn: date("measured_on").notNull(),
+    source: text("source").notNull(),
+    note: text("note"),
+    recordedByUserId: uuid("recorded_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
+    voidedByUserId: uuid("voided_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    voidReason: text("void_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "measurements_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    index("measurements_workspace_client_type_idx").on(
+      t.workspaceId,
+      t.clientId,
+      t.typeId,
+      t.measuredOn,
+    ),
+    index("measurements_type_id_idx").on(t.typeId),
+    index("measurements_recorded_by_user_id_idx").on(t.recordedByUserId),
+    index("measurements_voided_by_user_id_idx").on(t.voidedByUserId),
+    check("measurements_value_positive", sql`${t.value} > 0`),
+    check("measurements_source", sql`${t.source} in ('trainer', 'client')`),
+    check("measurements_note_length", sql`${t.note} is null or char_length(${t.note}) <= 500`),
+    check(
+      "measurements_void",
+      sql`(${t.voidedAt} is null) = (${t.voidReason} is null) and (${t.voidedAt} is null or ${t.voidedByUserId} is not null)`,
+    ),
+    check(
+      "measurements_void_reason_length",
+      sql`${t.voidReason} is null or char_length(${t.voidReason}) between 1 and 200`,
+    ),
   ],
 );

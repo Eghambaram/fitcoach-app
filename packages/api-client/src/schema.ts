@@ -692,6 +692,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/onboarding/drafts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["OnboardingController_listDrafts"];
+    put?: never;
+    post: operations["OnboardingController_createDraft"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/onboarding/drafts/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["OnboardingController_getDraft"];
+    put: operations["OnboardingController_saveDraft"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/onboarding/from-lead/{leadId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["OnboardingController_fromLead"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/onboarding/finalize": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["OnboardingController_finalize"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/public/pages/{slug}": {
     parameters: {
       query?: never;
@@ -1387,6 +1451,313 @@ export interface components {
       clientId: string;
       linkedExisting: boolean;
       next: string;
+    };
+    DraftsResponseDto: {
+      drafts: {
+        /** Format: uuid */
+        id: string;
+        /** Format: uuid */
+        clientId: string | null;
+        fullName: string | null;
+        step: number;
+        /** Format: date-time */
+        updatedAt: string;
+      }[];
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+    };
+    CreateDraftRequestDto: {
+      /** Format: uuid */
+      clientId?: string;
+      step: number;
+      data: {
+        fullName?: string;
+        phone?: string;
+        email?: string;
+        /** @enum {string} */
+        preferredContact?: "whatsapp" | "phone" | "email";
+        dob?: string;
+        emergencyContactName?: string;
+        emergencyContactPhone?: string;
+        emergencyContactRelation?: string;
+        /** @enum {string} */
+        primaryGoal?:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other";
+        secondaryGoals?: (
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other"
+        )[];
+        /** @enum {string} */
+        trainingMode?: "in_person" | "online" | "hybrid";
+        location?: string;
+        preferredSchedule?: string;
+        /** @enum {string} */
+        experience?: "beginner" | "intermediate" | "advanced";
+        equipment?: string;
+        coachingStartOn?: string;
+        measuredOn?: string;
+        weight?: number;
+        height?: number;
+        body_fat?: number;
+        waist?: number;
+        chest?: number;
+        hips?: number;
+        limitations?: string;
+        consentDataProcessing?: boolean;
+        consentProgressPhotos?: boolean;
+      };
+    };
+    DraftDto: {
+      /** Format: uuid */
+      id: string | null;
+      /** Format: uuid */
+      clientId: string | null;
+      step: number;
+      data: {
+        fullName?: string;
+        phone?: string;
+        email?: string;
+        /** @enum {string} */
+        preferredContact?: "whatsapp" | "phone" | "email";
+        dob?: string;
+        emergencyContactName?: string;
+        emergencyContactPhone?: string;
+        emergencyContactRelation?: string;
+        /** @enum {string} */
+        primaryGoal?:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other";
+        secondaryGoals?: (
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other"
+        )[];
+        /** @enum {string} */
+        trainingMode?: "in_person" | "online" | "hybrid";
+        location?: string;
+        preferredSchedule?: string;
+        /** @enum {string} */
+        experience?: "beginner" | "intermediate" | "advanced";
+        equipment?: string;
+        coachingStartOn?: string;
+        measuredOn?: string;
+        weight?: number;
+        height?: number;
+        body_fat?: number;
+        waist?: number;
+        chest?: number;
+        hips?: number;
+        limitations?: string;
+        consentDataProcessing?: boolean;
+        consentProgressPhotos?: boolean;
+      };
+      /** Format: date-time */
+      updatedAt: string | null;
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+    };
+    SaveDraftRequestDto: {
+      step: number;
+      data: {
+        fullName?: string;
+        phone?: string;
+        email?: string;
+        /** @enum {string} */
+        preferredContact?: "whatsapp" | "phone" | "email";
+        dob?: string;
+        emergencyContactName?: string;
+        emergencyContactPhone?: string;
+        emergencyContactRelation?: string;
+        /** @enum {string} */
+        primaryGoal?:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other";
+        secondaryGoals?: (
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other"
+        )[];
+        /** @enum {string} */
+        trainingMode?: "in_person" | "online" | "hybrid";
+        location?: string;
+        preferredSchedule?: string;
+        /** @enum {string} */
+        experience?: "beginner" | "intermediate" | "advanced";
+        equipment?: string;
+        coachingStartOn?: string;
+        measuredOn?: string;
+        weight?: number;
+        height?: number;
+        body_fat?: number;
+        waist?: number;
+        chest?: number;
+        hips?: number;
+        limitations?: string;
+        consentDataProcessing?: boolean;
+        consentProgressPhotos?: boolean;
+      };
+    };
+    FromLeadResponseDto: {
+      /** @enum {string} */
+      status: "onboarding" | "onboarded";
+      /** Format: uuid */
+      clientId: string;
+      fullName: string;
+      draft: {
+        /** Format: uuid */
+        id: string | null;
+        /** Format: uuid */
+        clientId: string | null;
+        step: number;
+        data: {
+          fullName?: string;
+          phone?: string;
+          email?: string;
+          /** @enum {string} */
+          preferredContact?: "whatsapp" | "phone" | "email";
+          dob?: string;
+          emergencyContactName?: string;
+          emergencyContactPhone?: string;
+          emergencyContactRelation?: string;
+          /** @enum {string} */
+          primaryGoal?:
+            | "lose_weight"
+            | "build_muscle"
+            | "get_stronger"
+            | "improve_fitness"
+            | "sports_performance"
+            | "other";
+          secondaryGoals?: (
+            | "lose_weight"
+            | "build_muscle"
+            | "get_stronger"
+            | "improve_fitness"
+            | "sports_performance"
+            | "other"
+          )[];
+          /** @enum {string} */
+          trainingMode?: "in_person" | "online" | "hybrid";
+          location?: string;
+          preferredSchedule?: string;
+          /** @enum {string} */
+          experience?: "beginner" | "intermediate" | "advanced";
+          equipment?: string;
+          coachingStartOn?: string;
+          measuredOn?: string;
+          weight?: number;
+          height?: number;
+          body_fat?: number;
+          waist?: number;
+          chest?: number;
+          hips?: number;
+          limitations?: string;
+          consentDataProcessing?: boolean;
+          consentProgressPhotos?: boolean;
+        };
+        /** Format: date-time */
+        updatedAt: string | null;
+        units: {
+          /** @enum {string} */
+          weightUnit: "kg" | "lb";
+          /** @enum {string} */
+          lengthUnit: "cm" | "in";
+        };
+      } | null;
+    };
+    FinalizeRequestDto: {
+      fullName: string;
+      phone?: string;
+      email?: "" | string;
+      /** @enum {string} */
+      preferredContact?: "whatsapp" | "phone" | "email";
+      dob?: string;
+      emergencyContactName?: string;
+      emergencyContactPhone?: string;
+      emergencyContactRelation?: string;
+      /** @enum {string} */
+      primaryGoal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other";
+      /** @default [] */
+      secondaryGoals: (
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other"
+      )[];
+      /** @enum {string} */
+      trainingMode: "in_person" | "online" | "hybrid";
+      location?: string;
+      preferredSchedule?: string;
+      /** @enum {string} */
+      experience?: "beginner" | "intermediate" | "advanced";
+      equipment?: string;
+      coachingStartOn?: string;
+      measuredOn?: string;
+      weight?: number;
+      height?: number;
+      body_fat?: number;
+      waist?: number;
+      chest?: number;
+      hips?: number;
+      limitations?: string;
+      /** @enum {boolean} */
+      consentDataProcessing: true;
+      /** @default false */
+      consentProgressPhotos: boolean;
+      /** Format: uuid */
+      draftId?: string;
+      /** Format: uuid */
+      clientId?: string;
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+    };
+    FinalizeResponseDto: {
+      /** Format: uuid */
+      clientId: string;
+      fullName: string;
+      measurementsRecorded: number;
     };
     PublicPageResponseDto: {
       slug: string;
@@ -2622,6 +2993,141 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["LeadDetailResponseDto"];
+        };
+      };
+    };
+  };
+  OnboardingController_listDrafts: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DraftsResponseDto"];
+        };
+      };
+    };
+  };
+  OnboardingController_createDraft: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateDraftRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DraftDto"];
+        };
+      };
+    };
+  };
+  OnboardingController_getDraft: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DraftDto"];
+        };
+      };
+    };
+  };
+  OnboardingController_saveDraft: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SaveDraftRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DraftDto"];
+        };
+      };
+    };
+  };
+  OnboardingController_fromLead: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        leadId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FromLeadResponseDto"];
+        };
+      };
+    };
+  };
+  OnboardingController_finalize: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description UUID per user intent */
+        "Idempotency-Key"?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FinalizeRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FinalizeResponseDto"];
         };
       };
     };
