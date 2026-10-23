@@ -4,3 +4,4 @@ export * from "./leads";
 export * from "./platform";
 export * from "./support";
 export * from "./workspaces";
+export * from "./clients";

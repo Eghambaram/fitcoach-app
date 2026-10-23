@@ -6,6 +6,13 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 2.4 lead → client conversion (PROMPT §8.2, §8.3):
+  - **`POST /v1/leads/:id/convert`** with `Idempotency-Key`, in one transaction: lock the lead, create an `onboarding_draft` client with the lead's details and attribution (or link an existing client), check the plan's client limit (`PLAN_LIMIT`), skip open follow-ups, mark the lead converted, and write timeline, `activity_events` and `lead_converted` product-event rows. Concurrent or repeated submits give exactly one client; any failure rolls everything back.
+  - **Convert to client sheet** (Leads board): what carries over, a disabled initial package ("Available after packages are set up"), an optional start date, and "Possible match: already a client" with Link. "Convert & Continue" opens `/app/clients/new?fromLead=`, which confirms the conversion until the onboarding wizard (step 2.5) replaces it. Converted leads show a banner and are read-only.
+  - **Duplicate check** now includes non-archived clients ("Client · Onboarding" in the Possible match panel).
+  - **Database:** `clients` (unique per source lead, partial uniques on phone and email, active-client limit trigger), `activity_events`, lead conversion columns with a composite FK to the client, and a revised lead update policy (converted only with a same-workspace client; converted leads are final). `IdempotencyService` on `idempotency_keys`, new error code `IDEMPOTENCY_KEY_REUSED`, `FC001` → `PLAN_LIMIT`. ADR-0047.
+  - **Tests:** RLS (tenant isolation, signed inserts, no login set by the trainer, phone uniqueness, limit trigger, conversion only with an own client, converted is final, activity events insert-only); API (copied fields and history, idempotent replay and key reuse, four concurrent submits → one client, forced failure → nothing converted, plan limit, link flow, converted-is-final, tampering, archived, suspended); component tests for the sheet's idempotency key and linking; e2e for double-click → one client, history kept, and repeat enquiry linked, on desktop and mobile.
+
 - Step 2.3 follow-ups, communication log and WhatsApp templates (PROMPT §8.2, §8.10, §11):
   - **Follow-ups:** schedule from the lead drawer or a list row (action, date and time in the workspace time zone, notes, in-app reminder preference); a Next Action card with Overdue / Due today; edit open ones; finish as done (with an outcome) or skipped, optionally logging the contact and booking the next follow-up in the same transaction.
   - **Log contact:** channel, outcome and note, written to the append-only `communication_logs`; shown in the Activity timeline; maintains `last_contact_at`; a New lead becomes Contacted.
@@ -63,6 +70,7 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Fixed
 
+- Lead note timestamps had insufficient colour contrast (axe).
 - The typed API client resolved every response to `any`: it emitted `createClient.Client<…>` into its declaration file. It now declares its return type, so the web is type-checked against the real contracts again.
 - OpenAPI: bare nullable scalars (`z.string().nullable()`) were published as arrays of strings (e.g. sessions' `userAgent`); they're now `string | null`.
 - The enquiry form's optional training-mode radio sends `null` when untouched; the contract accepts it (previously the form would silently refuse to send).

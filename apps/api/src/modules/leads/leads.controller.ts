@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   Param,
   Patch,
@@ -10,10 +11,13 @@ import {
   Query,
   StreamableFile,
 } from "@nestjs/common";
-import { ApiOkResponse, ApiProduces, ApiTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOkResponse, ApiProduces, ApiTags } from "@nestjs/swagger";
 import {
   changeLeadStageRequestSchema,
   completeFollowUpRequestSchema,
+  convertLeadRequestSchema,
+  convertLeadResponseSchema,
+  type ConvertLeadResponse,
   createLeadRequestSchema,
   duplicateCheckRequestSchema,
   duplicateCheckResponseSchema,
@@ -37,6 +41,7 @@ import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { Roles } from "../../common/auth/decorators";
 import { OkResponseDto } from "../auth/auth.dto";
+import { LeadConversionService } from "./lead-conversion.service";
 import { LeadFollowUpsService } from "./lead-follow-ups.service";
 import { LeadsService } from "./leads.service";
 
@@ -61,6 +66,8 @@ class FollowUpParamsDto extends createZodDto(
 class FollowUpRequestDto extends createZodDto(followUpRequestSchema) {}
 class CompleteFollowUpRequestDto extends createZodDto(completeFollowUpRequestSchema) {}
 class LogContactRequestDto extends createZodDto(logContactRequestSchema) {}
+class ConvertLeadRequestDto extends createZodDto(convertLeadRequestSchema) {}
+class ConvertLeadResponseDto extends createZodDto(convertLeadResponseSchema) {}
 
 /** Lead CRM (PROMPT §8.2). The workspace comes from the session only (CLAUDE.md rule 1). */
 @ApiTags("leads")
@@ -70,6 +77,7 @@ export class LeadsController {
   constructor(
     private readonly leads: LeadsService,
     private readonly followUps: LeadFollowUpsService,
+    private readonly conversion: LeadConversionService,
   ) {}
 
   @Get()
@@ -185,6 +193,19 @@ export class LeadsController {
     @Body() body: LogContactRequestDto,
   ): Promise<LeadDetailResponse> {
     return this.followUps.logContact(params.id, body);
+  }
+
+  /** Lead → client conversion (§8.2): one transaction, Idempotency-Key, exactly one client. */
+  @Post(":id/convert")
+  @HttpCode(200)
+  @ApiHeader({ name: "Idempotency-Key", required: false, description: "UUID per user intent" })
+  @ApiOkResponse({ type: ConvertLeadResponseDto })
+  convert(
+    @Param() params: LeadIdParamDto,
+    @Body() body: ConvertLeadRequestDto,
+    @Headers("idempotency-key") idempotencyKey: string | undefined,
+  ): Promise<ConvertLeadResponse> {
+    return this.conversion.convert(params.id, body, idempotencyKey);
   }
 
   @Post(":id/archive")

@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import {
   type ChangeLeadStageRequest,
+  type ClientStatus,
   type CoachingMode,
   type CreateLeadRequest,
   type DuplicateCheckRequest,
@@ -51,6 +52,7 @@ import { DomainError } from "../../common/errors/domain-error";
 import type { AppClsStore, AuthContext } from "../../common/request-context";
 import { DbContext } from "../../db/db-context";
 import {
+  clients,
   communicationLogs,
   leadActivities,
   leadConsents,
@@ -69,6 +71,17 @@ export type Trainer = AuthContext & { workspaceId: string };
 export type LeadRow = typeof leads.$inferSelect;
 
 export const leadNotFound = () => DomainError.notFound("That lead doesn't exist.");
+/** A converted lead is final (its client carries on); RLS would silently match no rows. */
+function assertNotConverted(lead: { stage: string }): void {
+  if (lead.stage === "converted") {
+    throw new DomainError(
+      ERROR_CODES.CONFLICT_STATE,
+      409,
+      "This lead is already a client, so it can't change.",
+    );
+  }
+}
+
 const badCursor = () =>
   new DomainError(ERROR_CODES.VALIDATION_FAILED, 400, "This list is out of date. Reload it.", {
     cursor: ["Invalid cursor"],
@@ -554,6 +567,8 @@ export class LeadsService {
       activities,
       notes,
       followUps,
+      convertedClientId: lead.convertedClientId,
+      convertedAt: isoOrNull(lead.convertedAt),
       canDelete:
         contacts.length === 0 && history.every((entry) => ORIGIN_ACTIVITIES.includes(entry.type)),
     };
@@ -602,7 +617,7 @@ export class LeadsService {
     }));
   }
 
-  /** Possible matches on normalised phone or email (PROMPT §8.2). Clients join in step 2.4. */
+  /** Possible matches on normalised phone or email across leads and non-archived clients (§8.2). */
   async duplicates(input: DuplicateCheckRequest): Promise<DuplicateCheckResponse> {
     const trainer = this.trainer();
     const { country } = await this.workspace(trainer);
@@ -631,17 +646,49 @@ export class LeadsService {
       .orderBy(desc(leads.createdAt))
       .limit(5);
 
+    const clientMatchers: SQL[] = [];
+    if (phone) clientMatchers.push(eq(clients.phoneE164, phone));
+    if (email) clientMatchers.push(sql`${clients.email} = ${email}`);
+    const clientRows = await this.db.tx
+      .select({
+        id: clients.id,
+        fullName: clients.fullName,
+        status: clients.status,
+        phoneE164: clients.phoneE164,
+        email: clients.email,
+      })
+      .from(clients)
+      .where(
+        and(
+          eq(clients.workspaceId, trainer.workspaceId),
+          ne(clients.status, "archived"),
+          or(...clientMatchers),
+        ),
+      )
+      .orderBy(desc(clients.createdAt))
+      .limit(5);
+
+    const matchedOn = (row: { phoneE164: string | null; email: string | null }) => [
+      ...(phone && row.phoneE164 === phone ? (["phone"] as const) : []),
+      ...(email && row.email?.toLowerCase() === email ? (["email"] as const) : []),
+    ];
     return {
-      matches: rows.map((row) => ({
-        kind: "lead" as const,
-        id: row.id,
-        fullName: row.fullName,
-        stage: row.stage as LeadStage,
-        matchedOn: [
-          ...(phone && row.phoneE164 === phone ? (["phone"] as const) : []),
-          ...(email && row.email?.toLowerCase() === email ? (["email"] as const) : []),
-        ],
-      })),
+      matches: [
+        ...clientRows.map((row) => ({
+          kind: "client" as const,
+          id: row.id,
+          fullName: row.fullName,
+          status: row.status as ClientStatus,
+          matchedOn: matchedOn(row),
+        })),
+        ...rows.map((row) => ({
+          kind: "lead" as const,
+          id: row.id,
+          fullName: row.fullName,
+          stage: row.stage as LeadStage,
+          matchedOn: matchedOn(row),
+        })),
+      ],
     };
   }
 
@@ -709,6 +756,7 @@ export class LeadsService {
   async update(id: string, input: UpdateLeadRequest): Promise<LeadDetailResponse> {
     const trainer = this.trainer();
     const before = await this.findLead(trainer, id);
+    assertNotConverted(before);
     const values = await this.details(trainer, input);
     const changed = DETAIL_FIELDS.filter(
       (field) => (before[field] ?? null) !== (values[field] ?? null),
@@ -767,6 +815,7 @@ export class LeadsService {
   async setArchived(id: string, archived: boolean): Promise<LeadDetailResponse> {
     const trainer = this.trainer();
     const lead = await this.findLead(trainer, id);
+    assertNotConverted(lead);
     if ((lead.archivedAt !== null) === archived) return this.get(id);
     await this.db.tx
       .update(leads)

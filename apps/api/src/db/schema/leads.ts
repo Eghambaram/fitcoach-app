@@ -125,6 +125,15 @@ export const leads = pgTable(
     lastContactAt: timestamp("last_contact_at", { withTimezone: true }),
     /** Maintained by triggers on `lead_follow_ups` (earliest open follow-up). */
     nextFollowUpAt: timestamp("next_follow_up_at", { withTimezone: true }),
+    /**
+     * Set only by the conversion transaction (step 2.4). The FK to `clients` lives in migration 0014
+     * (clients.ts imports this file, so it can't be declared here without a cycle).
+     */
+    convertedClientId: uuid("converted_client_id"),
+    convertedAt: timestamp("converted_at", { withTimezone: true }),
+    convertedByUserId: uuid("converted_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     /** Archived leads leave the list but keep their history (delete is only for untouched leads). */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     ...timestamps,
@@ -137,6 +146,12 @@ export const leads = pgTable(
     index("leads_workspace_email_idx").on(t.workspaceId, t.email),
     index("leads_created_by_user_id_idx").on(t.createdByUserId),
     index("leads_workspace_next_follow_up_at_idx").on(t.workspaceId, t.nextFollowUpAt),
+    index("leads_workspace_converted_client_idx").on(t.workspaceId, t.convertedClientId),
+    index("leads_converted_by_user_id_idx").on(t.convertedByUserId),
+    check(
+      "leads_converted",
+      sql`(${t.stage} = 'converted') = (${t.convertedClientId} is not null and ${t.convertedAt} is not null)`,
+    ),
     check("leads_full_name_length", sql`char_length(${t.fullName}) between 1 and 80`),
     check("leads_contact", sql`${t.phoneE164} is not null or ${t.email} is not null`),
     check(
@@ -212,7 +227,7 @@ export const leadActivities = pgTable(
     index("lead_activities_actor_user_id_idx").on(t.actorUserId),
     check(
       "lead_activities_type",
-      sql`${t.type} in ('enquiry_received', 'created', 'details_updated', 'stage_changed', 'note', 'archived', 'restored', 'follow_up_scheduled', 'follow_up_rescheduled', 'follow_up_completed', 'follow_up_skipped')`,
+      sql`${t.type} in ('enquiry_received', 'created', 'details_updated', 'stage_changed', 'note', 'archived', 'restored', 'follow_up_scheduled', 'follow_up_rescheduled', 'follow_up_completed', 'follow_up_skipped', 'converted')`,
     ),
     check(
       "lead_activities_note_body",

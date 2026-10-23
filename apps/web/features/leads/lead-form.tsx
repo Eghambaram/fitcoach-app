@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  CLIENT_STATUS_LABELS,
   COACHING_MODE_LABELS,
   COACHING_MODES,
   type CreateLeadInput,
@@ -20,6 +21,7 @@ import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useOnline } from "@/components/shared/offline-banner";
+import { StatusPill } from "@/components/shared/status";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input, Select, Textarea } from "@/components/ui/input";
@@ -175,17 +177,23 @@ export function LeadForm({
             {matches.map((match) => (
               <li key={match.id} className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">{match.fullName}</span>
-                <StagePill stage={match.stage} />
+                {match.kind === "lead" ? (
+                  <StagePill stage={match.stage} />
+                ) : (
+                  <StatusPill tone="lime">Client · {CLIENT_STATUS_LABELS[match.status]}</StatusPill>
+                )}
                 <span className="text-xs text-muted-foreground">
                   same {match.matchedOn.join(" and ")}
                 </span>
-                <button
-                  type="button"
-                  className="ml-auto min-h-9 rounded-control px-2 font-semibold underline"
-                  onClick={() => onOpenLead(match.id)}
-                >
-                  Open
-                </button>
+                {match.kind === "lead" ? (
+                  <button
+                    type="button"
+                    className="ml-auto min-h-9 rounded-control px-2 font-semibold underline"
+                    onClick={() => onOpenLead(match.id)}
+                  >
+                    Open
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
