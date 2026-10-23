@@ -12,6 +12,8 @@ export const PRODUCT_EVENTS = [
   "lead_captured",
   // Lead conversion rate (§1A.5): a lead became (or was linked to) a client.
   "lead_converted",
+  // Client onboarding completed (§1A.5 activation: first client onboarded).
+  "client_onboarded",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENTS)[number];

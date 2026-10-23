@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, UserPlus } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/status";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { firstName, greeting, longDate } from "@/features/dashboard/greeting";
 import { getSession } from "@/lib/api/server";
@@ -24,6 +26,14 @@ export default async function DashboardPage() {
       <PageHeader
         title={`${greeting(now, timeZone)}, ${firstName(me.profile.displayName)}`}
         description={longDate(now, timeZone)}
+        actions={
+          <Button asChild>
+            <Link href="/app/clients/new">
+              <UserPlus aria-hidden="true" />
+              Add client
+            </Link>
+          </Button>
+        }
       />
       <Card>
         <EmptyState
