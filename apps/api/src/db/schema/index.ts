@@ -5,3 +5,4 @@ export * from "./platform";
 export * from "./support";
 export * from "./workspaces";
 export * from "./clients";
+export * from "./scheduling";

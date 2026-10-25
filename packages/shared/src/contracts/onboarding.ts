@@ -208,7 +208,7 @@ export const onboardingDraftsResponseSchema = z.object({
     z.object({
       id: z.string().uuid(),
       clientId: z.string().uuid().nullable(),
-      fullName: z.string().nullable(),
+      fullName: z.string().max(80).nullable(),
       step: onboardingStepSchema,
       updatedAt: z.string().datetime(),
     }),

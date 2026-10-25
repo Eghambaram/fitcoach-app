@@ -6,6 +6,13 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 2.6 calendar, recurring series, trials and attendance (PROMPT §8.6, §8.2):
+  - **`/app/calendar`** (now in the navigation): week and day views on desktop, agenda and day on phones; URL state (`?view=&date=&appt=`); a "past sessions need attendance" list with one-tap Attended / No-show; appointment drawer with attendance and undo, reschedule, cancel with reason (late-cancel flag from the D25 window), trainer-only session notes and history; Book session; Recurring series sheet (weekdays, time, length, first day, end after N sessions or on a date, place or link) with "Check dates" listing every occurrence and its conflicts.
+  - **Trials:** "Book trial" in the lead drawer (Book Trial Session board: date, time, in person or online, place or link, notes). The lead moves to Trial booked; the timeline records trials booked, attended, missed and cancelled; the lead shows its sessions; the leads KPIs add "Upcoming trials". Outcomes never convert.
+  - **API** `/v1/appointments`: list (≤ 42 days), needs-attendance, book, series preview and create, get, reschedule (this / this and following), cancel, attendance, notes; `/v1/clients/options` for the booking picker. Overlaps answer `CONFLICT_APPOINTMENT` naming the clash; unskipped series conflicts are listed per date and nothing is saved.
+  - **Database:** `appointment_series`, `appointments` (exactly one client or lead, `ends_at` trigger, exclusion constraint against overlaps, cancelled is final), `appointment_changes` (insert-only), with RLS. `SessionDeductionService` hook for step 3.2. Product event `trial_booked`. ADR-0049.
+  - **Tests:** RLS (ends_at trigger, overlap exclusion incl. back-to-back, cancelled frees the slot and is final, one person, cross-tenant FKs, signed live bookings, insert-only history, empty context, suspended); API (zone conversion, named conflicts, trial → trial booked without converting, series preview/conflicts/skip/cap/validation, this-and-following, late cancel, attendance timing/no-op/undo, notes, tampering, range limit); unit tests for calendar dates and the series form; e2e for trial → attendance → 8-week Mon/Wed/Fri series → double-booking conflict, on desktop and mobile.
+
 - Step 2.5 client onboarding wizard (PROMPT §8.4):
   - **`/app/clients/new`:** four steps (Basic information → Goals & training → Baseline & consent → Review & create) matching the Add New Client boards; Save as draft on every step; "Next" checks the step with the shared schema and saves; `?draft=` resumes, `?fromLead=` continues a converted lead's client prefilled from the lead; drafts-in-progress list; missing-required highlights on Review; package, program and WhatsApp invite shown disabled with honest copy. Entry points: "Add client" on the dashboard and "Client onboarding" on converted leads.
   - **API** `/v1/onboarding`: drafts (list, create, get, save), `from-lead/:leadId`, and `finalize` (Idempotency-Key, one transaction: create or activate the client within the plan limit, goals, consents with notice version and text, baseline measurements converted to kg/cm with range checks, drafts finished, activity event and `client_onboarded` product event).
@@ -75,6 +82,7 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Fixed
 
+- The generated API client typed plain nullable strings in new contracts as arrays; nullable strings now carry a length bound (as the existing contracts do).
 - Lead note timestamps had insufficient colour contrast (axe).
 - The typed API client resolved every response to `any`: it emitted `createClient.Client<…>` into its declaration file. It now declares its return type, so the web is type-checked against the real contracts again.
 - OpenAPI: bare nullable scalars (`z.string().nullable()`) were published as arrays of strings (e.g. sessions' `userAgent`); they're now `string | null`.

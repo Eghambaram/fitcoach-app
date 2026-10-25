@@ -225,7 +225,7 @@ export function LeadsScreen({
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <KpiCard
           label="Open leads"
           value={summary.kpis.open}
@@ -247,6 +247,12 @@ export function LeadsScreen({
               : "Today or earlier"
           }
           icon={AlarmClock}
+        />
+        <KpiCard
+          label="Upcoming trials"
+          value={summary.kpis.upcomingTrials}
+          caption="Booked from today on"
+          icon={CalendarClock}
         />
         <KpiCard
           label="From your page"

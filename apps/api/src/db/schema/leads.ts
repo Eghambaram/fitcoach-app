@@ -227,7 +227,7 @@ export const leadActivities = pgTable(
     index("lead_activities_actor_user_id_idx").on(t.actorUserId),
     check(
       "lead_activities_type",
-      sql`${t.type} in ('enquiry_received', 'created', 'details_updated', 'stage_changed', 'note', 'archived', 'restored', 'follow_up_scheduled', 'follow_up_rescheduled', 'follow_up_completed', 'follow_up_skipped', 'converted')`,
+      sql`${t.type} in ('enquiry_received', 'created', 'details_updated', 'stage_changed', 'note', 'archived', 'restored', 'follow_up_scheduled', 'follow_up_rescheduled', 'follow_up_completed', 'follow_up_skipped', 'converted', 'trial_booked', 'trial_completed', 'trial_no_show', 'trial_cancelled')`,
     ),
     check(
       "lead_activities_note_body",

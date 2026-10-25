@@ -52,6 +52,7 @@ import { DomainError } from "../../common/errors/domain-error";
 import type { AppClsStore, AuthContext } from "../../common/request-context";
 import { DbContext } from "../../db/db-context";
 import {
+  appointments,
   clients,
   communicationLogs,
   leadActivities,
@@ -373,6 +374,19 @@ export class LeadsService {
         ),
       );
 
+    const [trials] = await this.db.tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.workspaceId, trainer.workspaceId),
+          eq(appointments.kind, "trial"),
+          isNotNull(appointments.leadId),
+          inArray(appointments.status, ["scheduled", "confirmed"]),
+          sql`${appointments.startsAt} >= now()`,
+        ),
+      );
+
     return {
       stageCounts: {
         all: Object.values(stageCounts).reduce((sum, count) => sum + count, 0),
@@ -382,6 +396,7 @@ export class LeadsService {
         ...(kpis ?? { open: 0, newThisWeek: 0, fromPublicPage30Days: 0 }),
         followUpsDue: followUps?.due ?? 0,
         followUpsOverdue: followUps?.overdue ?? 0,
+        upcomingTrials: trials?.count ?? 0,
       },
     };
   }
@@ -510,6 +525,19 @@ export class LeadsService {
       .orderBy(desc(communicationLogs.occurredAt), desc(communicationLogs.id))
       .limit(300);
     const followUps = await this.followUps(trainer, id);
+    const { timezone } = await this.workspace(trainer);
+    const booked = await this.db.tx
+      .select({
+        id: appointments.id,
+        kind: appointments.kind,
+        status: appointments.status,
+        date: sql<string>`to_char(${appointments.startsAt} at time zone ${timezone}, 'YYYY-MM-DD')`,
+        startTime: sql<string>`to_char(${appointments.startsAt} at time zone ${timezone}, 'HH24:MI')`,
+      })
+      .from(appointments)
+      .where(and(eq(appointments.workspaceId, trainer.workspaceId), eq(appointments.leadId, id)))
+      .orderBy(desc(appointments.startsAt))
+      .limit(10);
     const message = await this.messageContext(trainer, "follow_up");
 
     const activities: LeadActivity[] = contacts.map((contact) => ({
@@ -567,6 +595,11 @@ export class LeadsService {
       activities,
       notes,
       followUps,
+      appointments: booked.map((row) => ({
+        ...row,
+        kind: row.kind as LeadDetailResponse["appointments"][number]["kind"],
+        status: row.status as LeadDetailResponse["appointments"][number]["status"],
+      })),
       convertedClientId: lead.convertedClientId,
       convertedAt: isoOrNull(lead.convertedAt),
       canDelete:

@@ -756,6 +756,150 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/appointments": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["AppointmentsController_list"];
+    put?: never;
+    post: operations["AppointmentsController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/appointments/needs-attendance": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["AppointmentsController_needsAttendance"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/appointments/series/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["AppointmentsController_previewSeries"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/appointments/series": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["AppointmentsController_createSeries"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/appointments/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["AppointmentsController_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["AppointmentsController_update"];
+    trace?: never;
+  };
+  "/v1/appointments/{id}/cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["AppointmentsController_cancel"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/appointments/{id}/attendance": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["AppointmentsController_attendance"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/appointments/{id}/notes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["AppointmentsController_notes"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/options": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientOptionsController_options"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/public/pages/{slug}": {
     parameters: {
       query?: never;
@@ -1121,6 +1265,7 @@ export interface components {
         fromPublicPage30Days: number;
         followUpsDue: number;
         followUpsOverdue: number;
+        upcomingTrials: number;
       };
     };
     DuplicateCheckRequestDto: {
@@ -1284,6 +1429,10 @@ export interface components {
           | "follow_up_completed"
           | "follow_up_skipped"
           | "converted"
+          | "trial_booked"
+          | "trial_completed"
+          | "trial_no_show"
+          | "trial_cancelled"
           | "contact_logged";
         data: {
           [key: string]: unknown;
@@ -1325,6 +1474,16 @@ export interface components {
         completedAt: string | null;
         /** Format: date-time */
         createdAt: string;
+      }[];
+      appointments: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        date: string;
+        startTime: string;
       }[];
       /** Format: uuid */
       convertedClientId: string | null;
@@ -1758,6 +1917,204 @@ export interface components {
       clientId: string;
       fullName: string;
       measurementsRecorded: number;
+    };
+    ListResponseDto: {
+      appointments: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        person: {
+          /** @enum {string} */
+          kind: "client" | "lead";
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+        };
+        /** Format: uuid */
+        seriesId: string | null;
+        location: string | null;
+        meetingUrl: string | null;
+        notes: string | null;
+        lateCancel: boolean;
+        cancelReason: string | null;
+        started: boolean;
+        needsAttendance: boolean;
+      }[];
+      timezone: string;
+      today: string;
+    };
+    NeedsAttendanceResponseDto: {
+      appointments: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        person: {
+          /** @enum {string} */
+          kind: "client" | "lead";
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+        };
+        /** Format: uuid */
+        seriesId: string | null;
+        location: string | null;
+        meetingUrl: string | null;
+        notes: string | null;
+        lateCancel: boolean;
+        cancelReason: string | null;
+        started: boolean;
+        needsAttendance: boolean;
+      }[];
+    };
+    CreateRequestDto: {
+      /** Format: uuid */
+      clientId?: string;
+      /** Format: uuid */
+      leadId?: string;
+      /** @enum {string} */
+      kind: "session" | "online_session" | "trial" | "consultation";
+      date: string;
+      startTime: string;
+      durationMin: number;
+      location?: string;
+      meetingUrl?: "" | string;
+      notes?: string;
+    };
+    DetailDto: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      kind: "session" | "online_session" | "trial" | "consultation";
+      /** @enum {string} */
+      status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+      /** Format: date-time */
+      startsAt: string;
+      /** Format: date-time */
+      endsAt: string;
+      date: string;
+      startTime: string;
+      endTime: string;
+      durationMin: number;
+      person: {
+        /** @enum {string} */
+        kind: "client" | "lead";
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+      };
+      /** Format: uuid */
+      seriesId: string | null;
+      location: string | null;
+      meetingUrl: string | null;
+      notes: string | null;
+      lateCancel: boolean;
+      cancelReason: string | null;
+      started: boolean;
+      needsAttendance: boolean;
+      changes: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "created" | "rescheduled" | "cancelled" | "attendance" | "notes";
+        data: {
+          [key: string]: unknown;
+        };
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+    };
+    SeriesRequestDto: {
+      /** Format: uuid */
+      clientId: string;
+      /** @enum {string} */
+      kind: "session" | "online_session";
+      weekdays: number[];
+      startTime: string;
+      durationMin: number;
+      startsOn: string;
+      endsOn?: string;
+      occurrenceCount?: number;
+      location?: string;
+      meetingUrl?: "" | string;
+      /** @default [] */
+      skipDates: string[];
+    };
+    SeriesPreviewResponseDto: {
+      occurrences: {
+        date: string;
+        startTime: string;
+        conflict: {
+          /** Format: uuid */
+          appointmentId: string;
+          title: string;
+          startTime: string;
+        } | null;
+      }[];
+      capped: boolean;
+    };
+    SeriesCreatedResponseDto: {
+      /** Format: uuid */
+      seriesId: string;
+      created: number;
+      skipped: number;
+    };
+    UpdateRequestDto: {
+      date: string;
+      startTime: string;
+      durationMin: number;
+      location?: string;
+      meetingUrl?: "" | string;
+      /**
+       * @default this
+       * @enum {string}
+       */
+      scope: "this" | "following";
+    };
+    CancelRequestDto: {
+      reason: string;
+      /**
+       * @default this
+       * @enum {string}
+       */
+      scope: "this" | "following";
+    };
+    AttendanceRequestDto: {
+      /** @enum {string} */
+      status: "completed" | "no_show" | "scheduled";
+    };
+    NotesRequestDto: {
+      notes: string;
+    };
+    ClientOptionsResponseDto: {
+      clients: {
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+        /** @enum {string} */
+        status: "onboarding_draft" | "active" | "paused" | "archived";
+      }[];
     };
     PublicPageResponseDto: {
       slug: string;
@@ -3128,6 +3485,256 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["FinalizeResponseDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_list: {
+    parameters: {
+      query: {
+        from: string;
+        to: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ListResponseDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DetailDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_needsAttendance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NeedsAttendanceResponseDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_previewSeries: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SeriesRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SeriesPreviewResponseDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_createSeries: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SeriesRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SeriesCreatedResponseDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DetailDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DetailDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_cancel: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CancelRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DetailDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_attendance: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AttendanceRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DetailDto"];
+        };
+      };
+    };
+  };
+  AppointmentsController_notes: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["NotesRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DetailDto"];
+        };
+      };
+    };
+  };
+  ClientOptionsController_options: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientOptionsResponseDto"];
         };
       };
     };

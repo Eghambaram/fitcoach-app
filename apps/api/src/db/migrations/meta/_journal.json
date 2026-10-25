@@ -120,6 +120,20 @@
       "when": 1792765486135,
       "tag": "0016_client_onboarding_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792770008559,
+      "tag": "0017_scheduling",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792770011478,
+      "tag": "0018_scheduling_rls",
+      "breakpoints": true
     }
   ]
 }

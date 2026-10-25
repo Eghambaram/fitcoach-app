@@ -14,6 +14,8 @@ export const PRODUCT_EVENTS = [
   "lead_converted",
   // Client onboarding completed (§1A.5 activation: first client onboarded).
   "client_onboarded",
+  // Lead → trial funnel (§1A.5): a trial session was booked for a lead.
+  "trial_booked",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENTS)[number];
