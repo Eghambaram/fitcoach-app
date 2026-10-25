@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  APPOINTMENT_KIND_LABELS,
+  APPOINTMENT_STATUS_LABELS,
   COACHING_MODE_LABELS,
   CONTACT_CHANNEL_LABELS,
   CONTACT_OUTCOME_LABELS,
@@ -62,6 +64,8 @@ import {
   useLogWhatsAppSent,
   WhatsAppButton,
 } from "./follow-ups";
+import { AppointmentForm } from "../calendar/appointment-forms";
+import { dayLabel, timeLabel } from "../calendar/dates";
 import { ConvertLeadForm } from "./convert-lead";
 import { CallLink, formatDateTime, formatDay, StagePill } from "./lead-display";
 import { LeadForm } from "./lead-form";
@@ -116,6 +120,16 @@ export function describeActivity(activity: LeadActivity): string {
     }
     case "follow_up_skipped":
       return `Follow-up skipped: ${FOLLOW_UP_ACTION_LABELS[data.actionType as FollowUpAction] ?? "Follow-up"}${data.reason === "converted" ? " (lead converted)" : ""}`;
+    case "trial_booked":
+      return typeof data.date === "string" && typeof data.startTime === "string"
+        ? `Trial booked for ${formatDue(data.date, data.startTime)}`
+        : "Trial booked";
+    case "trial_completed":
+      return "Came to the trial";
+    case "trial_no_show":
+      return "Didn't come to the trial";
+    case "trial_cancelled":
+      return `Trial cancelled${typeof data.reason === "string" ? `: ${data.reason}` : ""}`;
     case "converted":
       return data.linked ? "Linked to an existing client" : "Converted to a client";
     case "contact_logged": {
@@ -680,6 +694,35 @@ function LeadBody({
                   <p className="whitespace-pre-line">{lead.message}</p>
                 </blockquote>
               ) : null}
+              {lead.appointments.length > 0 ? (
+                <section
+                  aria-labelledby="lead-sessions"
+                  className="flex flex-col gap-2 rounded-card border border-border p-4"
+                >
+                  <h3 id="lead-sessions" className="font-semibold">
+                    Trial and consultations
+                  </h3>
+                  <ul className="flex flex-col gap-1 text-sm">
+                    {lead.appointments.map((appointment) => (
+                      <li
+                        key={appointment.id}
+                        className="flex flex-wrap items-center justify-between gap-2"
+                      >
+                        <Link
+                          href={`/app/calendar?appt=${appointment.id}&date=${appointment.date}`}
+                          className="underline"
+                        >
+                          {APPOINTMENT_KIND_LABELS[appointment.kind]} · {dayLabel(appointment.date)}
+                          , {timeLabel(appointment.startTime)}
+                        </Link>
+                        <span className="text-xs text-muted-foreground">
+                          {APPOINTMENT_STATUS_LABELS[appointment.status]}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
               <NextAction lead={lead} canAct={canAct} onOpen={setModal} />
               {canAct ? (
                 <Button
@@ -824,6 +867,8 @@ export function LeadDrawer({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [converting, setConverting] = useState(false);
+  /** The default trial date (tomorrow), set when the form opens. */
+  const [trialDate, setTrialDate] = useState<string | null>(null);
   const query = useQuery({
     queryKey: ["lead", leadId],
     queryFn: () =>
@@ -850,7 +895,16 @@ export function LeadDrawer({
         lead && lead.stage !== "converted" ? (
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
-              <Button variant="outline" disabled className={cn("flex-1")}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={lead.archived}
+                onClick={() =>
+                  setTrialDate(
+                    new Intl.DateTimeFormat("en-CA").format(new Date(Date.now() + 86_400_000)),
+                  )
+                }
+              >
                 <CalendarPlus aria-hidden="true" />
                 Book trial
               </Button>
@@ -863,11 +917,11 @@ export function LeadDrawer({
                 Convert to client
               </Button>
             </div>
-            <p className="text-center text-xs text-muted-foreground">
-              {lead.archived
-                ? "Restore this lead to convert it. Booking trials is coming soon."
-                : "Booking trials is coming soon."}
-            </p>
+            {lead.archived ? (
+              <p className="text-center text-xs text-muted-foreground">
+                Restore this lead to book a trial or convert it.
+              </p>
+            ) : null}
           </div>
         ) : undefined
       }
@@ -894,6 +948,25 @@ export function LeadDrawer({
           }}
         />
       ) : null}
+      <Modal
+        open={trialDate !== null && lead !== undefined}
+        onOpenChange={(open) => (open ? null : setTrialDate(null))}
+        title="Book trial session"
+        description={lead ? `For ${lead.fullName}` : undefined}
+      >
+        {trialDate && lead ? (
+          <AppointmentForm
+            leadId={lead.id}
+            defaultDate={trialDate}
+            onSaved={() => {
+              setTrialDate(null);
+              toast.success("Trial booked.");
+              void queryClient.invalidateQueries({ queryKey: ["lead", lead.id] });
+              router.refresh();
+            }}
+          />
+        ) : null}
+      </Modal>
       <Modal
         open={converting && lead !== undefined}
         onOpenChange={setConverting}

@@ -18,6 +18,7 @@ import { LeadsModule } from "./modules/leads/leads.module";
 import { OnboardingModule } from "./modules/onboarding/onboarding.module";
 import { PlatformModule } from "./modules/platform/platform.module";
 import { PublicPageModule } from "./modules/public-page/public-page.module";
+import { SchedulingModule } from "./modules/scheduling/scheduling.module";
 import { SettingsModule } from "./modules/settings/settings.module";
 
 @Module({
@@ -36,6 +37,7 @@ import { SettingsModule } from "./modules/settings/settings.module";
     SettingsModule,
     LeadsModule,
     OnboardingModule,
+    SchedulingModule,
     PublicPageModule,
   ],
   providers: [

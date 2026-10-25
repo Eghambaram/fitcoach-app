@@ -37,7 +37,7 @@ export const TRAINER_NAV: readonly NavItem[] = [
   { label: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard, available: true },
   { label: "Leads", href: "/app/leads", icon: UserPlus, available: true },
   { label: "Clients", href: "/app/clients", icon: Users, available: false },
-  { label: "Calendar", href: "/app/calendar", icon: CalendarDays, available: false },
+  { label: "Calendar", href: "/app/calendar", icon: CalendarDays, available: true },
   { label: "Programs", href: "/app/programs", icon: ListChecks, available: false },
   { label: "Workouts", href: "/app/workouts", icon: Dumbbell, available: false },
   { label: "Check-ins", href: "/app/check-ins", icon: ClipboardCheck, available: false },

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { normalizePhone } from "../phone";
 import { CLIENT_STATUSES } from "./clients";
+import { APPOINTMENT_KINDS, APPOINTMENT_STATUSES } from "./scheduling";
 import { COACHING_MODES, emailSchema } from "./auth";
 import { FOLLOW_UP_STATES, leadFollowUpSchema, whatsAppLinkSchema } from "./follow-ups";
 import { FITNESS_GOALS, LEAD_SOURCES, LEAD_STAGES, type LeadStage } from "./leads";
@@ -152,6 +153,8 @@ export const leadsSummaryResponseSchema = z.object({
     /** Open follow-ups due today or earlier, on leads that aren't archived. */
     followUpsDue: z.number().int(),
     followUpsOverdue: z.number().int(),
+    /** Trials booked for leads, from now on (scheduled or confirmed). */
+    upcomingTrials: z.number().int(),
   }),
 });
 export type LeadsSummaryResponse = z.infer<typeof leadsSummaryResponseSchema>;
@@ -237,6 +240,10 @@ export const LEAD_ACTIVITY_TYPES = [
   "follow_up_completed",
   "follow_up_skipped",
   "converted",
+  "trial_booked",
+  "trial_completed",
+  "trial_no_show",
+  "trial_cancelled",
   /** A `communication_logs` entry, merged into the timeline when it is read. */
   "contact_logged",
 ] as const;
@@ -284,6 +291,16 @@ export const leadDetailResponseSchema = leadListItemSchema.extend({
   notes: z.array(leadNoteSchema),
   /** Open follow-ups (soonest first), then the most recent finished ones. */
   followUps: z.array(leadFollowUpSchema),
+  /** Trials and consultations booked for this lead, latest first (times in the workspace zone). */
+  appointments: z.array(
+    z.object({
+      id: z.string().uuid(),
+      kind: z.enum(APPOINTMENT_KINDS),
+      status: z.enum(APPOINTMENT_STATUSES),
+      date: z.string(),
+      startTime: z.string(),
+    }),
+  ),
   /** Set by the conversion transaction (step 2.4). */
   convertedClientId: z.string().uuid().nullable(),
   convertedAt: z.string().datetime().nullable(),

@@ -186,6 +186,7 @@ describe("list, search, filters, pagination and counts", () => {
         fromPublicPage30Days: 0,
         followUpsDue: 0,
         followUpsOverdue: 0,
+        upcomingTrials: 0,
       },
     });
     const filtered = await trainer.http.get("/v1/leads/summary?source=instagram");

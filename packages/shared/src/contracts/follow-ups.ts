@@ -134,10 +134,10 @@ export const leadFollowUpSchema = z.object({
   status: z.enum(FOLLOW_UP_STATUSES),
   /** Only for open follow-ups. */
   state: z.enum(FOLLOW_UP_STATES).nullable(),
-  notes: z.string().nullable(),
+  notes: z.string().max(500).nullable(),
   reminder: z.enum(FOLLOW_UP_REMINDERS),
   outcome: z.enum(CONTACT_OUTCOMES).nullable(),
-  outcomeNote: z.string().nullable(),
+  outcomeNote: z.string().max(500).nullable(),
   completedAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
 });
