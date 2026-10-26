@@ -82,7 +82,10 @@ test("a trainer starts a client, leaves halfway, resumes the draft and creates t
   await page.getByRole("button", { name: "Next" }).click();
 
   await expect(page.getByRole("heading", { name: "Review & create" })).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "Package (optional)" })).toBeDisabled();
+  // The package is optional (step 3.2): left on "No package yet", only required fields are sent.
+  const initialPackage = page.getByRole("combobox", { name: "Initial package (optional)" });
+  await expect(initialPackage).toBeEnabled();
+  await expect(initialPackage).toHaveValue("");
   await page.getByRole("button", { name: "Create client" }).click();
   await expect(page.getByText("Asha Rao is now an active client")).toBeVisible();
   await expect(page.getByRole("button", { name: /Invite Asha via WhatsApp/ })).toBeDisabled();

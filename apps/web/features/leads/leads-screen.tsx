@@ -29,8 +29,8 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { type DataColumn, DataList, FilterBar } from "@/components/shared/data-list";
 import { useOnline } from "@/components/shared/offline-banner";
 import { Drawer, Modal } from "@/components/shared/overlays";
@@ -39,6 +39,7 @@ import { EmptyState } from "@/components/shared/status";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Select } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
+import { useUrlQuery } from "@/lib/use-url-query";
 import { FollowUpForm, FollowUpWhen, useLogWhatsAppSent, WhatsAppButton } from "./follow-ups";
 import { CallLink, formatDay, StagePill } from "./lead-display";
 import { LeadDrawer } from "./lead-drawer";
@@ -68,10 +69,9 @@ export function LeadsScreen({
   summary: LeadsSummaryResponse;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const params = useSearchParams();
   const online = useOnline();
-  const [pending, startTransition] = useTransition();
+  const { update, pending } = useUrlQuery({ clearValues: ["all"] });
   const [search, setSearch] = useState(params.get("q") ?? "");
   // Pages added by "Load more", tagged with the first page they extend: when the filters change,
   // the server sends a new first page and the old extra pages no longer apply.
@@ -88,18 +88,6 @@ export function LeadsScreen({
   const openLead = params.get("lead");
   const stage = params.get("stage") ?? "all";
   const filtered = LEAD_PARAMS.some((name) => name !== "sort" && params.get(name));
-
-  function update(changes: Record<string, string | null>) {
-    const next = new URLSearchParams(params.toString());
-    for (const [name, value] of Object.entries(changes)) {
-      if (value === null || value === "" || value === "all") next.delete(name);
-      else next.set(name, value);
-    }
-    const query = next.toString();
-    startTransition(() =>
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false }),
-    );
-  }
 
   // Search as you type, without a request per keystroke.
   useEffect(() => {

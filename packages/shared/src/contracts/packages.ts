@@ -166,8 +166,8 @@ export const packageSummarySchema = z.object({
   paymentDueOn: z.string().max(10).nullable(),
   /** A balance is left and the payment due date has passed (or is today). */
   paymentOverdue: z.boolean(),
-  notes: z.string().nullable(),
-  closedReason: z.string().nullable(),
+  notes: z.string().max(500).nullable(),
+  closedReason: z.string().max(200).nullable(),
   createdAt: z.string().datetime(),
   closedAt: z.string().datetime().nullable(),
 });
@@ -180,8 +180,8 @@ export const paymentSchema = z.object({
   amountPaise: z.number().int(),
   method: z.enum(PAYMENT_METHODS),
   paidOn: z.string().max(10),
-  reference: z.string().nullable(),
-  note: z.string().nullable(),
+  reference: z.string().max(80).nullable(),
+  note: z.string().max(300).nullable(),
   createdAt: z.string().datetime(),
   voided: z.object({ at: z.string().datetime(), reason: z.string() }).nullable(),
 });
@@ -198,7 +198,7 @@ export const ledgerEntrySchema = z.object({
   appointment: z
     .object({ id: z.string().uuid(), date: z.string().max(10), startTime: z.string().max(5) })
     .nullable(),
-  note: z.string().nullable(),
+  note: z.string().max(300).nullable(),
   createdAt: z.string().datetime(),
 });
 export type LedgerEntry = z.infer<typeof ledgerEntrySchema>;

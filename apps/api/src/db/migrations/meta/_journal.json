@@ -162,6 +162,27 @@
       "when": 1792996624511,
       "tag": "0022_client_packages_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793018028653,
+      "tag": "0023_exercises_programs",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793018074213,
+      "tag": "0024_exercises_programs_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793018424910,
+      "tag": "0025_exercise_library_seed",
+      "breakpoints": true
     }
   ]
 }

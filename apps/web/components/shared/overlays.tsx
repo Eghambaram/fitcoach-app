@@ -49,7 +49,13 @@ export function Drawer({
               </Button>
             </Dialog.Close>
           </div>
-          <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          {/* Focusable so keyboard users can scroll read-only content (axe scrollable-region-focusable). */}
+          <div
+            tabIndex={0}
+            className="flex-1 overflow-y-auto px-5 py-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-charcoal"
+          >
+            {children}
+          </div>
           {footer ? <div className="border-t border-border px-5 py-4 pb-safe">{footer}</div> : null}
         </Dialog.Content>
       </Dialog.Portal>
