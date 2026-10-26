@@ -38,7 +38,7 @@ export const TRAINER_NAV: readonly NavItem[] = [
   { label: "Leads", href: "/app/leads", icon: UserPlus, available: true },
   { label: "Clients", href: "/app/clients", icon: Users, available: true },
   { label: "Calendar", href: "/app/calendar", icon: CalendarDays, available: true },
-  { label: "Programs", href: "/app/programs", icon: ListChecks, available: false },
+  { label: "Programs", href: "/app/programs", icon: ListChecks, available: true },
   { label: "Workouts", href: "/app/workouts", icon: Dumbbell, available: false },
   { label: "Check-ins", href: "/app/check-ins", icon: ClipboardCheck, available: false },
   { label: "Progress", href: "/app/progress", icon: TrendingUp, available: false },
@@ -91,7 +91,12 @@ function navItem(items: readonly NavItem[], href: string): NavItem {
   return item;
 }
 
+/** Screens that belong to a nav section without their own item (§6): the library sits under Programs. */
+const SECTION_ALIASES: Record<string, readonly string[]> = { "/app/programs": ["/app/exercises"] };
+
 export function isActive(pathname: string, href: string): boolean {
   if (href === "/platform") return pathname === "/platform";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return [href, ...(SECTION_ALIASES[href] ?? [])].some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 }

@@ -1060,6 +1060,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/exercises": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ExercisesController_list"];
+    put?: never;
+    post: operations["ExercisesController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exercises/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ExercisesController_get"];
+    put: operations["ExercisesController_update"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exercises/{id}/archive": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ExercisesController_archive"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exercises/{id}/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ExercisesController_restore"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/programs/templates": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgramsController_templates"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/public/pages/{slug}": {
     parameters: {
       query?: never;
@@ -2680,6 +2760,206 @@ export interface components {
       /** @enum {string} */
       action: "pause" | "resume" | "archive" | "restore";
       reason?: string;
+    };
+    ExerciseListResponseDto: {
+      exercises: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        /** @enum {string} */
+        category: "strength" | "cardio" | "plyometric" | "mobility";
+        muscleGroups: (
+          | "chest"
+          | "back"
+          | "shoulders"
+          | "biceps"
+          | "triceps"
+          | "forearms"
+          | "core"
+          | "glutes"
+          | "quads"
+          | "hamstrings"
+          | "calves"
+          | "hips"
+          | "full_body"
+        )[];
+        equipment: (
+          | "bodyweight"
+          | "barbell"
+          | "dumbbell"
+          | "kettlebell"
+          | "band"
+          | "cable"
+          | "machine"
+          | "bench"
+          | "pull_up_bar"
+          | "box"
+          | "cardio_machine"
+          | "mat"
+        )[];
+        /** @enum {string} */
+        difficulty: "beginner" | "intermediate" | "advanced";
+        instructions: string | null;
+        safetyNotes: string | null;
+        mediaUrl: string | null;
+        custom: boolean;
+        archived: boolean;
+        substitutions: {
+          /** Format: uuid */
+          id: string;
+          name: string;
+        }[];
+      }[];
+      totals: {
+        library: number;
+        custom: number;
+      };
+    };
+    ExerciseDto: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      /** @enum {string} */
+      category: "strength" | "cardio" | "plyometric" | "mobility";
+      muscleGroups: (
+        | "chest"
+        | "back"
+        | "shoulders"
+        | "biceps"
+        | "triceps"
+        | "forearms"
+        | "core"
+        | "glutes"
+        | "quads"
+        | "hamstrings"
+        | "calves"
+        | "hips"
+        | "full_body"
+      )[];
+      equipment: (
+        | "bodyweight"
+        | "barbell"
+        | "dumbbell"
+        | "kettlebell"
+        | "band"
+        | "cable"
+        | "machine"
+        | "bench"
+        | "pull_up_bar"
+        | "box"
+        | "cardio_machine"
+        | "mat"
+      )[];
+      /** @enum {string} */
+      difficulty: "beginner" | "intermediate" | "advanced";
+      instructions: string | null;
+      safetyNotes: string | null;
+      mediaUrl: string | null;
+      custom: boolean;
+      archived: boolean;
+      substitutions: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+      }[];
+    };
+    ExerciseInputDto: {
+      name: string;
+      /** @enum {string} */
+      category: "strength" | "cardio" | "plyometric" | "mobility";
+      muscleGroups: (
+        | "chest"
+        | "back"
+        | "shoulders"
+        | "biceps"
+        | "triceps"
+        | "forearms"
+        | "core"
+        | "glutes"
+        | "quads"
+        | "hamstrings"
+        | "calves"
+        | "hips"
+        | "full_body"
+      )[];
+      equipment: (
+        | "bodyweight"
+        | "barbell"
+        | "dumbbell"
+        | "kettlebell"
+        | "band"
+        | "cable"
+        | "machine"
+        | "bench"
+        | "pull_up_bar"
+        | "box"
+        | "cardio_machine"
+        | "mat"
+      )[];
+      /** @enum {string} */
+      difficulty: "beginner" | "intermediate" | "advanced";
+      instructions?: string;
+      safetyNotes?: string;
+      mediaUrl?: "" | string;
+    };
+    ProgramTemplatesResponseDto: {
+      templates: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        description: string | null;
+        /** @enum {string|null} */
+        goal:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other"
+          | null;
+        durationWeeks: number;
+        daysPerWeek: number;
+        workouts: {
+          /** Format: uuid */
+          id: string;
+          name: string;
+          dayNumber: number;
+          notes: string | null;
+          exercises: {
+            /** Format: uuid */
+            id: string;
+            position: number;
+            exercise: {
+              /** Format: uuid */
+              id: string;
+              name: string;
+              /** @enum {string} */
+              category: "strength" | "cardio" | "plyometric" | "mobility";
+              muscleGroups: (
+                | "chest"
+                | "back"
+                | "shoulders"
+                | "biceps"
+                | "triceps"
+                | "forearms"
+                | "core"
+                | "glutes"
+                | "quads"
+                | "hamstrings"
+                | "calves"
+                | "hips"
+                | "full_body"
+              )[];
+            };
+            sets: number;
+            repsMin: number | null;
+            repsMax: number | null;
+            durationSeconds: number | null;
+            restSeconds: number | null;
+            clientInstructions: string | null;
+          }[];
+        }[];
+      }[];
     };
     PublicPageResponseDto: {
       slug: string;
@@ -4578,6 +4858,187 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ClientDetailDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_list: {
+    parameters: {
+      query?: {
+        q?: string;
+        category?: "strength" | "cardio" | "plyometric" | "mobility";
+        muscle?:
+          | "chest"
+          | "back"
+          | "shoulders"
+          | "biceps"
+          | "triceps"
+          | "forearms"
+          | "core"
+          | "glutes"
+          | "quads"
+          | "hamstrings"
+          | "calves"
+          | "hips"
+          | "full_body";
+        equipment?:
+          | "bodyweight"
+          | "barbell"
+          | "dumbbell"
+          | "kettlebell"
+          | "band"
+          | "cable"
+          | "machine"
+          | "bench"
+          | "pull_up_bar"
+          | "box"
+          | "cardio_machine"
+          | "mat";
+        source?: "all" | "library" | "custom";
+        archived?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseListResponseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExerciseInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExerciseInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_archive: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_restore: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_templates: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramTemplatesResponseDto"];
         };
       };
     };

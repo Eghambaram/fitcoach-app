@@ -17,14 +17,15 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { UserPlus, Users } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { type DataColumn, DataList, FilterBar } from "@/components/shared/data-list";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/status";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
+import { useUrlQuery } from "@/lib/use-url-query";
 import { dayLabel, timeLabel } from "../calendar/dates";
 import { Avatar } from "../shell/app-shell";
 import { ClientStatusPill } from "./client-display";
@@ -34,10 +35,8 @@ const TAB_ORDER: ClientStatus[] = ["active", "paused", "archived"];
 
 /** Clients list (PROMPT §8.3): status tabs with counts, search, filters, sort; cards on phones. */
 export function ClientsScreen({ list }: { list: ClientListResponse }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const params = useSearchParams();
-  const [pending, startTransition] = useTransition();
+  const { update, pending } = useUrlQuery();
   const [search, setSearch] = useState(params.get("q") ?? "");
   const [extra, setExtra] = useState<{
     base: ClientListResponse;
@@ -47,18 +46,6 @@ export function ClientsScreen({ list }: { list: ClientListResponse }) {
   const more = extra?.base === list ? extra.items : [];
   const cursor = extra?.base === list ? extra.cursor : list.nextCursor;
   const status = (params.get("status") as ClientStatus | null) ?? "active";
-
-  function update(changes: Record<string, string | null>) {
-    const next = new URLSearchParams(params.toString());
-    for (const [name, value] of Object.entries(changes)) {
-      if (value === null || value === "") next.delete(name);
-      else next.set(name, value);
-    }
-    const query = next.toString();
-    startTransition(() =>
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false }),
-    );
-  }
 
   useEffect(() => {
     if ((params.get("q") ?? "") === search.trim()) return;

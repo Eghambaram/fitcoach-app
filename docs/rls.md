@@ -149,6 +149,17 @@ Helpers: `app.trainer_workspace_id()` returns the session's workspace only when 
 
 No client policy on these tables: the client portal (step 4.1) gets sessions left and expiry from a client-scoped endpoint shaped by `clientPortalPackageSchema`, never prices or payments (rule 20c). Proven by `packages.db.test.ts`.
 
+### Exercise library and programs (step 3.3)
+
+| Table               | fitcoach_app                                                        | Policy                                                                                                                                    | Notes                                                                                                                                                                   |
+| ------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `exercises`         | SELECT, INSERT; UPDATE of the descriptive columns and `archived_at` | global rows and the trainer's own; insert signed, own workspace, writable, no substitutions; update only own rows in a writable workspace | The global library (`workspace_id NULL`) is read-only. Live names are unique per workspace (`NULLS NOT DISTINCT`). Archived, never deleted (no DELETE for either role). |
+| `programs`          | SELECT                                                              | global templates and the trainer's own                                                                                                    | Writes arrive with the builder (step 3.4). A global program must be a template (CHECK).                                                                                 |
+| `program_workouts`  | SELECT                                                              | global and own                                                                                                                            | Simple FK + composite FK; trigger `app.check_program_workout()` keeps the workspace equal to the program's (both NULL included).                                        |
+| `program_exercises` | SELECT                                                              | global and own                                                                                                                            | Trigger `app.check_program_exercise()`: same workspace as the workout; the exercise is global or the workspace's own (global templates use only global exercises).      |
+
+Proven by `exercises.db.test.ts`.
+
 ## Proven by tests
 
 - Every `public` table has ENABLE + FORCE RLS (`rls-coverage.db.test.ts`).

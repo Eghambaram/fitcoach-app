@@ -2924,6 +2924,305 @@
         ]
       }
     },
+    "/v1/exercises": {
+      "get": {
+        "operationId": "ExercisesController_list",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 80,
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "strength",
+                "cardio",
+                "plyometric",
+                "mobility"
+              ]
+            }
+          },
+          {
+            "name": "muscle",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chest",
+                "back",
+                "shoulders",
+                "biceps",
+                "triceps",
+                "forearms",
+                "core",
+                "glutes",
+                "quads",
+                "hamstrings",
+                "calves",
+                "hips",
+                "full_body"
+              ]
+            }
+          },
+          {
+            "name": "equipment",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "bodyweight",
+                "barbell",
+                "dumbbell",
+                "kettlebell",
+                "band",
+                "cable",
+                "machine",
+                "bench",
+                "pull_up_bar",
+                "box",
+                "cardio_machine",
+                "mat"
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "library",
+                "custom"
+              ]
+            }
+          },
+          {
+            "name": "archived",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      },
+      "post": {
+        "operationId": "ExercisesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      }
+    },
+    "/v1/exercises/{id}": {
+      "get": {
+        "operationId": "ExercisesController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      },
+      "put": {
+        "operationId": "ExercisesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      }
+    },
+    "/v1/exercises/{id}/archive": {
+      "post": {
+        "operationId": "ExercisesController_archive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      }
+    },
+    "/v1/exercises/{id}/restore": {
+      "post": {
+        "operationId": "ExercisesController_restore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      }
+    },
+    "/v1/programs/templates": {
+      "get": {
+        "operationId": "ProgramsController_templates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramTemplatesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "programs"
+        ]
+      }
+    },
     "/v1/public/pages/{slug}": {
       "get": {
         "operationId": "PublicPageController_getPage",
@@ -5540,10 +5839,12 @@
               },
               "notes": {
                 "type": "string",
+                "maxLength": 500,
                 "nullable": true
               },
               "closedReason": {
                 "type": "string",
+                "maxLength": 200,
                 "nullable": true
               },
               "createdAt": {
@@ -5674,10 +5975,12 @@
                 },
                 "notes": {
                   "type": "string",
+                  "maxLength": 500,
                   "nullable": true
                 },
                 "closedReason": {
                   "type": "string",
+                  "maxLength": 200,
                   "nullable": true
                 },
                 "createdAt": {
@@ -5755,10 +6058,12 @@
                 },
                 "reference": {
                   "type": "string",
+                  "maxLength": 80,
                   "nullable": true
                 },
                 "note": {
                   "type": "string",
+                  "maxLength": 300,
                   "nullable": true
                 },
                 "createdAt": {
@@ -5857,6 +6162,7 @@
                 },
                 "note": {
                   "type": "string",
+                  "maxLength": 300,
                   "nullable": true
                 },
                 "createdAt": {
@@ -9004,6 +9310,595 @@
         },
         "required": [
           "action"
+        ]
+      },
+      "ExerciseListResponseDto": {
+        "type": "object",
+        "properties": {
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "strength",
+                    "cardio",
+                    "plyometric",
+                    "mobility"
+                  ]
+                },
+                "muscleGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "chest",
+                      "back",
+                      "shoulders",
+                      "biceps",
+                      "triceps",
+                      "forearms",
+                      "core",
+                      "glutes",
+                      "quads",
+                      "hamstrings",
+                      "calves",
+                      "hips",
+                      "full_body"
+                    ]
+                  }
+                },
+                "equipment": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "bodyweight",
+                      "barbell",
+                      "dumbbell",
+                      "kettlebell",
+                      "band",
+                      "cable",
+                      "machine",
+                      "bench",
+                      "pull_up_bar",
+                      "box",
+                      "cardio_machine",
+                      "mat"
+                    ]
+                  }
+                },
+                "difficulty": {
+                  "type": "string",
+                  "enum": [
+                    "beginner",
+                    "intermediate",
+                    "advanced"
+                  ]
+                },
+                "instructions": {
+                  "type": "string",
+                  "maxLength": 1500,
+                  "nullable": true
+                },
+                "safetyNotes": {
+                  "type": "string",
+                  "maxLength": 600,
+                  "nullable": true
+                },
+                "mediaUrl": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "nullable": true
+                },
+                "custom": {
+                  "type": "boolean"
+                },
+                "archived": {
+                  "type": "boolean"
+                },
+                "substitutions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "category",
+                "muscleGroups",
+                "equipment",
+                "difficulty",
+                "instructions",
+                "safetyNotes",
+                "mediaUrl",
+                "custom",
+                "archived",
+                "substitutions"
+              ]
+            }
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "library": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "custom": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "library",
+              "custom"
+            ]
+          }
+        },
+        "required": [
+          "exercises",
+          "totals"
+        ]
+      },
+      "ExerciseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "strength",
+              "cardio",
+              "plyometric",
+              "mobility"
+            ]
+          },
+          "muscleGroups": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chest",
+                "back",
+                "shoulders",
+                "biceps",
+                "triceps",
+                "forearms",
+                "core",
+                "glutes",
+                "quads",
+                "hamstrings",
+                "calves",
+                "hips",
+                "full_body"
+              ]
+            }
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "bodyweight",
+                "barbell",
+                "dumbbell",
+                "kettlebell",
+                "band",
+                "cable",
+                "machine",
+                "bench",
+                "pull_up_bar",
+                "box",
+                "cardio_machine",
+                "mat"
+              ]
+            }
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ]
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 1500,
+            "nullable": true
+          },
+          "safetyNotes": {
+            "type": "string",
+            "maxLength": 600,
+            "nullable": true
+          },
+          "mediaUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "custom": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "substitutions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "muscleGroups",
+          "equipment",
+          "difficulty",
+          "instructions",
+          "safetyNotes",
+          "mediaUrl",
+          "custom",
+          "archived",
+          "substitutions"
+        ]
+      },
+      "ExerciseInputDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "strength",
+              "cardio",
+              "plyometric",
+              "mobility"
+            ]
+          },
+          "muscleGroups": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chest",
+                "back",
+                "shoulders",
+                "biceps",
+                "triceps",
+                "forearms",
+                "core",
+                "glutes",
+                "quads",
+                "hamstrings",
+                "calves",
+                "hips",
+                "full_body"
+              ]
+            }
+          },
+          "equipment": {
+            "minItems": 1,
+            "maxItems": 5,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "bodyweight",
+                "barbell",
+                "dumbbell",
+                "kettlebell",
+                "band",
+                "cable",
+                "machine",
+                "bench",
+                "pull_up_bar",
+                "box",
+                "cardio_machine",
+                "mat"
+              ]
+            }
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "advanced"
+            ]
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 1500
+          },
+          "safetyNotes": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "mediaUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": ""
+              },
+              {
+                "type": "string",
+                "maxLength": 500,
+                "format": "uri"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "category",
+          "muscleGroups",
+          "equipment",
+          "difficulty"
+        ]
+      },
+      "ProgramTemplatesResponseDto": {
+        "type": "object",
+        "properties": {
+          "templates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 1000,
+                  "nullable": true
+                },
+                "goal": {
+                  "type": "string",
+                  "enum": [
+                    "lose_weight",
+                    "build_muscle",
+                    "get_stronger",
+                    "improve_fitness",
+                    "sports_performance",
+                    "other",
+                    null
+                  ],
+                  "nullable": true
+                },
+                "durationWeeks": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "daysPerWeek": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "workouts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "dayNumber": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "notes": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "nullable": true
+                      },
+                      "exercises": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "position": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "exercise": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "category": {
+                                  "type": "string",
+                                  "enum": [
+                                    "strength",
+                                    "cardio",
+                                    "plyometric",
+                                    "mobility"
+                                  ]
+                                },
+                                "muscleGroups": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "chest",
+                                      "back",
+                                      "shoulders",
+                                      "biceps",
+                                      "triceps",
+                                      "forearms",
+                                      "core",
+                                      "glutes",
+                                      "quads",
+                                      "hamstrings",
+                                      "calves",
+                                      "hips",
+                                      "full_body"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name",
+                                "category",
+                                "muscleGroups"
+                              ]
+                            },
+                            "sets": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "repsMin": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "nullable": true
+                            },
+                            "repsMax": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "nullable": true
+                            },
+                            "durationSeconds": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "nullable": true
+                            },
+                            "restSeconds": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "nullable": true
+                            },
+                            "clientInstructions": {
+                              "type": "string",
+                              "maxLength": 500,
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "position",
+                            "exercise",
+                            "sets",
+                            "repsMin",
+                            "repsMax",
+                            "durationSeconds",
+                            "restSeconds",
+                            "clientInstructions"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "dayNumber",
+                      "notes",
+                      "exercises"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "description",
+                "goal",
+                "durationWeeks",
+                "daysPerWeek",
+                "workouts"
+              ]
+            }
+          }
+        },
+        "required": [
+          "templates"
         ]
       },
       "PublicPageResponseDto": {

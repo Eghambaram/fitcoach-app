@@ -6,6 +6,12 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 3.3 exercise library and starter templates (PROMPT §8.5, D21):
+  - **`/app/exercises`:** 109 library exercises plus your own; search by name; filters for muscle group, equipment and category; All / Library / Yours tabs; detail drawer with muscle groups, equipment, instructions, safety notes, a demo link when set and alternatives; add, edit, archive and restore your own exercises. Phone-first card layout.
+  - **`/app/programs`** (Programs is now live in the navigation): the 7 starter templates (Beginner Full Body 3×, Fat Loss Circuit 4×, Upper/Lower 4×, Push/Pull/Legs 6×, Home Dumbbell 3×, Mobility & Recovery 2×, Online Coaching Starter 3×), each with its workouts, sets, reps or time and rest; a link to the library. Copying and the builder come in step 3.4.
+  - **API:** `GET/POST /v1/exercises`, `GET/PUT /v1/exercises/:id`, `POST /v1/exercises/:id/archive|restore`, `GET /v1/programs/templates`.
+  - **Database:** `exercises`, `programs`, `program_workouts`, `program_exercises` with global (read-only) and workspace rows, triggers that keep the two apart, and reference data generated from validated structured data (original text, no media, no outcome claims). ADR-0052.
+  - **Tests:** RLS (seed counts, templates only use library exercises, library read-only, custom exercises signed/unique/archivable, cross-workspace references refused, empty context, suspended); API (search, filters, substitutions, custom CRUD and conflicts, library read-only, tampering, templates); e2e on desktop and mobile.
 - Step 3.2 packages, sessions left and payments (PROMPT §8.3A, D25):
   - **Packages tab** on the client profile: the active package with "8 of 12 used", dates, price, amount due, paid and balance; Sell / Renew package sheet (start from a preset, everything editable, discount via amount due, payment due date); Record payment (cash, UPI, bank transfer, card, other; labelled "recorded manually"); Adjust sessions (with a note); Cancel package (with a reason); payments with Void (with a reason); session use; earlier packages.
   - **Overview package card** (sessions left, expiry, amount due, Record payment) and a Record payment quick action; "No active package" when there's none.
@@ -99,6 +105,9 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Fixed
 
+- Leads and clients lists: a debounced search, or two quick filter changes, could undo a filter chosen just before. Filters now always build on the newest URL (`useUrlQuery`).
+- Drawers with only read-only content can now be scrolled from the keyboard (axe `scrollable-region-focusable`).
+- Package and exercise contracts: nullable strings carry a length bound, so the generated API client types them as strings.
 - Success, error, warning and info toasts now use the design tokens; sonner's default success green failed WCAG AA contrast (4.25:1).
 - The clients list and profile never showed a next session: the correlated subquery bound the outer client columns to the appointment (step 3.1).
 - The generated API client typed plain nullable strings in new contracts as arrays; nullable strings now carry a length bound (as the existing contracts do).

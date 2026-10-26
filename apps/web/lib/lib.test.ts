@@ -69,6 +69,7 @@ describe("navigation (PROMPT §6)", () => {
       "/app/leads",
       "/app/clients",
       "/app/calendar",
+      "/app/programs",
       "/app/settings",
     ]);
   });
@@ -77,6 +78,8 @@ describe("navigation (PROMPT §6)", () => {
     expect(isActive("/app/settings/security", "/app/settings")).toBe(true);
     expect(isActive("/app/settingsx", "/app/settings")).toBe(false);
     expect(isActive("/platform/trainers", "/platform")).toBe(false);
+    expect(isActive("/app/exercises", "/app/programs")).toBe(true);
+    expect(isActive("/app/exercises", "/app/clients")).toBe(false);
   });
 });
 
