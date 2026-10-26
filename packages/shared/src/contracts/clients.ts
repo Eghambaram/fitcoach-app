@@ -7,6 +7,7 @@ import {
   measurementUnitsSchema,
   PREFERRED_CONTACTS,
 } from "./onboarding";
+import { initialPackageSchema, packageCardSchema } from "./packages";
 import { APPOINTMENT_KINDS, appointmentSchema } from "./scheduling";
 
 /** Clients (PROMPT §8.3) and lead → client conversion (§8.2, step 2.4). */
@@ -24,7 +25,7 @@ export const CLIENT_STATUS_LABELS: Record<ClientStatus, string> = {
 /**
  * Convert & Continue. By default a new client is created (status `onboarding_draft`, finished by
  * the onboarding wizard); `linkClientId` links the lead to a client who already exists instead.
- * The initial package arrives with packages (step 3.2).
+ * An optional initial package (§8.3A) is sold in the same transaction.
  */
 export const convertLeadRequestSchema = z.object({
   linkClientId: z.string().uuid().optional(),
@@ -33,6 +34,7 @@ export const convertLeadRequestSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a date")
     .optional(),
+  initialPackage: initialPackageSchema.optional(),
 });
 export type ConvertLeadRequest = z.infer<typeof convertLeadRequestSchema>;
 
@@ -61,11 +63,20 @@ export const CLIENT_SORT_LABELS: Record<ClientSort, string> = {
 
 export const CLIENT_LIST_LIMIT_MAX = 100;
 
+/** Package filters (§8.3A): sessions running low or expiring soon / payment due. */
+export const CLIENT_ATTENTION_FILTERS = ["low_sessions", "payment_due"] as const;
+export type ClientAttentionFilter = (typeof CLIENT_ATTENTION_FILTERS)[number];
+export const CLIENT_ATTENTION_LABELS: Record<ClientAttentionFilter, string> = {
+  low_sessions: "Sessions running low",
+  payment_due: "Payment due",
+};
+
 export const clientListQuerySchema = z.object({
   status: z.enum(CLIENT_STATUSES).default("active"),
   q: z.string().trim().max(100).optional(),
   goal: z.enum(FITNESS_GOALS).optional(),
   mode: z.enum(COACHING_MODES).optional(),
+  attention: z.enum(CLIENT_ATTENTION_FILTERS).optional(),
   sort: z.enum(CLIENT_SORTS).default("name"),
   cursor: z.string().max(400).optional(),
   limit: z.coerce.number().int().min(1).max(CLIENT_LIST_LIMIT_MAX).default(50),
@@ -122,6 +133,11 @@ export const CLIENT_ACTIVITY_TYPES = [
   "client_restored",
   "session_attended",
   "session_no_show",
+  "package_sold",
+  "package_cancelled",
+  "payment_recorded",
+  "payment_voided",
+  "sessions_adjusted",
 ] as const;
 export type ClientActivityType = (typeof CLIENT_ACTIVITY_TYPES)[number];
 
@@ -194,6 +210,8 @@ export const clientDetailSchema = clientListItemSchema.extend({
     }),
   ),
   units: measurementUnitsSchema,
+  /** The active package (§8.3A), or null: "No active package". */
+  package: packageCardSchema.nullable(),
   recentActivity: z.array(
     z.object({
       type: z.enum(CLIENT_ACTIVITY_TYPES),

@@ -111,3 +111,22 @@
 @utility pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom), 0px);
 }
+
+/*
+ * Toasts (sonner, richColors) use the semantic tokens: sonner's own success green (#008a2e on
+ * #ecfdf3) is only 4.25:1, below WCAG AA for its 13px text.
+ */
+:root [data-sonner-toaster][data-sonner-theme] {
+  --success-bg: var(--success-soft);
+  --success-border: var(--success-soft);
+  --success-text: var(--success);
+  --error-bg: var(--danger-soft);
+  --error-border: var(--danger-soft);
+  --error-text: var(--danger);
+  --warning-bg: var(--warning-soft);
+  --warning-border: var(--warning-soft);
+  --warning-text: var(--warning);
+  --info-bg: var(--info-soft);
+  --info-border: var(--info-soft);
+  --info-text: var(--info);
+}

@@ -174,7 +174,7 @@ export function problemsFor(values: WizardValues, step?: 1 | 2 | 3): FieldProble
 /** The Create body, parsed by the shared schema (call after `problemsFor` reports nothing). */
 export function finalizeBody(
   values: WizardValues,
-  extra: Pick<FinalizeOnboardingInput, "draftId" | "clientId" | "units">,
+  extra: Pick<FinalizeOnboardingInput, "draftId" | "clientId" | "units" | "initialPackage">,
 ): FinalizeOnboardingRequest {
   return finalizeOnboardingRequestSchema.parse({ ...toFields(values), ...extra });
 }

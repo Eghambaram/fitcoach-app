@@ -14,10 +14,16 @@ import { type ReactNode, useState } from "react";
 import { useOnline } from "@/components/shared/offline-banner";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
-import { Input, Select } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { ApiRequestError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import {
+  initialPackageBody,
+  InitialPackageFields,
+  type InitialPackageValue,
+} from "../packages/initial-package-fields";
+import { usePackagePresets } from "../packages/package-forms";
 import { Avatar } from "../shell/app-shell";
 
 type ClientMatch = Extract<DuplicateCheckResponse["matches"][number], { kind: "client" }>;
@@ -53,6 +59,9 @@ export function ConvertLeadForm({
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [startOn, setStartOn] = useState("");
   const [linkTo, setLinkTo] = useState<string>("");
+  const presets = usePackagePresets();
+  const [initialPackage, setInitialPackage] = useState<InitialPackageValue>(null);
+  const [packageError, setPackageError] = useState<string | undefined>();
   const [problem, setProblem] = useState<string | null>(null);
 
   // Existing clients with the same phone or email: the trainer may link instead of creating one.
@@ -91,24 +100,32 @@ export function ConvertLeadForm({
         setLinkTo(failure.body.fieldErrors.linkClientId[0]);
         void matches.refetch();
       }
+      if (failure instanceof ApiRequestError && failure.body.fieldErrors?.initialPackage?.[0]) {
+        setPackageError(failure.body.fieldErrors.initialPackage[0]);
+      }
       setProblem(failure.message);
     },
   });
 
   function submit() {
     setProblem(null);
+    setPackageError(undefined);
     const parsed = convertLeadRequestSchema.safeParse({
       linkClientId: linkTo || undefined,
       coachingStartOn: !linkTo && startOn ? startOn : undefined,
+      initialPackage: linkTo ? undefined : initialPackageBody(initialPackage),
     });
     if (!parsed.success) {
-      setProblem(parsed.error.issues[0]?.message ?? "Check the details.");
+      const issue = parsed.error.issues[0];
+      if (issue?.path[0] === "initialPackage") setPackageError(issue.message);
+      setProblem(issue?.message ?? "Check the details.");
       return;
     }
     convert.mutate(parsed.data);
   }
 
   const linking = linkTo !== "";
+  const pickedName = presets.data?.find((preset) => preset.id === initialPackage?.presetId)?.name;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center gap-3">
@@ -131,9 +148,13 @@ export function ConvertLeadForm({
           detail="All notes, contacts and activity stay on the lead"
         />
         <Step
-          done={false}
+          done={!linking && initialPackage !== null}
           title="Set initial package"
-          detail="Available after packages are set up"
+          detail={
+            linking
+              ? "Sell packages from their profile"
+              : (pickedName ?? "Optional: pick one below, or sell one later")
+          }
         />
         <Step
           done={!linking}
@@ -176,11 +197,16 @@ export function ConvertLeadForm({
         </fieldset>
       ) : null}
 
-      <Field label="Initial package" hint="Available after packages are set up.">
-        <Select disabled defaultValue="">
-          <option value="">No package yet</option>
-        </Select>
-      </Field>
+      {linking ? null : (
+        <InitialPackageFields
+          value={initialPackage}
+          onChange={(next) => {
+            setInitialPackage(next);
+            setPackageError(undefined);
+          }}
+          error={packageError}
+        />
+      )}
       {linking ? null : (
         <Field label="Start date (optional)">
           <Input type="date" value={startOn} onChange={(event) => setStartOn(event.target.value)} />

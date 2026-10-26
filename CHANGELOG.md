@@ -6,6 +6,16 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 3.2 packages, sessions left and payments (PROMPT §8.3A, D25):
+  - **Packages tab** on the client profile: the active package with "8 of 12 used", dates, price, amount due, paid and balance; Sell / Renew package sheet (start from a preset, everything editable, discount via amount due, payment due date); Record payment (cash, UPI, bank transfer, card, other; labelled "recorded manually"); Adjust sessions (with a note); Cancel package (with a reason); payments with Void (with a reason); session use; earlier packages.
+  - **Overview package card** (sessions left, expiry, amount due, Record payment) and a Record payment quick action; "No active package" when there's none.
+  - **Attendance now uses package sessions** in the same transaction: attended uses one; no-show and late cancel per the workspace policy; un-marking writes a reversal; double submits deduct once; time-based and online packages never deduct (ADR-0031). At 0 sessions left the drawer asks "Renew package or record without package"; the toast says what was used.
+  - **Initial package** in Convert to Client and the onboarding review step (a preset and its price, sold in the same transaction).
+  - **Clients list filter:** Sessions running low (threshold or expiring soon) / Payment due.
+  - **API:** `GET/POST /v1/clients/:id/packages` (sell/renew, Idempotency-Key), `POST /v1/packages/:id/payments` (Idempotency-Key), `/adjustments`, `/cancel`, `POST /v1/payments/:id/void`; appointment detail adds the client's package and this session's use.
+  - **Database:** `client_packages`, `package_session_ledger` (signed `sessions_used`, reversal rows, `mark_no`), `client_payments` (voids as rows), package activity events; RLS insert-only for ledger and payments. ADR-0051.
+  - **Tests:** RLS (one active package, closing rules, money CHECKs, ledger and payments append-only incl. fitcoach_system, double mark refused, cross-tenant, empty context, suspended); API (the 12-pack scenario, double-submitted attendance deducts once, un-marking reverses, policy, late cancel, time-based, 0 left, renewal and expiry, payments and voids, adjustments, conversion/onboarding packages, tampering); shared (the client portal package shape can't carry prices or payments); e2e for the full scenario on desktop and mobile.
+
 - Step 3.1 clients list and client profile (PROMPT §8.3):
   - **`/app/clients`** (now in the navigation): Active / Paused / Archived tabs with counts (plus Onboarding while someone is being onboarded), search, goal and mode filters, sort, "Load more", next session per client; table on desktop, cards on phones; empty states.
   - **`/app/clients/[id]`**: hero with status, mode, age, location and time zone; quick actions (Book session, WhatsApp, Call, Add note); tabs Overview · Packages · Workouts · Schedule · Check-ins · Progress · Notes. Overview shows goals, weeks with you, sessions completed, next session, latest measurements in workspace units, details incl. trainer-only limitations and emergency contact, consent status and recent activity. Packages, Workouts and Check-ins say what will appear there. "Finish onboarding" for clients still onboarding.
@@ -89,6 +99,8 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Fixed
 
+- Success, error, warning and info toasts now use the design tokens; sonner's default success green failed WCAG AA contrast (4.25:1).
+- The clients list and profile never showed a next session: the correlated subquery bound the outer client columns to the appointment (step 3.1).
 - The generated API client typed plain nullable strings in new contracts as arrays; nullable strings now carry a length bound (as the existing contracts do).
 - Lead note timestamps had insufficient colour contrast (axe).
 - The typed API client resolved every response to `any`: it emitted `createClient.Client<…>` into its declaration file. It now declares its return type, so the web is type-checked against the real contracts again.

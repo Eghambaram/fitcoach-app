@@ -2,6 +2,7 @@ import { z } from "zod";
 import { normalizePhone } from "../phone";
 import { COACHING_MODES, emailSchema } from "./auth";
 import { FITNESS_GOALS } from "./leads";
+import { initialPackageSchema } from "./packages";
 import { LENGTH_UNITS, WEIGHT_UNITS } from "./settings";
 
 /** Add Client onboarding wizard (PROMPT §8.4, step 2.5). */
@@ -232,6 +233,8 @@ export const finalizeOnboardingRequestSchema = onboardingFieldsSchema.extend({
   draftId: z.string().uuid().optional(),
   clientId: z.string().uuid().optional(),
   units: measurementUnitsSchema,
+  /** Optional package (§8.3A), sold in the same transaction. Refused if one is already active. */
+  initialPackage: initialPackageSchema.optional(),
 });
 export type FinalizeOnboardingRequest = z.infer<typeof finalizeOnboardingRequestSchema>;
 export type FinalizeOnboardingInput = z.input<typeof finalizeOnboardingRequestSchema>;

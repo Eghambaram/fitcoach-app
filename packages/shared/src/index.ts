@@ -7,6 +7,7 @@ export * from "./contracts/health";
 export * from "./contracts/lead-crm";
 export * from "./contracts/leads";
 export * from "./contracts/onboarding";
+export * from "./contracts/packages";
 export * from "./contracts/public-page";
 export * from "./contracts/scheduling";
 export * from "./contracts/settings";

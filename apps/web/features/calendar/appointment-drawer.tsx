@@ -9,12 +9,22 @@ import {
   SESSION_NOTES_MAX,
 } from "@fitcoach/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Check, MapPin, Repeat, RotateCcw, UserX, Video, X } from "lucide-react";
+import {
+  CalendarClock,
+  Check,
+  MapPin,
+  Package,
+  Repeat,
+  RotateCcw,
+  UserX,
+  Video,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { useOnline } from "@/components/shared/offline-banner";
-import { Drawer, Modal } from "@/components/shared/overlays";
+import { ConfirmDialog, Drawer, Modal } from "@/components/shared/overlays";
 import { ErrorState, type PillTone, StatusPill } from "@/components/shared/status";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -24,6 +34,53 @@ import { ApiRequestError } from "@/lib/api/errors";
 import { formatDateTime } from "../leads/lead-display";
 import { CancelForm, RescheduleForm } from "./appointment-forms";
 import { dayLabel, timeLabel } from "./dates";
+
+/** What marking did to the client's package, as the server reported it (§8.3A). */
+export function attendanceMessage(next: AppointmentDetail): string {
+  if (next.status === "scheduled") return "Attendance undone.";
+  const base = `Marked ${APPOINTMENT_STATUS_LABELS[next.status].toLowerCase()}.`;
+  if (next.person.kind !== "client") return base;
+  if (!next.sessionUse) return `${base} Recorded without a package.`;
+  if (next.sessionUse.sessionsUsed > 0 && next.clientPackage?.sessionsLeft != null) {
+    const left = next.clientPackage.sessionsLeft;
+    return `${base} ${left} session${left === 1 ? "" : "s"} left on ${next.sessionUse.packageName}.`;
+  }
+  return next.sessionUse.sessionsUsed > 0 ? base : `${base} No session used.`;
+}
+
+/** The package line in the drawer: what this session used, or what marking it would use. */
+function PackageRow({ appointment, live }: { appointment: AppointmentDetail; live: boolean }) {
+  if (appointment.person.kind !== "client") return null;
+  const { clientPackage, sessionUse } = appointment;
+  const profile = `/app/clients/${appointment.person.id}?tab=packages`;
+  let text: ReactNode;
+  if (sessionUse && !live) {
+    text =
+      sessionUse.sessionsUsed > 0
+        ? `Used a session of ${sessionUse.packageName}.`
+        : `Recorded on ${sessionUse.packageName} without using a session.`;
+  } else if (!live && (appointment.status === "completed" || appointment.status === "no_show")) {
+    text = "Recorded without a package.";
+  } else if (!live) {
+    return null;
+  } else if (!clientPackage) {
+    text = "No active package: attendance won't use a session.";
+  } else if (clientPackage.sessionsLeft === 0) {
+    text = `No sessions left on ${clientPackage.name}.`;
+  } else if (clientPackage.sessionsLeft !== null) {
+    text = `${clientPackage.name}: ${clientPackage.sessionsLeft} session${clientPackage.sessionsLeft === 1 ? "" : "s"} left.`;
+  } else {
+    text = `${clientPackage.name}: sessions aren't counted.`;
+  }
+  return (
+    <Row icon={<Package className="size-4" aria-hidden="true" />}>
+      {text}{" "}
+      <Link href={profile} className="font-semibold underline">
+        Packages
+      </Link>
+    </Row>
+  );
+}
 
 const STATUS_TONES: Record<AppointmentStatus, PillTone> = {
   scheduled: "info",
@@ -143,6 +200,8 @@ export function AppointmentDrawer({
     onChanged();
   }
 
+  // At 0 sessions left, ask first: renew, or record without a package (§8.3A).
+  const [noneLeft, setNoneLeft] = useState<"completed" | "no_show" | null>(null);
   const attendance = useMutation({
     mutationFn: (status: "completed" | "no_show" | "scheduled") =>
       unwrap(
@@ -152,15 +211,14 @@ export function AppointmentDrawer({
         }),
       ),
     onSuccess: (next) => {
-      toast.success(
-        next.status === "scheduled"
-          ? "Attendance undone."
-          : `Marked ${APPOINTMENT_STATUS_LABELS[next.status].toLowerCase()}.`,
-      );
+      setNoneLeft(null);
+      toast.success(attendanceMessage(next));
       changed(next);
     },
     onError: (failure) => toast.error(failure.message),
   });
+  const markOrAsk = (status: "completed" | "no_show") =>
+    query.data?.clientPackage?.sessionsLeft === 0 ? setNoneLeft(status) : attendance.mutate(status);
 
   const appointment = query.data;
   const notFound = query.error instanceof ApiRequestError && query.error.status === 404;
@@ -219,6 +277,7 @@ export function AppointmentDrawer({
                 Part of a recurring series
               </Row>
             ) : null}
+            <PackageRow appointment={appointment} live={live} />
             {appointment.cancelReason ? (
               <Row icon={<X className="size-4" aria-hidden="true" />}>
                 Cancelled: {appointment.cancelReason}
@@ -242,7 +301,7 @@ export function AppointmentDrawer({
                     className="flex-1"
                     loading={attendance.isPending && attendance.variables === "completed"}
                     disabled={!online || attendance.isPending}
-                    onClick={() => attendance.mutate("completed")}
+                    onClick={() => markOrAsk("completed")}
                   >
                     <Check aria-hidden="true" />
                     Attended
@@ -252,7 +311,7 @@ export function AppointmentDrawer({
                     className="flex-1"
                     loading={attendance.isPending && attendance.variables === "no_show"}
                     disabled={!online || attendance.isPending}
-                    onClick={() => attendance.mutate("no_show")}
+                    onClick={() => markOrAsk("no_show")}
                   >
                     <UserX aria-hidden="true" />
                     No-show
@@ -333,6 +392,28 @@ export function AppointmentDrawer({
             ) : null}
             {modal === "cancel" ? <CancelForm appointment={appointment} onSaved={changed} /> : null}
           </Modal>
+          <ConfirmDialog
+            open={noneLeft !== null}
+            onOpenChange={(open) => (open ? null : setNoneLeft(null))}
+            title="No sessions left"
+            description={
+              <>
+                {appointment.clientPackage?.name ?? "Their package"} has no sessions left. Renew it
+                first, or record this session without a package.{" "}
+                {appointment.person.kind === "client" ? (
+                  <Link
+                    href={`/app/clients/${appointment.person.id}?tab=packages`}
+                    className="font-semibold underline"
+                  >
+                    Renew package
+                  </Link>
+                ) : null}
+              </>
+            }
+            confirmLabel="Record without package"
+            pending={attendance.isPending}
+            onConfirm={() => (noneLeft ? attendance.mutate(noneLeft) : null)}
+          />
         </div>
       ) : null}
     </Drawer>

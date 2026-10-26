@@ -9,11 +9,12 @@ import {
   COACHING_MODE_LABELS,
   EXPERIENCE_LEVEL_LABELS,
   FITNESS_GOAL_LABELS,
+  formatInr,
   fromCm,
   fromKg,
   PREFERRED_CONTACT_LABELS,
 } from "@fitcoach/shared";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
   CalendarPlus,
@@ -21,12 +22,13 @@ import {
   Dumbbell,
   LineChart,
   MessageCircle,
-  Package,
   PauseCircle,
   Phone,
   PlayCircle,
   RotateCcw,
   Target,
+  Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -45,6 +47,8 @@ import { AppointmentStatusPill } from "../calendar/appointment-drawer";
 import { AppointmentForm } from "../calendar/appointment-forms";
 import { dayLabel, timeLabel } from "../calendar/dates";
 import { formatDateTime } from "../leads/lead-display";
+import { RecordPaymentForm } from "../packages/package-forms";
+import { clientPackagesKey, PackageCard, PackagesTab } from "../packages/packages-tab";
 import { Avatar } from "../shell/app-shell";
 import { ClientStatusPill } from "./client-display";
 
@@ -75,6 +79,19 @@ function describeActivity(entry: ClientDetail["recentActivity"][number]): string
       return `Archived${reason}`;
     case "client_restored":
       return "Restored from the archive";
+    case "package_sold":
+      return `${data.renewal ? "Renewed with" : "Sold"} ${String(data.packageName ?? "a package")}`;
+    case "package_cancelled":
+      return `Cancelled ${String(data.packageName ?? "a package")}${reason}`;
+    case "payment_recorded":
+      return `Payment of ${typeof data.amountPaise === "number" ? formatInr(data.amountPaise) : "money"} recorded`;
+    case "payment_voided":
+      return `Payment of ${typeof data.amountPaise === "number" ? formatInr(data.amountPaise) : "money"} voided${reason}`;
+    case "sessions_adjusted": {
+      const count = typeof data.sessions === "number" ? data.sessions : 0;
+      const sessions = `${Math.abs(count)} session${Math.abs(count) === 1 ? "" : "s"}`;
+      return count > 0 ? `${sessions} used by hand` : `${sessions} given back`;
+    }
     case "session_attended":
     case "session_no_show": {
       const when =
@@ -124,7 +141,7 @@ function Later({
   title,
   description,
 }: {
-  icon: typeof Package;
+  icon: LucideIcon;
   title: string;
   description: string;
 }) {
@@ -313,7 +330,17 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
   const online = useOnline();
   const [client, setClient] = useState(initial);
   const [booking, setBooking] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [action, setAction] = useState<ClientAction | null>(null);
+  const queryClient = useQueryClient();
+  // Package changes show on the overview card and in recent activity: reload the profile.
+  const refreshClient = () => {
+    void unwrap(browserApi.GET("/v1/clients/{id}", { params: { path: { id: client.id } } }))
+      .then(setClient)
+      .catch(() => router.refresh());
+  };
+  const showTab = (value: TabValue) =>
+    router.replace(`${pathname}?tab=${value}`, { scroll: false });
   const [reason, setReason] = useState("");
   const tab = (
     TABS.some(([value]) => value === params.get("tab")) ? params.get("tab") : "overview"
@@ -416,12 +443,18 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
         </p>
       ) : null}
 
-      {/* Quick actions (§8.3): book, WhatsApp, call, note. */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* Quick actions (§8.3): book, record payment, WhatsApp, call, note. */}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         <Button variant="outline" disabled={!online || archived} onClick={() => setBooking(true)}>
           <CalendarPlus aria-hidden="true" />
           Book session
         </Button>
+        {client.package && client.package.balancePaise > 0 ? (
+          <Button variant="outline" disabled={!online} onClick={() => setPaying(true)}>
+            <Wallet aria-hidden="true" />
+            Record payment
+          </Button>
+        ) : null}
         {client.phoneE164 ? (
           <>
             <Button variant="outline" asChild>
@@ -479,6 +512,13 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
               ) : null}
             </div>
           </Card>
+
+          <PackageCard
+            pkg={client.package}
+            archived={archived}
+            onOpenPackages={() => showTab("packages")}
+            onRecordPayment={() => setPaying(true)}
+          />
 
           <div className="grid gap-3 sm:grid-cols-3">
             <Stat value={client.stats.weeksWithYou ?? "—"} label="Weeks with you" />
@@ -585,11 +625,7 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
         </Tabs.Content>
 
         <Tabs.Content value="packages">
-          <Later
-            icon={Package}
-            title="Packages are coming next"
-            description="The package they bought, sessions left, expiry and payments you record will show here."
-          />
+          <PackagesTab clientId={client.id} archived={archived} onChanged={refreshClient} />
         </Tabs.Content>
         <Tabs.Content value="workouts">
           <Later
@@ -672,6 +708,27 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
               setBooking(false);
               toast.success("Session booked.");
               router.push(`/app/calendar?appt=${appointment.id}&date=${appointment.date}`);
+            }}
+          />
+        ) : null}
+      </Modal>
+
+      <Modal
+        open={paying}
+        onOpenChange={setPaying}
+        title="Record payment"
+        description={client.fullName}
+      >
+        {paying && client.package ? (
+          <RecordPaymentForm
+            packageId={client.package.id}
+            packageName={client.package.name}
+            balancePaise={client.package.balancePaise}
+            onSaved={(next) => {
+              setPaying(false);
+              queryClient.setQueryData(clientPackagesKey(client.id), next);
+              toast.success("Payment recorded.");
+              refreshClient();
             }}
           />
         ) : null}

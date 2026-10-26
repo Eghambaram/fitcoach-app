@@ -6,3 +6,4 @@ export * from "./support";
 export * from "./workspaces";
 export * from "./clients";
 export * from "./scheduling";
+export * from "./packages";

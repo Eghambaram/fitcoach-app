@@ -34,6 +34,7 @@ import {
   workspaces,
 } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
+import { PackagesService } from "../packages/packages.service";
 import { AppointmentsService } from "../scheduling/appointments.service";
 
 type Trainer = AuthContext & { workspaceId: string };
@@ -110,6 +111,7 @@ export class ClientsService {
     private readonly cls: ClsService<AppClsStore>,
     private readonly appointments: AppointmentsService,
     private readonly systemDb: SystemDb,
+    private readonly packages: PackagesService,
   ) {}
 
   private trainer(): Trainer {
@@ -170,6 +172,23 @@ export class ClientsService {
       if (digits.length >= 3) matches.push(sql`${clients.phoneE164} like ${likePattern(digits)}`);
       const anyMatch = or(...matches);
       if (anyMatch) filters.push(anyMatch);
+    }
+    if (query.attention) {
+      const today = new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(new Date());
+      if (query.attention === "payment_due") {
+        filters.push(this.packages.paymentDueCondition(today));
+      } else {
+        const [settings] = await this.db.tx
+          .select({
+            low: trainerSettings.lowSessionsThreshold,
+            days: trainerSettings.expiryWarningDays,
+          })
+          .from(trainerSettings)
+          .where(eq(trainerSettings.workspaceId, trainer.workspaceId));
+        filters.push(
+          this.packages.lowSessionsCondition(today, settings?.low ?? 2, settings?.days ?? 7),
+        );
+      }
     }
 
     const byStatus = await this.db.tx
@@ -416,6 +435,7 @@ export class ClientsService {
         weightUnit: (settings?.weightUnit ?? "kg") as WeightUnit,
         lengthUnit: (settings?.lengthUnit ?? "cm") as LengthUnit,
       },
+      package: await this.packages.card(id),
       recentActivity,
       notes: notes.map((note) => ({
         id: note.id,

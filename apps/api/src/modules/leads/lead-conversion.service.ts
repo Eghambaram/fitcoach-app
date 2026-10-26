@@ -5,6 +5,7 @@ import { IdempotencyService } from "../../common/idempotency/idempotency.service
 import { DomainError } from "../../common/errors/domain-error";
 import { DbContext } from "../../db/db-context";
 import { activityEvents, clients, leadFollowUps, leads, workspacePlans } from "../../db/schema";
+import { PackagesService } from "../packages/packages.service";
 import { trackEvent } from "../product-events/track";
 import { type LeadRow, leadNotFound, LeadsService, type Trainer } from "./leads.service";
 
@@ -13,7 +14,8 @@ const COUNTED_STATUSES = ["active", "onboarding_draft"];
 
 /**
  * Lead → client conversion (PROMPT §8.2), one transaction: lock the lead, link or create the client
- * (within the plan limit), close open follow-ups, mark the lead converted, record the history.
+ * (within the plan limit), sell the optional initial package, close open follow-ups, mark the lead
+ * converted, record the history.
  * `clients(workspace_id, source_lead_id)` and the Idempotency-Key make concurrent clicks produce one
  * client; any failure rolls everything back, so a lead is never `converted` without its client.
  */
@@ -23,6 +25,7 @@ export class LeadConversionService {
     private readonly db: DbContext,
     private readonly leads: LeadsService,
     private readonly idempotency: IdempotencyService,
+    private readonly packages: PackagesService,
   ) {}
 
   convert(
@@ -75,9 +78,24 @@ export class LeadConversionService {
     }
 
     const linked = input.linkClientId !== undefined;
+    if (linked && input.initialPackage) {
+      throw new DomainError(ERROR_CODES.VALIDATION_FAILED, 400, "Some details need fixing.", {
+        initialPackage: ["Sell a package from their profile instead"],
+      });
+    }
     const clientId = linked
       ? await this.existingClient(trainer, input.linkClientId ?? "")
       : await this.createClient(trainer, lead, input);
+    if (input.initialPackage) {
+      // Same transaction (§8.2): the client and their package exist together, or neither does.
+      await this.packages.sellInitial(
+        trainer,
+        clientId,
+        input.initialPackage,
+        input.coachingStartOn,
+        "conversion",
+      );
+    }
 
     // Open follow-ups end with the lead; the client's own reminders come with their profile.
     const open = await this.db.tx

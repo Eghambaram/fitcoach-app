@@ -210,6 +210,19 @@ export const appointmentSchema = z.object({
 export type Appointment = z.infer<typeof appointmentSchema>;
 
 export const appointmentDetailSchema = appointmentSchema.extend({
+  /**
+   * The client's package that attendance would use now (§8.3A), so the drawer can say "No sessions
+   * left: renew or record without a package". Null for leads and clients without one.
+   */
+  clientPackage: z
+    .object({
+      name: z.string(),
+      kind: z.enum(["session_pack", "time_based", "online_coaching"]),
+      sessionsLeft: z.number().int().nullable(),
+    })
+    .nullable(),
+  /** Sessions this appointment used, net of reversals; null when it never touched a package. */
+  sessionUse: z.object({ packageName: z.string(), sessionsUsed: z.number().int() }).nullable(),
   changes: z.array(
     z.object({
       id: z.string().uuid(),

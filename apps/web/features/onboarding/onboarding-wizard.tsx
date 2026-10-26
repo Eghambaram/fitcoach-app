@@ -12,6 +12,7 @@ import {
   type FinalizeOnboardingResponse,
   FITNESS_GOAL_LABELS,
   FITNESS_GOALS,
+  initialPackageSchema,
   MEASUREMENT_KINDS,
   MEASUREMENT_LABELS,
   type OnboardingDraft,
@@ -19,7 +20,7 @@ import {
   PREFERRED_CONTACT_LABELS,
   PREFERRED_CONTACTS,
 } from "@fitcoach/shared";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,6 +36,11 @@ import { Checkbox, Input, Select, Textarea } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { ApiRequestError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import {
+  initialPackageBody,
+  InitialPackageFields,
+  type InitialPackageValue,
+} from "../packages/initial-package-fields";
 import {
   type FieldProblems,
   finalizeBody,
@@ -107,6 +113,20 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
   const idempotencyKey = useRef(crypto.randomUUID());
   const heading = useRef<HTMLHeadingElement>(null);
   const units = initial.units;
+  const [initialPackage, setInitialPackage] = useState<InitialPackageValue>(null);
+  const [packageError, setPackageError] = useState<string | undefined>();
+  // A converted lead may already have their package (sold while converting).
+  const existingPackage = useQuery({
+    queryKey: ["client-packages", initial.clientId],
+    queryFn: () =>
+      unwrap(
+        browserApi.GET("/v1/clients/{id}/packages", {
+          params: { path: { id: initial.clientId ?? "" } },
+        }),
+      ),
+    enabled: initial.clientId !== null,
+    select: (data) => data.active,
+  });
 
   const form = useForm<WizardValues>({ defaultValues: fromDraftData(initial.data) });
   const { register, control, getValues, setError, clearErrors, formState } = form;
@@ -145,6 +165,7 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
             draftId: draftId ?? undefined,
             clientId: initial.clientId ?? undefined,
             units,
+            initialPackage: initialPackageBody(initialPackage),
           }),
         }),
       ),
@@ -153,14 +174,15 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
     },
     onError: (failure) => {
       if (failure instanceof ApiRequestError && failure.body.fieldErrors) {
-        showProblems(
-          Object.fromEntries(
-            Object.entries(failure.body.fieldErrors).map(([field, messages]) => [
-              field,
-              messages[0],
-            ]),
-          ) as FieldProblems,
-        );
+        const { initialPackage: packageMessages, ...fields } = failure.body.fieldErrors;
+        setPackageError(packageMessages?.[0]);
+        if (Object.keys(fields).length > 0) {
+          showProblems(
+            Object.fromEntries(
+              Object.entries(fields).map(([field, messages]) => [field, messages[0]]),
+            ) as FieldProblems,
+          );
+        }
       }
       setProblem(failure.message);
     },
@@ -215,6 +237,13 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
       setProblem("Some required details are missing. They're highlighted on the step shown.");
       return;
     }
+    const pkg = initialPackageSchema.safeParse(initialPackageBody(initialPackage));
+    if (initialPackage && !pkg.success) {
+      setPackageError(pkg.error.issues[0]?.message ?? "Check the package");
+      setProblem("Check the package price.");
+      return;
+    }
+    setPackageError(undefined);
     create.mutate();
   }
 
@@ -595,11 +624,24 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
               />
             </dl>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Package (optional)" hint="Available after packages are set up.">
-                <Select disabled defaultValue="">
-                  <option value="">No package yet</option>
-                </Select>
-              </Field>
+              {existingPackage.data ? (
+                <div className="flex flex-col gap-1.5 text-sm">
+                  <span className="font-medium">Package</span>
+                  <p>
+                    {existingPackage.data.name}{" "}
+                    <span className="text-muted-foreground">(sold when converting the lead)</span>
+                  </p>
+                </div>
+              ) : (
+                <InitialPackageFields
+                  value={initialPackage}
+                  onChange={(next) => {
+                    setInitialPackage(next);
+                    setPackageError(undefined);
+                  }}
+                  error={packageError}
+                />
+              )}
               <Field label="Program (optional)" hint="Available after programs are set up.">
                 <Select disabled defaultValue="">
                   <option value="">No program yet</option>

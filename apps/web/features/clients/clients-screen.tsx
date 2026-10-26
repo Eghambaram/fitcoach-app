@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  CLIENT_ATTENTION_FILTERS,
+  CLIENT_ATTENTION_LABELS,
   CLIENT_SORT_LABELS,
   CLIENT_SORTS,
   CLIENT_STATUS_LABELS,
@@ -188,6 +190,19 @@ export function ClientsScreen({ list }: { list: ClientListResponse }) {
               {COACHING_MODES.map((mode) => (
                 <option key={mode} value={mode}>
                   {COACHING_MODE_LABELS[mode]}
+                </option>
+              ))}
+            </Select>
+            <Select
+              aria-label="Package"
+              value={params.get("attention") ?? ""}
+              onChange={(event) => update({ attention: event.target.value })}
+              className="sm:w-48"
+            >
+              <option value="">All packages</option>
+              {CLIENT_ATTENTION_FILTERS.map((attention) => (
+                <option key={attention} value={attention}>
+                  {CLIENT_ATTENTION_LABELS[attention]}
                 </option>
               ))}
             </Select>
