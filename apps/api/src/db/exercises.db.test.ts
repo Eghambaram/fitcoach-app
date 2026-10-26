@@ -72,9 +72,13 @@ describe("exercise library and starter templates (step 3.3)", () => {
       expect(await sqlStateIn(client, "delete from exercises where workspace_id is null")).toBe(
         "42501",
       );
-      for (const table of ["programs", "program_workouts", "program_exercises"]) {
-        expect(await sqlStateIn(client, `delete from ${table}`)).toBe("42501");
-        expect(await sqlStateIn(client, `update ${table} set updated_at = now()`)).toBe("42501");
+      // Programs are never deleted; since step 3.4 a trainer may delete and update their own
+      // workouts and exercises, but the policies leave every global template row untouched.
+      expect(await sqlStateIn(client, "delete from programs")).toBe("42501");
+      expect((await client.query("update programs set name = name")).rowCount).toBe(0);
+      for (const table of ["program_workouts", "program_exercises"]) {
+        expect((await client.query(`delete from ${table}`)).rowCount).toBe(0);
+        expect((await client.query(`update ${table} set position = position`)).rowCount).toBe(0);
       }
     });
     await withContext(app, {}, async (client) => {

@@ -495,7 +495,10 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
                 {...register("equipment")}
               />
             </Field>
-            <Field label="Program (optional)" hint="Available after programs are set up.">
+            <Field
+              label="Program (optional)"
+              hint="Assign a program from their profile once they're created."
+            >
               <Select disabled defaultValue="">
                 <option value="">No program yet</option>
               </Select>
@@ -642,7 +645,10 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
                   error={packageError}
                 />
               )}
-              <Field label="Program (optional)" hint="Available after programs are set up.">
+              <Field
+                label="Program (optional)"
+                hint="Assign a program from their profile once they're created."
+              >
                 <Select disabled defaultValue="">
                   <option value="">No program yet</option>
                 </Select>

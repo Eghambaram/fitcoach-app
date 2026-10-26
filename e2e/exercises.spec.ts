@@ -39,8 +39,8 @@ test("a trainer browses templates, searches and filters the library, and adds an
     await nav.getByRole("link", { name: "Programs" }).click();
   }
   await expect(page.getByRole("heading", { name: "Programs", level: 1 })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Push\/Pull\/Legs 6×\/week/ })).toBeVisible();
-  await page.getByRole("button", { name: /Beginner Full Body 3×\/week/ }).click();
+  await expect(page.getByRole("button", { name: "Preview Push/Pull/Legs 6×/week" })).toBeVisible();
+  await page.getByRole("button", { name: "Preview Beginner Full Body 3×/week" }).click();
   const template = page.getByRole("dialog", { name: "Beginner Full Body 3×/week" });
   await expect(template.getByRole("heading", { name: "Full Body A" })).toBeVisible();
   await expect(template.getByText("Goblet Squat")).toBeVisible();

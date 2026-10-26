@@ -6,6 +6,14 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 3.4 program builder and assignment (PROMPT §8.5):
+  - **`/app/programs`:** your programs (with how many clients follow each), your templates, archived programs, and the starter templates with **Use template** (your own copy opens in the builder) and Preview; New program.
+  - **Builder (`/app/programs/[id]`):** name, goal, duration, description; workouts on weekdays; ordered exercises with sets, reps or time, load, rest, trainer notes and client instructions; drag to reorder, with Move up/down buttons as the keyboard alternative; add exercises from the library; add, move and remove workouts; sticky Save; unsaved-changes warning; Duplicate, Save as template, Archive / Restore. Starter templates open read-only with Use template.
+  - **Assign to client:** client, start date, a weekday per workout, instructions and equipment/location notes. The client gets a snapshot; their previous program ends and its upcoming workouts are removed. Planned workouts appear for the next 4 weeks, and a daily job keeps the window rolling and completes finished programs.
+  - **Client profile → Workouts:** the current program (dates, schedule, instructions), upcoming and recent workouts, End program. Archiving a client ends their program.
+  - **API:** `GET/POST /v1/programs`, `GET/PUT /v1/programs/:id`, `POST /v1/programs/:id/archive|restore|assign` (Idempotency-Key), `GET /v1/clients/:id/workouts`, `POST /v1/assignments/:id/end`.
+  - **Database:** `client_program_assignments`, `workout_sessions`; builder write policies on programs, workouts and planned exercises. ADR-0053.
+  - **Tests:** RLS (own programs only, templates untouched, one active assignment, ending is final, only planned sessions removable, cross-tenant, empty context, suspended); API (copy, ordered save, field errors, foreign exercises refused, duplicate/template/archive, assignment with schedule and snapshot, replacement, end, archive, refusals, idempotency, daily job, tampering); e2e from template to assigned program on desktop and mobile.
 - Step 3.3 exercise library and starter templates (PROMPT §8.5, D21):
   - **`/app/exercises`:** 109 library exercises plus your own; search by name; filters for muscle group, equipment and category; All / Library / Yours tabs; detail drawer with muscle groups, equipment, instructions, safety notes, a demo link when set and alternatives; add, edit, archive and restore your own exercises. Phone-first card layout.
   - **`/app/programs`** (Programs is now live in the navigation): the 7 starter templates (Beginner Full Body 3×, Fat Loss Circuit 4×, Upper/Lower 4×, Push/Pull/Legs 6×, Home Dumbbell 3×, Mobility & Recovery 2×, Online Coaching Starter 3×), each with its workouts, sets, reps or time and rest; a link to the library. Copying and the builder come in step 3.4.
@@ -105,6 +113,8 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Fixed
 
+- Package session use listed a switched mark (attended → no-show) in random order: the reversal and the new mark share the transaction's timestamp, so the tie was broken by UUID. The reversal now always comes first.
+- E2E accessibility checks run with reduced motion, so axe never samples a toast mid-fade (CI reported contrast "failures" of 1.4–4.3:1 that were transitions, not colours).
 - Leads and clients lists: a debounced search, or two quick filter changes, could undo a filter chosen just before. Filters now always build on the newest URL (`useUrlQuery`).
 - Drawers with only read-only content can now be scrolled from the keyboard (axe `scrollable-region-focusable`).
 - Package and exercise contracts: nullable strings carry a length bound, so the generated API client types them as strings.

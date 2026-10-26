@@ -35,6 +35,7 @@ import {
 } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 import { PackagesService } from "../packages/packages.service";
+import { AssignmentsService } from "../programs/assignments.service";
 import { AppointmentsService } from "../scheduling/appointments.service";
 
 type Trainer = AuthContext & { workspaceId: string };
@@ -112,6 +113,7 @@ export class ClientsService {
     private readonly appointments: AppointmentsService,
     private readonly systemDb: SystemDb,
     private readonly packages: PackagesService,
+    private readonly assignments: AssignmentsService,
   ) {}
 
   private trainer(): Trainer {
@@ -535,6 +537,7 @@ export class ClientsService {
     let cancelled = 0;
     if (next === "archived") {
       cancelled = await this.appointments.cancelFutureForClient(id, "Client archived");
+      await this.assignments.endForClient(id);
       if (client.userId) {
         const userId = client.userId;
         // Portal sessions belong to the client's own user, which RLS doesn't let a trainer touch.

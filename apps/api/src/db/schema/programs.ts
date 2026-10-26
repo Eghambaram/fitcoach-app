@@ -2,9 +2,11 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
   foreignKey,
   index,
   integer,
+  jsonb,
   numeric,
   pgTable,
   smallint,
@@ -14,6 +16,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { clients } from "./clients";
 import { timestamps } from "./columns";
 import { users } from "./identity";
 import { workspaces } from "./workspaces";
@@ -169,7 +172,7 @@ export const programWorkouts = pgTable(
       .notNull()
       .references(() => programs.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    /** Day slot in the week, 1–7 (not a weekday). */
+    /** Weekday slot: 1 = Monday … 7 = Sunday (ADR-0053). */
     dayNumber: smallint("day_number").notNull(),
     position: smallint("position").notNull(),
     notes: text("notes"),
@@ -250,6 +253,120 @@ export const programExercises = pgTable(
     check(
       "program_exercises_client_instructions_length",
       sql`char_length(${t.clientInstructions}) <= 500`,
+    ),
+  ],
+);
+
+/**
+ * A program assigned to a client (PROMPT §8.5). `program_snapshot` is a copy taken at assignment, so
+ * editing the program later never changes what the client follows. One active assignment per client.
+ * `schedule` is `[{ workout_index, weekday, name }]`, used to generate planned sessions.
+ */
+export const clientProgramAssignments = pgTable(
+  "client_program_assignments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull(),
+    programId: uuid("program_id").references(() => programs.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    programSnapshot: jsonb("program_snapshot").notNull(),
+    schedule: jsonb("schedule").notNull(),
+    startsOn: date("starts_on").notNull(),
+    endsOn: date("ends_on").notNull(),
+    status: text("status").notNull().default("active"),
+    instructions: text("instructions"),
+    equipmentNotes: text("equipment_notes"),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => [
+    unique("client_program_assignments_workspace_id_id_key").on(t.workspaceId, t.id),
+    foreignKey({
+      name: "client_program_assignments_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    uniqueIndex("client_program_assignments_one_active_key")
+      .on(t.workspaceId, t.clientId)
+      .where(sql`${t.status} = 'active'`),
+    index("client_program_assignments_program_id_idx").on(t.programId),
+    index("client_program_assignments_created_by_user_id_idx").on(t.createdByUserId),
+    check("client_program_assignments_name_length", sql`char_length(${t.name}) between 1 and 80`),
+    check(
+      "client_program_assignments_status",
+      sql`${t.status} in ('active', 'completed', 'ended')`,
+    ),
+    check("client_program_assignments_dates", sql`${t.endsOn} >= ${t.startsOn}`),
+    check(
+      "client_program_assignments_ended",
+      sql`(${t.status} = 'active') = (${t.endedAt} is null)`,
+    ),
+    check(
+      "client_program_assignments_schedule",
+      sql`jsonb_typeof(${t.schedule}) = 'array' and jsonb_array_length(${t.schedule}) between 1 and 7`,
+    ),
+    check(
+      "client_program_assignments_instructions_length",
+      sql`char_length(${t.instructions}) <= 1000`,
+    ),
+    check(
+      "client_program_assignments_equipment_notes_length",
+      sql`char_length(${t.equipmentNotes}) <= 500`,
+    ),
+  ],
+);
+
+/**
+ * Planned workouts generated from an assignment for a rolling window (PROMPT §8.5). Logging (step
+ * 3.5) moves them planned → in_progress → completed | skipped. Planned ones may be removed when the
+ * program ends; started ones are history and stay.
+ */
+export const workoutSessions = pgTable(
+  "workout_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull(),
+    assignmentId: uuid("assignment_id").notNull(),
+    workoutIndex: smallint("workout_index").notNull(),
+    name: text("name").notNull(),
+    scheduledOn: date("scheduled_on").notNull(),
+    status: text("status").notNull().default("planned"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    unique("workout_sessions_workspace_id_id_key").on(t.workspaceId, t.id),
+    foreignKey({
+      name: "workout_sessions_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "workout_sessions_assignment_fk",
+      columns: [t.workspaceId, t.assignmentId],
+      foreignColumns: [clientProgramAssignments.workspaceId, clientProgramAssignments.id],
+    }).onDelete("cascade"),
+    unique("workout_sessions_slot_key").on(t.assignmentId, t.scheduledOn, t.workoutIndex),
+    index("workout_sessions_workspace_client_scheduled_on_idx").on(
+      t.workspaceId,
+      t.clientId,
+      t.scheduledOn,
+    ),
+    check("workout_sessions_workout_index", sql`${t.workoutIndex} between 0 and 6`),
+    check("workout_sessions_name_length", sql`char_length(${t.name}) between 1 and 80`),
+    check(
+      "workout_sessions_status",
+      sql`${t.status} in ('planned', 'in_progress', 'completed', 'skipped')`,
     ),
   ],
 );
