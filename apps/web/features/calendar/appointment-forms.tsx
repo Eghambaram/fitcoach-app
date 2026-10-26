@@ -217,15 +217,18 @@ function TimeFields({
 /** Book one session for a client, or a trial / consultation for a lead. */
 export function AppointmentForm({
   leadId,
+  clientId: presetClientId,
   defaultDate,
   onSaved,
 }: {
   leadId?: string;
+  /** Book for this client (from their profile): no picker. */
+  clientId?: string;
   defaultDate: string;
   onSaved: (appointment: AppointmentDetail) => void;
 }) {
   const online = useOnline();
-  const [clientId, setClientId] = useState("");
+  const [clientId, setClientId] = useState(presetClientId ?? "");
   const [kind, setKind] = useState<"session" | "consultation" | "trial">(
     leadId ? "trial" : "session",
   );
@@ -271,7 +274,7 @@ export function AppointmentForm({
 
   return (
     <div className="flex flex-col gap-4">
-      {leadId ? null : (
+      {leadId || presetClientId ? null : (
         <ClientPicker value={clientId} onChange={setClientId} error={errors.clientId} />
       )}
       <Field label="What" error={errors.kind}>

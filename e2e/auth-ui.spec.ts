@@ -116,12 +116,9 @@ test("the trainer shell shows only MVP navigation, unbuilt screens as 'coming so
   if (isMobile(page)) {
     await expect(nav.getByRole("link", { name: "Home" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Leads" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Clients" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Calendar" })).toBeVisible();
-    for (const label of ["Clients"]) {
-      // Disabled items read "<label> (coming soon)" to screen readers.
-      await expect(nav.getByText(new RegExp(`^${label}`))).toBeVisible();
-      await expect(nav.getByRole("link", { name: label })).toHaveCount(0);
-    }
+
     await expect(nav.getByRole("button", { name: "More" })).toBeVisible();
   } else {
     const items = await nav.locator(":scope > *").allInnerTexts();
@@ -136,7 +133,13 @@ test("the trainer shell shows only MVP navigation, unbuilt screens as 'coming so
       "Progress",
       "Settings",
     ]);
-    await expect(nav.getByRole("link")).toHaveText(["Dashboard", "Leads", "Calendar", "Settings"]);
+    await expect(nav.getByRole("link")).toHaveText([
+      "Dashboard",
+      "Leads",
+      "Clients",
+      "Calendar",
+      "Settings",
+    ]);
   }
   // Not in the MVP: never shown (PROMPT §6).
   for (const hidden of ["Nutrition", "Messages", "Billing", "Templates"]) {

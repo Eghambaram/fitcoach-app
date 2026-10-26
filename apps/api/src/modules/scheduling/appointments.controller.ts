@@ -8,8 +8,6 @@ import {
   type AppointmentListResponse,
   attendanceRequestSchema,
   cancelAppointmentRequestSchema,
-  clientOptionsResponseSchema,
-  type ClientOptionsResponse,
   createAppointmentRequestSchema,
   needsAttendanceResponseSchema,
   type NeedsAttendanceResponse,
@@ -38,7 +36,6 @@ class NotesRequestDto extends createZodDto(sessionNotesRequestSchema) {}
 class SeriesRequestDto extends createZodDto(seriesRequestSchema) {}
 class SeriesPreviewResponseDto extends createZodDto(seriesPreviewResponseSchema) {}
 class SeriesCreatedResponseDto extends createZodDto(seriesCreatedResponseSchema) {}
-class ClientOptionsResponseDto extends createZodDto(clientOptionsResponseSchema) {}
 class IdParamDto extends createZodDto(z.object({ id: z.string().uuid() })) {}
 
 /** Calendar (PROMPT §8.6). The workspace comes from the session only (CLAUDE.md rule 1). */
@@ -115,19 +112,5 @@ export class AppointmentsController {
   @ApiOkResponse({ type: DetailDto })
   notes(@Param() params: IdParamDto, @Body() body: NotesRequestDto): Promise<AppointmentDetail> {
     return this.appointments.notes(params.id, body);
-  }
-}
-
-/** Client picker for booking; the clients screen itself is step 3.1. */
-@ApiTags("clients")
-@Roles("trainer")
-@Controller("clients")
-export class ClientOptionsController {
-  constructor(private readonly appointments: AppointmentsService) {}
-
-  @Get("options")
-  @ApiOkResponse({ type: ClientOptionsResponseDto })
-  options(): Promise<ClientOptionsResponse> {
-    return this.appointments.clientOptions();
   }
 }

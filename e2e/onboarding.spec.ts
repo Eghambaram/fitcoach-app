@@ -140,12 +140,14 @@ test("a converted lead is onboarded with baseline measurements", async ({
   await expect(page.getByText("Kiran Rao is now an active client")).toBeVisible();
   await expect(page.getByText("with 2 baseline measurements")).toBeVisible();
 
-  // The lead's onboarding link now says it's done.
+  // The lead now leads to an active client profile; the old onboarding link says it's done.
   await page.goto("/app/leads?stage=converted");
   await page.getByRole("button", { name: "Kiran Rao" }).first().click();
   await page
     .getByRole("dialog", { name: "Kiran Rao" })
-    .getByRole("link", { name: "Client onboarding" })
+    .getByRole("link", { name: "Open client profile" })
     .click();
-  await expect(page.getByText("Kiran Rao is already onboarded")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Kiran Rao", level: 1 })).toBeVisible();
+  await expect(page.getByText("Active", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("72.5 kg")).toBeVisible();
 });

@@ -11,6 +11,7 @@ import { DatabaseModule } from "./db/database.module";
 import { EmailModule } from "./integrations/email/email.module";
 import { AuditModule } from "./modules/audit/audit.module";
 import { AuthModule } from "./modules/auth/auth.module";
+import { ClientsModule } from "./modules/clients/clients.module";
 import { FilesModule } from "./modules/files/files.module";
 import { HealthModule } from "./modules/health/health.module";
 import { JobsModule } from "./modules/jobs/jobs.module";
@@ -38,6 +39,7 @@ import { SettingsModule } from "./modules/settings/settings.module";
     LeadsModule,
     OnboardingModule,
     SchedulingModule,
+    ClientsModule,
     PublicPageModule,
   ],
   providers: [

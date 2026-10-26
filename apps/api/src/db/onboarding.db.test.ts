@@ -218,7 +218,7 @@ describe("client onboarding tables (step 2.5)", () => {
     });
   });
 
-  it("lets a trainer edit and activate their own client, never archive it here", async () => {
+  it("lets a trainer edit and activate their own client", async () => {
     await withContext(app, trainerContext(a), async (client) => {
       expect(
         (
@@ -228,13 +228,10 @@ describe("client onboarding tables (step 2.5)", () => {
           )
         ).rowCount,
       ).toBe(1);
+      // Archiving needs archived_at (step 3.1 lifecycle; the CHECK keeps them together).
       expect(
-        await sqlStateIn(
-          client,
-          "update clients set status = 'archived', archived_at = now() where id = $1",
-          [clientA],
-        ),
-      ).toBe("42501");
+        await sqlStateIn(client, "update clients set status = 'archived' where id = $1", [clientA]),
+      ).toBe("23514");
       // Active needs onboarded_at.
       expect(
         await sqlStateIn(client, "update clients set onboarded_at = null where id = $1", [clientA]),
