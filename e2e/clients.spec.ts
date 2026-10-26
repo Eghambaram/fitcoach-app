@@ -81,7 +81,7 @@ test("clients sit in the right tabs, and archiving and restoring keeps their his
   await page.getByRole("button", { name: "Save note" }).click();
   await expect(page.getByText("Prefers free weights")).toBeVisible();
   await page.getByRole("tab", { name: "Packages" }).click();
-  await expect(page.getByText("Packages are coming next")).toBeVisible();
+  await expect(page.getByText("No active package")).toBeVisible();
 
   // Archive: gone from Active, in Archived; restore: everything is still there.
   await page.getByRole("button", { name: "Archive" }).click();

@@ -57,11 +57,14 @@ test("a trainer converts a lead once, keeps its history, and links a repeat enqu
   await lead.getByRole("button", { name: "Save note" }).click();
   await expect(lead.getByText("Shoulder rehab first")).toBeVisible();
 
-  // The confirm sheet; the package is visibly not available yet.
+  // The confirm sheet, with an initial package from a preset (step 3.2).
   await lead.getByRole("button", { name: "Convert to client" }).click();
   const sheet = page.getByRole("dialog", { name: "Convert to client" });
-  await expect(sheet.getByText("Available after packages are set up").first()).toBeVisible();
-  await expect(sheet.getByRole("combobox", { name: "Initial package" })).toBeDisabled();
+  const initialPackage = sheet.getByRole("combobox", { name: "Initial package (optional)" });
+  await expect(initialPackage).toBeEnabled();
+  await initialPackage.selectOption({ label: "12 sessions" });
+  await sheet.getByRole("spinbutton", { name: "Price (₹)" }).fill("9000");
+  await expect(sheet.getByText("12 sessions · valid 42 days")).toBeVisible();
   expect((await new AxeBuilder({ page }).include('[role="dialog"]').analyze()).violations).toEqual(
     [],
   );

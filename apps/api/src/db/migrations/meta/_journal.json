@@ -148,6 +148,20 @@
       "when": 1792934475482,
       "tag": "0020_client_lifecycle_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792996542904,
+      "tag": "0021_client_packages",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792996624511,
+      "tag": "0022_client_packages_rls",
+      "breakpoints": true
     }
   ]
 }

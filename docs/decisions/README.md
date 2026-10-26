@@ -50,3 +50,9 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0043](0043-migrate-on-container-start.md)        | Migrations run when the API container starts, not as a Railway pre-deploy command           |
 | [0044](0044-public-enquiry-page.md)               | Public enquiry page: signed form token, silent bot drops, versioned consent, narrow service |
 | [0045](0045-leads-list-scope.md)                  | Leads list and drawer: honest KPIs, URL filters, keyset paging, notes as timeline entries   |
+| [0046](0046-follow-ups-and-contact-log.md)        | Follow-ups, the communication log and WhatsApp click-to-chat                                |
+| [0047](0047-lead-conversion.md)                   | Lead → client conversion, the clients table and Idempotency-Key                             |
+| [0048](0048-client-onboarding.md)                 | Client onboarding wizard, drafts, consents and baseline measurements                        |
+| [0049](0049-calendar-and-attendance.md)           | Calendar, recurring series, trials and attendance                                           |
+| [0050](0050-clients-list-and-lifecycle.md)        | Clients list, client profile and lifecycle                                                  |
+| [0051](0051-packages-ledger-and-payments.md)      | Packages, the signed session ledger and manually recorded payments                          |

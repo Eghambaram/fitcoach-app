@@ -194,7 +194,7 @@ export const activityEvents = pgTable(
     index("activity_events_actor_user_id_idx").on(t.actorUserId),
     check(
       "activity_events_type",
-      sql`${t.type} in ('lead_converted', 'client_onboarded', 'client_paused', 'client_resumed', 'client_archived', 'client_restored')`,
+      sql`${t.type} in ('lead_converted', 'client_onboarded', 'client_paused', 'client_resumed', 'client_archived', 'client_restored', 'package_sold', 'package_cancelled', 'payment_recorded', 'payment_voided', 'sessions_adjusted')`,
     ),
     check("activity_events_subject", sql`num_nonnulls(${t.leadId}, ${t.clientId}) >= 1`),
     check("activity_events_data_object", sql`jsonb_typeof(${t.data}) = 'object'`),

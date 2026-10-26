@@ -42,6 +42,7 @@ import {
   trainerSettings,
   workspaces,
 } from "../../db/schema";
+import { PackagesService } from "../packages/packages.service";
 import { trackEvent } from "../product-events/track";
 
 type Trainer = AuthContext & { workspaceId: string };
@@ -84,6 +85,7 @@ export class OnboardingService {
     private readonly db: DbContext,
     private readonly cls: ClsService<AppClsStore>,
     private readonly idempotency: IdempotencyService,
+    private readonly packages: PackagesService,
   ) {}
 
   private trainer(): Trainer {
@@ -525,6 +527,16 @@ export class OnboardingService {
       .update(clientOnboardingDrafts)
       .set({ finalizedAt: sql`now()` })
       .where(and(...draftScope));
+
+    if (input.initialPackage) {
+      await this.packages.sellInitial(
+        trainer,
+        id,
+        input.initialPackage,
+        input.coachingStartOn,
+        "onboarding",
+      );
+    }
 
     await this.db.tx.insert(activityEvents).values({
       workspaceId: trainer.workspaceId,

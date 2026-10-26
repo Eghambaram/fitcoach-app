@@ -1832,6 +1832,264 @@
         ]
       }
     },
+    "/v1/clients/{id}/packages": {
+      "get": {
+        "operationId": "PackagesController_forClient",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientPackagesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "packages"
+        ]
+      },
+      "post": {
+        "operationId": "PackagesController_sell",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "UUID per user intent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellPackageRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientPackagesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "packages"
+        ]
+      }
+    },
+    "/v1/packages/{id}/cancel": {
+      "post": {
+        "operationId": "PackagesController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelPackageRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientPackagesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "packages"
+        ]
+      }
+    },
+    "/v1/packages/{id}/payments": {
+      "post": {
+        "operationId": "PackagesController_recordPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "UUID per user intent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordPaymentRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientPackagesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "packages"
+        ]
+      }
+    },
+    "/v1/packages/{id}/adjustments": {
+      "post": {
+        "operationId": "PackagesController_adjust",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionAdjustmentRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientPackagesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "packages"
+        ]
+      }
+    },
+    "/v1/payments/{id}/void": {
+      "post": {
+        "operationId": "PackagesController_voidPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidPaymentRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientPackagesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "packages"
+        ]
+      }
+    },
     "/v1/onboarding/drafts": {
       "get": {
         "operationId": "OnboardingController_listDrafts",
@@ -2431,6 +2689,18 @@
                 "in_person",
                 "online",
                 "hybrid"
+              ]
+            }
+          },
+          {
+            "name": "attention",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "low_sessions",
+                "payment_due"
               ]
             }
           },
@@ -5129,6 +5399,29 @@
           "coachingStartOn": {
             "type": "string",
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "initialPackage": {
+            "type": "object",
+            "properties": {
+              "presetId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "pricePaise": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000000
+              },
+              "startsOn": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              }
+            },
+            "required": [
+              "presetId",
+              "pricePaise"
+            ]
           }
         }
       },
@@ -5152,6 +5445,606 @@
           "clientId",
           "linkedExisting",
           "next"
+        ]
+      },
+      "ClientPackagesResponseDto": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "session_pack",
+                  "time_based",
+                  "online_coaching"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "completed",
+                  "expired",
+                  "cancelled"
+                ]
+              },
+              "sessionsIncluded": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "sessionsUsed": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "sessionsLeft": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "sessionsPerWeek": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "startsOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "expiresOn": {
+                "type": "string",
+                "maxLength": 10,
+                "nullable": true
+              },
+              "pricePaise": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "amountDuePaise": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "paidPaise": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "balancePaise": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "paymentDueOn": {
+                "type": "string",
+                "maxLength": 10,
+                "nullable": true
+              },
+              "paymentOverdue": {
+                "type": "boolean"
+              },
+              "notes": {
+                "type": "string",
+                "nullable": true
+              },
+              "closedReason": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "closedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "kind",
+              "status",
+              "sessionsIncluded",
+              "sessionsUsed",
+              "sessionsLeft",
+              "sessionsPerWeek",
+              "startsOn",
+              "expiresOn",
+              "pricePaise",
+              "amountDuePaise",
+              "paidPaise",
+              "balancePaise",
+              "paymentDueOn",
+              "paymentOverdue",
+              "notes",
+              "closedReason",
+              "createdAt",
+              "closedAt"
+            ],
+            "nullable": true
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "session_pack",
+                    "time_based",
+                    "online_coaching"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "completed",
+                    "expired",
+                    "cancelled"
+                  ]
+                },
+                "sessionsIncluded": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "sessionsUsed": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "sessionsLeft": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "sessionsPerWeek": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "startsOn": {
+                  "type": "string",
+                  "maxLength": 10
+                },
+                "expiresOn": {
+                  "type": "string",
+                  "maxLength": 10,
+                  "nullable": true
+                },
+                "pricePaise": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "amountDuePaise": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "paidPaise": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "balancePaise": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "paymentDueOn": {
+                  "type": "string",
+                  "maxLength": 10,
+                  "nullable": true
+                },
+                "paymentOverdue": {
+                  "type": "boolean"
+                },
+                "notes": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "closedReason": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "closedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "kind",
+                "status",
+                "sessionsIncluded",
+                "sessionsUsed",
+                "sessionsLeft",
+                "sessionsPerWeek",
+                "startsOn",
+                "expiresOn",
+                "pricePaise",
+                "amountDuePaise",
+                "paidPaise",
+                "balancePaise",
+                "paymentDueOn",
+                "paymentOverdue",
+                "notes",
+                "closedReason",
+                "createdAt",
+                "closedAt"
+              ]
+            }
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "packageId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "packageName": {
+                  "type": "string"
+                },
+                "amountPaise": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "cash",
+                    "upi",
+                    "bank_transfer",
+                    "card",
+                    "other"
+                  ]
+                },
+                "paidOn": {
+                  "type": "string",
+                  "maxLength": 10
+                },
+                "reference": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "note": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "voided": {
+                  "type": "object",
+                  "properties": {
+                    "at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "reason"
+                  ],
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "packageId",
+                "packageName",
+                "amountPaise",
+                "method",
+                "paidOn",
+                "reference",
+                "note",
+                "createdAt",
+                "voided"
+              ]
+            }
+          },
+          "ledger": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "packageId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "attended",
+                    "no_show",
+                    "late_cancel",
+                    "manual_adjustment"
+                  ]
+                },
+                "sessionsUsed": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "reversal": {
+                  "type": "boolean"
+                },
+                "appointment": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "date": {
+                      "type": "string",
+                      "maxLength": 10
+                    },
+                    "startTime": {
+                      "type": "string",
+                      "maxLength": 5
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "date",
+                    "startTime"
+                  ],
+                  "nullable": true
+                },
+                "note": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                }
+              },
+              "required": [
+                "id",
+                "packageId",
+                "reason",
+                "sessionsUsed",
+                "reversal",
+                "appointment",
+                "note",
+                "createdAt"
+              ]
+            }
+          },
+          "lowSessionsThreshold": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "active",
+          "history",
+          "payments",
+          "ledger",
+          "lowSessionsThreshold"
+        ]
+      },
+      "SellPackageRequestDto": {
+        "type": "object",
+        "properties": {
+          "presetId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "session_pack",
+              "time_based",
+              "online_coaching"
+            ]
+          },
+          "sessionsIncluded": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "nullable": true
+          },
+          "sessionsPerWeek": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 14,
+            "nullable": true
+          },
+          "startsOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "expiresOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "nullable": true
+          },
+          "pricePaise": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000
+          },
+          "amountDuePaise": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000
+          },
+          "paymentDueOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "sessionsIncluded",
+          "sessionsPerWeek",
+          "startsOn",
+          "expiresOn",
+          "pricePaise",
+          "amountDuePaise",
+          "paymentDueOn"
+        ]
+      },
+      "CancelPackageRequestDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RecordPaymentRequestDto": {
+        "type": "object",
+        "properties": {
+          "amountPaise": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000000
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "upi",
+              "bank_transfer",
+              "card",
+              "other"
+            ]
+          },
+          "paidOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "reference": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "amountPaise",
+          "method",
+          "paidOn"
+        ]
+      },
+      "SessionAdjustmentRequestDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "integer",
+            "minimum": -50,
+            "maximum": 50
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "sessions",
+          "note"
+        ]
+      },
+      "VoidPaymentRequestDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "reason"
         ]
       },
       "DraftsResponseDto": {
@@ -6150,6 +7043,29 @@
               "weightUnit",
               "lengthUnit"
             ]
+          },
+          "initialPackage": {
+            "type": "object",
+            "properties": {
+              "presetId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "pricePaise": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000000
+              },
+              "startsOn": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              }
+            },
+            "required": [
+              "presetId",
+              "pricePaise"
+            ]
           }
         },
         "required": [
@@ -6658,6 +7574,52 @@
           "needsAttendance": {
             "type": "boolean"
           },
+          "clientPackage": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "session_pack",
+                  "time_based",
+                  "online_coaching"
+                ]
+              },
+              "sessionsLeft": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              }
+            },
+            "required": [
+              "name",
+              "kind",
+              "sessionsLeft"
+            ],
+            "nullable": true
+          },
+          "sessionUse": {
+            "type": "object",
+            "properties": {
+              "packageName": {
+                "type": "string"
+              },
+              "sessionsUsed": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "packageName",
+              "sessionsUsed"
+            ],
+            "nullable": true
+          },
           "changes": {
             "type": "array",
             "items": {
@@ -6716,6 +7678,8 @@
           "cancelReason",
           "started",
           "needsAttendance",
+          "clientPackage",
+          "sessionUse",
           "changes"
         ]
       },
@@ -7537,6 +8501,92 @@
               "lengthUnit"
             ]
           },
+          "package": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "session_pack",
+                  "time_based",
+                  "online_coaching"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "completed",
+                  "expired",
+                  "cancelled"
+                ]
+              },
+              "sessionsIncluded": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "sessionsUsed": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "sessionsLeft": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "sessionsPerWeek": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "expiresOn": {
+                "type": "string",
+                "maxLength": 10,
+                "nullable": true
+              },
+              "balancePaise": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "paymentDueOn": {
+                "type": "string",
+                "maxLength": 10,
+                "nullable": true
+              },
+              "paymentOverdue": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "kind",
+              "status",
+              "sessionsIncluded",
+              "sessionsUsed",
+              "sessionsLeft",
+              "sessionsPerWeek",
+              "expiresOn",
+              "balancePaise",
+              "paymentDueOn",
+              "paymentOverdue"
+            ],
+            "nullable": true
+          },
           "recentActivity": {
             "type": "array",
             "items": {
@@ -7552,7 +8602,12 @@
                     "client_archived",
                     "client_restored",
                     "session_attended",
-                    "session_no_show"
+                    "session_no_show",
+                    "package_sold",
+                    "package_cancelled",
+                    "payment_recorded",
+                    "payment_voided",
+                    "sessions_adjusted"
                   ]
                 },
                 "at": {
@@ -7629,6 +8684,7 @@
           "stats",
           "measurements",
           "units",
+          "package",
           "recentActivity",
           "notes"
         ]

@@ -692,6 +692,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/clients/{id}/packages": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PackagesController_forClient"];
+    put?: never;
+    post: operations["PackagesController_sell"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/packages/{id}/cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PackagesController_cancel"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/packages/{id}/payments": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PackagesController_recordPayment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/packages/{id}/adjustments": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PackagesController_adjust"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/payments/{id}/void": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PackagesController_voidPayment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/onboarding/drafts": {
     parameters: {
       query?: never;
@@ -1684,12 +1764,147 @@ export interface components {
       /** Format: uuid */
       linkClientId?: string;
       coachingStartOn?: string;
+      initialPackage?: {
+        /** Format: uuid */
+        presetId: string;
+        pricePaise: number;
+        startsOn?: string;
+      };
     };
     ConvertLeadResponseDto: {
       /** Format: uuid */
       clientId: string;
       linkedExisting: boolean;
       next: string;
+    };
+    ClientPackagesResponseDto: {
+      active: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        /** @enum {string} */
+        kind: "session_pack" | "time_based" | "online_coaching";
+        /** @enum {string} */
+        status: "active" | "completed" | "expired" | "cancelled";
+        sessionsIncluded: number | null;
+        sessionsUsed: number;
+        sessionsLeft: number | null;
+        sessionsPerWeek: number | null;
+        startsOn: string;
+        expiresOn: string | null;
+        pricePaise: number;
+        amountDuePaise: number;
+        paidPaise: number;
+        balancePaise: number;
+        paymentDueOn: string | null;
+        paymentOverdue: boolean;
+        notes: string | null;
+        closedReason: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        closedAt: string | null;
+      } | null;
+      history: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        /** @enum {string} */
+        kind: "session_pack" | "time_based" | "online_coaching";
+        /** @enum {string} */
+        status: "active" | "completed" | "expired" | "cancelled";
+        sessionsIncluded: number | null;
+        sessionsUsed: number;
+        sessionsLeft: number | null;
+        sessionsPerWeek: number | null;
+        startsOn: string;
+        expiresOn: string | null;
+        pricePaise: number;
+        amountDuePaise: number;
+        paidPaise: number;
+        balancePaise: number;
+        paymentDueOn: string | null;
+        paymentOverdue: boolean;
+        notes: string | null;
+        closedReason: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        closedAt: string | null;
+      }[];
+      payments: {
+        /** Format: uuid */
+        id: string;
+        /** Format: uuid */
+        packageId: string;
+        packageName: string;
+        amountPaise: number;
+        /** @enum {string} */
+        method: "cash" | "upi" | "bank_transfer" | "card" | "other";
+        paidOn: string;
+        reference: string | null;
+        note: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        voided: {
+          /** Format: date-time */
+          at: string;
+          reason: string;
+        } | null;
+      }[];
+      ledger: {
+        /** Format: uuid */
+        id: string;
+        /** Format: uuid */
+        packageId: string;
+        /** @enum {string} */
+        reason: "attended" | "no_show" | "late_cancel" | "manual_adjustment";
+        sessionsUsed: number;
+        reversal: boolean;
+        appointment: {
+          /** Format: uuid */
+          id: string;
+          date: string;
+          startTime: string;
+        } | null;
+        note: string | null;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      lowSessionsThreshold: number;
+    };
+    SellPackageRequestDto: {
+      /** Format: uuid */
+      presetId?: string;
+      name: string;
+      /** @enum {string} */
+      kind: "session_pack" | "time_based" | "online_coaching";
+      sessionsIncluded: number | null;
+      sessionsPerWeek: number | null;
+      startsOn: string;
+      expiresOn: string | null;
+      pricePaise: number;
+      amountDuePaise: number;
+      paymentDueOn: string | null;
+      notes?: string;
+    };
+    CancelPackageRequestDto: {
+      reason: string;
+    };
+    RecordPaymentRequestDto: {
+      amountPaise: number;
+      /** @enum {string} */
+      method: "cash" | "upi" | "bank_transfer" | "card" | "other";
+      paidOn: string;
+      reference?: string;
+      note?: string;
+    };
+    SessionAdjustmentRequestDto: {
+      sessions: number;
+      note: string;
+    };
+    VoidPaymentRequestDto: {
+      reason: string;
     };
     DraftsResponseDto: {
       drafts: {
@@ -1991,6 +2206,12 @@ export interface components {
         /** @enum {string} */
         lengthUnit: "cm" | "in";
       };
+      initialPackage?: {
+        /** Format: uuid */
+        presetId: string;
+        pricePaise: number;
+        startsOn?: string;
+      };
     };
     FinalizeResponseDto: {
       /** Format: uuid */
@@ -2113,6 +2334,16 @@ export interface components {
       cancelReason: string | null;
       started: boolean;
       needsAttendance: boolean;
+      clientPackage: {
+        name: string;
+        /** @enum {string} */
+        kind: "session_pack" | "time_based" | "online_coaching";
+        sessionsLeft: number | null;
+      } | null;
+      sessionUse: {
+        packageName: string;
+        sessionsUsed: number;
+      } | null;
       changes: {
         /** Format: uuid */
         id: string;
@@ -2329,6 +2560,23 @@ export interface components {
         /** @enum {string} */
         lengthUnit: "cm" | "in";
       };
+      package: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        /** @enum {string} */
+        kind: "session_pack" | "time_based" | "online_coaching";
+        /** @enum {string} */
+        status: "active" | "completed" | "expired" | "cancelled";
+        sessionsIncluded: number | null;
+        sessionsUsed: number;
+        sessionsLeft: number | null;
+        sessionsPerWeek: number | null;
+        expiresOn: string | null;
+        balancePaise: number;
+        paymentDueOn: string | null;
+        paymentOverdue: boolean;
+      } | null;
       recentActivity: {
         /** @enum {string} */
         type:
@@ -2339,7 +2587,12 @@ export interface components {
           | "client_archived"
           | "client_restored"
           | "session_attended"
-          | "session_no_show";
+          | "session_no_show"
+          | "package_sold"
+          | "package_cancelled"
+          | "payment_recorded"
+          | "payment_voided"
+          | "sessions_adjusted";
         /** Format: date-time */
         at: string;
         data: {
@@ -3666,6 +3919,158 @@ export interface operations {
       };
     };
   };
+  PackagesController_forClient: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientPackagesResponseDto"];
+        };
+      };
+    };
+  };
+  PackagesController_sell: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description UUID per user intent */
+        "Idempotency-Key"?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SellPackageRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientPackagesResponseDto"];
+        };
+      };
+    };
+  };
+  PackagesController_cancel: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CancelPackageRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientPackagesResponseDto"];
+        };
+      };
+    };
+  };
+  PackagesController_recordPayment: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description UUID per user intent */
+        "Idempotency-Key"?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RecordPaymentRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientPackagesResponseDto"];
+        };
+      };
+    };
+  };
+  PackagesController_adjust: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SessionAdjustmentRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientPackagesResponseDto"];
+        };
+      };
+    };
+  };
+  PackagesController_voidPayment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["VoidPaymentRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientPackagesResponseDto"];
+        };
+      };
+    };
+  };
   OnboardingController_listDrafts: {
     parameters: {
       query?: never;
@@ -4045,6 +4450,7 @@ export interface operations {
           | "sports_performance"
           | "other";
         mode?: "in_person" | "online" | "hybrid";
+        attention?: "low_sessions" | "payment_due";
         sort?: "name" | "newest";
         cursor?: string;
         limit?: number;

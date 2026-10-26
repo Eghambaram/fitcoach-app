@@ -38,6 +38,7 @@ import {
   trainerSettings,
   workspaces,
 } from "../../db/schema";
+import { PackagesService } from "../packages/packages.service";
 import { trackEvent } from "../product-events/track";
 import { SessionDeductionService } from "./session-deduction.service";
 
@@ -82,6 +83,7 @@ export class AppointmentsService {
     private readonly db: DbContext,
     private readonly cls: ClsService<AppClsStore>,
     private readonly deduction: SessionDeductionService,
+    private readonly packages: PackagesService,
   ) {}
 
   private trainer(): Trainer {
@@ -295,8 +297,11 @@ export class AppointmentsService {
       )
       .orderBy(desc(appointmentChanges.createdAt), desc(appointmentChanges.id))
       .limit(100);
+    const clientId = row.row.clientId;
     return {
       ...this.toAppointment(row),
+      clientPackage: clientId ? await this.packages.usableForAppointment(clientId) : null,
+      sessionUse: clientId ? await this.packages.sessionUse(id) : null,
       changes: changes.map((change) => ({
         id: change.id,
         kind: change.kind as AppointmentDetail["changes"][number]["kind"],

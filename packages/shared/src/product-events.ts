@@ -16,6 +16,9 @@ export const PRODUCT_EVENTS = [
   "client_onboarded",
   // Lead → trial funnel (§1A.5): a trial session was booked for a lead.
   "trial_booked",
+  // Packages used (§1A.5, §8.3A): a package was sold or renewed / a payment was recorded.
+  "package_sold",
+  "payment_recorded",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENTS)[number];

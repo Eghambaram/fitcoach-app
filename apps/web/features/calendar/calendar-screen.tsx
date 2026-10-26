@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { cn } from "@/lib/utils";
-import { AppointmentDrawer, AppointmentStatusPill } from "./appointment-drawer";
+import { AppointmentDrawer, AppointmentStatusPill, attendanceMessage } from "./appointment-drawer";
 import { AppointmentForm, SeriesForm } from "./appointment-forms";
 import {
   addDays,
@@ -230,7 +230,10 @@ function NeedsAttendance({
           body: { status },
         }),
       ),
-    onSuccess: () => onDone(),
+    onSuccess: (next) => {
+      toast.success(attendanceMessage(next));
+      onDone();
+    },
     onError: (failure) => toast.error(failure.message),
   });
   if (appointments.length === 0) return null;

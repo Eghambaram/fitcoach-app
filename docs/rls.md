@@ -139,6 +139,16 @@ Helpers: `app.trainer_workspace_id()` returns the session's workspace only when 
 | `clients`      | adds UPDATE of `archived_at` | update: writable trainer workspace (archiving now allowed); CHECK `clients_archived_at` keeps status and `archived_at` together | Restore can clash with the partial phone/email uniques (23505); the service names the client first. No DELETE for either role. Portal sessions are revoked via SystemDb. |
 | `client_notes` | SELECT, INSERT               | trainer's workspace; insert signed (`author_user_id = current_user_id()`), writable workspace                                   | Append-only for both roles. Composite FK to the client. Never in client-facing views.                                                                                    |
 
+### Packages, session ledger and payments (step 3.2)
+
+| Table                    | fitcoach_app                                                     | Policy                                                                                                                  | Notes                                                                                                                                                                                                           |
+| ------------------------ | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `client_packages`        | SELECT, INSERT; UPDATE of `status`, `closed_at`, `closed_reason` | trainer's workspace; insert signed (`created_by_user_id`) and `active`, writable workspace; update only active packages | One active package per client (partial unique). CHECKs: shape, money in paise (amount due ≤ price), `closed_at` set exactly when not active. No DELETE for either role.                                         |
+| `package_session_ledger` | SELECT, INSERT                                                   | trainer's workspace; insert signed (`actor_user_id`), writable workspace                                                | Insert-only for both roles (rule 20b). `UNIQUE (package_id, appointment_id, mark_no)` stops double deduction; `reverses_id` unique (one reversal per mark); CHECK on mark / reversal / manual-adjustment shape. |
+| `client_payments`        | SELECT, INSERT                                                   | trainer's workspace; insert signed (`recorded_by_user_id`), writable workspace                                          | Insert-only for both roles; a void is a new row (`voids_id` unique, reason required).                                                                                                                           |
+
+No client policy on these tables: the client portal (step 4.1) gets sessions left and expiry from a client-scoped endpoint shaped by `clientPortalPackageSchema`, never prices or payments (rule 20c). Proven by `packages.db.test.ts`.
+
 ## Proven by tests
 
 - Every `public` table has ENABLE + FORCE RLS (`rls-coverage.db.test.ts`).
