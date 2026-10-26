@@ -192,7 +192,10 @@ export const activityEvents = pgTable(
     index("activity_events_workspace_lead_idx").on(t.workspaceId, t.leadId),
     index("activity_events_workspace_client_idx").on(t.workspaceId, t.clientId),
     index("activity_events_actor_user_id_idx").on(t.actorUserId),
-    check("activity_events_type", sql`${t.type} in ('lead_converted', 'client_onboarded')`),
+    check(
+      "activity_events_type",
+      sql`${t.type} in ('lead_converted', 'client_onboarded', 'client_paused', 'client_resumed', 'client_archived', 'client_restored')`,
+    ),
     check("activity_events_subject", sql`num_nonnulls(${t.leadId}, ${t.clientId}) >= 1`),
     check("activity_events_data_object", sql`jsonb_typeof(${t.data}) = 'object'`),
   ],
@@ -394,5 +397,32 @@ export const measurements = pgTable(
       "measurements_void_reason_length",
       sql`${t.voidReason} is null or char_length(${t.voidReason}) between 1 and 200`,
     ),
+  ],
+);
+
+/** Private trainer notes about a client (PROMPT §8.3). Append-only; never shown to the client. */
+export const clientNotes = pgTable(
+  "client_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    clientId: uuid("client_id").notNull(),
+    body: text("body").notNull(),
+    authorUserId: uuid("author_user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "client_notes_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    index("client_notes_workspace_client_created_at_idx").on(
+      t.workspaceId,
+      t.clientId,
+      t.createdAt,
+    ),
+    index("client_notes_author_user_id_idx").on(t.authorUserId),
+    check("client_notes_body_length", sql`char_length(${t.body}) between 1 and 2000`),
   ],
 );

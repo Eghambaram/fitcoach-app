@@ -564,10 +564,14 @@ function LeadBody({
             Converted to a client on {formatDateTime(lead.convertedAt)}. Their history stays here.
           </p>
           <Link
-            href={`/app/clients/new?fromLead=${lead.id}`}
+            href={
+              lead.convertedClientId
+                ? `/app/clients/${lead.convertedClientId}`
+                : `/app/clients/new?fromLead=${lead.id}`
+            }
             className="min-h-9 self-start font-semibold text-foreground underline"
           >
-            Client onboarding
+            Open client profile
           </Link>
         </div>
       ) : null}

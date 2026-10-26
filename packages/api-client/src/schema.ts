@@ -884,6 +884,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/clients": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientsController_list"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/clients/options": {
     parameters: {
       query?: never;
@@ -891,9 +907,73 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations["ClientOptionsController_options"];
+    get: operations["ClientsController_options"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientsController_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/schedule": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientsController_schedule"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/notes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientsController_addNote"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientsController_changeStatus"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2107,6 +2187,40 @@ export interface components {
     NotesRequestDto: {
       notes: string;
     };
+    ClientListResponseDto: {
+      items: {
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+        /** @enum {string} */
+        status: "onboarding_draft" | "active" | "paused" | "archived";
+        /** @enum {string|null} */
+        goal:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other"
+          | null;
+        /** @enum {string|null} */
+        trainingMode: "in_person" | "online" | "hybrid" | null;
+        phoneE164: string | null;
+        nextSession: {
+          date: string;
+          startTime: string;
+        } | null;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      nextCursor: string | null;
+      counts: {
+        onboarding_draft: number;
+        active: number;
+        paused: number;
+        archived: number;
+      };
+    };
     ClientOptionsResponseDto: {
       clients: {
         /** Format: uuid */
@@ -2115,6 +2229,204 @@ export interface components {
         /** @enum {string} */
         status: "onboarding_draft" | "active" | "paused" | "archived";
       }[];
+    };
+    ClientDetailDto: {
+      /** Format: uuid */
+      id: string;
+      fullName: string;
+      /** @enum {string} */
+      status: "onboarding_draft" | "active" | "paused" | "archived";
+      /** @enum {string|null} */
+      goal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other"
+        | null;
+      /** @enum {string|null} */
+      trainingMode: "in_person" | "online" | "hybrid" | null;
+      phoneE164: string | null;
+      nextSession: {
+        date: string;
+        startTime: string;
+      } | null;
+      /** Format: date-time */
+      createdAt: string;
+      email: string | null;
+      /** @enum {string|null} */
+      preferredContact: "whatsapp" | "phone" | "email" | null;
+      dob: string | null;
+      age: number | null;
+      location: string | null;
+      preferredSchedule: string | null;
+      /** @enum {string|null} */
+      experienceLevel: "beginner" | "intermediate" | "advanced" | null;
+      equipment: string | null;
+      limitations: string | null;
+      emergencyContact: {
+        name: string;
+        phone: string | null;
+        relation: string | null;
+      } | null;
+      coachingStartOn: string | null;
+      /** Format: date-time */
+      onboardedAt: string | null;
+      /** Format: date-time */
+      archivedAt: string | null;
+      /** Format: uuid */
+      sourceLeadId: string | null;
+      onboardingLink: string | null;
+      timezone: string;
+      goals: {
+        /** @enum {string} */
+        kind: "primary" | "secondary";
+        /** @enum {string} */
+        goal:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other";
+        targetText: string | null;
+        targetDate: string | null;
+      }[];
+      consents: {
+        /** @enum {string} */
+        kind: "data_processing" | "progress_photos";
+        /** @enum {string} */
+        status: "granted" | "declined" | "withdrawn";
+        noticeVersion: number;
+        /** Format: date-time */
+        recordedAt: string;
+      }[];
+      stats: {
+        weeksWithYou: number | null;
+        sessionsCompleted: number;
+        nextAppointment: {
+          /** Format: uuid */
+          id: string;
+          date: string;
+          startTime: string;
+          /** @enum {string} */
+          kind: "session" | "online_session" | "trial" | "consultation";
+        } | null;
+      };
+      measurements: {
+        key: string;
+        name: string;
+        /** @enum {string} */
+        unitKind: "mass" | "length" | "percent" | "count";
+        value: number;
+        measuredOn: string;
+        points: number;
+      }[];
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+      recentActivity: {
+        /** @enum {string} */
+        type:
+          | "lead_converted"
+          | "client_onboarded"
+          | "client_paused"
+          | "client_resumed"
+          | "client_archived"
+          | "client_restored"
+          | "session_attended"
+          | "session_no_show";
+        /** Format: date-time */
+        at: string;
+        data: {
+          [key: string]: unknown;
+        };
+      }[];
+      notes: {
+        /** Format: uuid */
+        id: string;
+        body: string;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+    };
+    ClientScheduleResponseDto: {
+      upcoming: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        person: {
+          /** @enum {string} */
+          kind: "client" | "lead";
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+        };
+        /** Format: uuid */
+        seriesId: string | null;
+        location: string | null;
+        meetingUrl: string | null;
+        notes: string | null;
+        lateCancel: boolean;
+        cancelReason: string | null;
+        started: boolean;
+        needsAttendance: boolean;
+      }[];
+      past: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        person: {
+          /** @enum {string} */
+          kind: "client" | "lead";
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+        };
+        /** Format: uuid */
+        seriesId: string | null;
+        location: string | null;
+        meetingUrl: string | null;
+        notes: string | null;
+        lateCancel: boolean;
+        cancelReason: string | null;
+        started: boolean;
+        needsAttendance: boolean;
+      }[];
+    };
+    ClientNoteRequestDto: {
+      body: string;
+    };
+    ClientStatusRequestDto: {
+      /** @enum {string} */
+      action: "pause" | "resume" | "archive" | "restore";
+      reason?: string;
     };
     PublicPageResponseDto: {
       slug: string;
@@ -3720,7 +4032,40 @@ export interface operations {
       };
     };
   };
-  ClientOptionsController_options: {
+  ClientsController_list: {
+    parameters: {
+      query?: {
+        status?: "onboarding_draft" | "active" | "paused" | "archived";
+        q?: string;
+        goal?:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other";
+        mode?: "in_person" | "online" | "hybrid";
+        sort?: "name" | "newest";
+        cursor?: string;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientListResponseDto"];
+        };
+      };
+    };
+  };
+  ClientsController_options: {
     parameters: {
       query?: never;
       header?: never;
@@ -3735,6 +4080,98 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ClientOptionsResponseDto"];
+        };
+      };
+    };
+  };
+  ClientsController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientDetailDto"];
+        };
+      };
+    };
+  };
+  ClientsController_schedule: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientScheduleResponseDto"];
+        };
+      };
+    };
+  };
+  ClientsController_addNote: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ClientNoteRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientDetailDto"];
+        };
+      };
+    };
+  };
+  ClientsController_changeStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ClientStatusRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientDetailDto"];
         };
       };
     };

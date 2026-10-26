@@ -67,6 +67,7 @@ describe("navigation (PROMPT §6)", () => {
     expect(TRAINER_NAV.filter((item) => item.available).map((item) => item.href)).toEqual([
       "/app/dashboard",
       "/app/leads",
+      "/app/clients",
       "/app/calendar",
       "/app/settings",
     ]);

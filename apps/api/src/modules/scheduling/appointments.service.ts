@@ -11,6 +11,7 @@ import {
   type AttendanceRequest,
   type CancelAppointmentRequest,
   type ClientOptionsResponse,
+  type ClientScheduleResponse,
   type ClientStatus,
   type CreateAppointmentRequest,
   ERROR_CODES,
@@ -303,6 +304,81 @@ export class AppointmentsService {
         createdAt: change.createdAt.toISOString(),
       })),
     };
+  }
+
+  /** A client's next 20 live sessions and last 20 others (client detail, Schedule tab). */
+  async forClient(clientId: string): Promise<ClientScheduleResponse> {
+    const trainer = this.trainer();
+    const timezone = await this.timezone(trainer);
+    const mine = eq(appointments.clientId, clientId);
+    const upcoming = await this.select(
+      trainer,
+      timezone,
+      mine,
+      inArray(appointments.status, [...ACTIVE]),
+      gte(appointments.startsAt, sql`now()`),
+    )
+      .orderBy(asc(appointments.startsAt))
+      .limit(20);
+    const past = await this.select(
+      trainer,
+      timezone,
+      mine,
+      sql`not (${appointments.status} in ('scheduled', 'confirmed') and ${appointments.startsAt} >= now())`,
+    )
+      .orderBy(desc(appointments.startsAt))
+      .limit(20);
+    return {
+      upcoming: upcoming.map((row) => this.toAppointment(row)),
+      past: past.map((row) => this.toAppointment(row)),
+    };
+  }
+
+  /**
+   * Archiving a client (§8.3): their future live sessions are cancelled (not late, so no session is
+   * used) and their series end, in the caller's transaction. Returns how many were cancelled.
+   */
+  async cancelFutureForClient(clientId: string, reason: string): Promise<number> {
+    const trainer = this.trainer();
+    const future = await this.db.tx
+      .update(appointments)
+      .set({
+        status: "cancelled",
+        cancelledAt: sql`now()`,
+        cancelReason: reason,
+        lateCancel: false,
+      })
+      .where(
+        and(
+          eq(appointments.workspaceId, trainer.workspaceId),
+          eq(appointments.clientId, clientId),
+          inArray(appointments.status, [...ACTIVE]),
+          gte(appointments.startsAt, sql`now()`),
+        ),
+      )
+      .returning({ id: appointments.id });
+    if (future.length > 0) {
+      await this.db.tx.insert(appointmentChanges).values(
+        future.map(({ id }) => ({
+          workspaceId: trainer.workspaceId,
+          appointmentId: id,
+          kind: "cancelled",
+          data: { reason, lateCancel: false, scope: "client_archived" },
+          actorUserId: trainer.userId,
+        })),
+      );
+    }
+    await this.db.tx
+      .update(appointmentSeries)
+      .set({ status: "ended" })
+      .where(
+        and(
+          eq(appointmentSeries.workspaceId, trainer.workspaceId),
+          eq(appointmentSeries.clientId, clientId),
+          eq(appointmentSeries.status, "active"),
+        ),
+      );
+    return future.length;
   }
 
   async clientOptions(): Promise<ClientOptionsResponse> {

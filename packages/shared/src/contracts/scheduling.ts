@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { CLIENT_STATUSES } from "./clients";
 
 /** Calendar, appointments, recurring series and attendance (PROMPT §8.6, step 2.6). */
 
@@ -244,11 +243,3 @@ export const needsAttendanceResponseSchema = z.object({
   appointments: z.array(appointmentSchema),
 });
 export type NeedsAttendanceResponse = z.infer<typeof needsAttendanceResponseSchema>;
-
-/** Client picker for booking (the clients screen itself is step 3.1). */
-export const clientOptionsResponseSchema = z.object({
-  clients: z.array(
-    z.object({ id: z.string().uuid(), fullName: z.string(), status: z.enum(CLIENT_STATUSES) }),
-  ),
-});
-export type ClientOptionsResponse = z.infer<typeof clientOptionsResponseSchema>;

@@ -244,6 +244,9 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
         </div>
         <div className="flex flex-wrap gap-2 border-t border-border pt-4">
           <Button variant="dark" asChild>
+            <Link href={`/app/clients/${created.clientId}`}>Open profile</Link>
+          </Button>
+          <Button variant="outline" asChild>
             <Link href="/app/clients/new">Add another client</Link>
           </Button>
           <Button variant="ghost" asChild>

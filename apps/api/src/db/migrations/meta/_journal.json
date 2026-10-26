@@ -134,6 +134,20 @@
       "when": 1792770011478,
       "tag": "0018_scheduling_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792934473380,
+      "tag": "0019_client_lifecycle",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792934475482,
+      "tag": "0020_client_lifecycle_rls",
+      "breakpoints": true
     }
   ]
 }
