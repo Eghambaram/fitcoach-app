@@ -34,6 +34,10 @@ export default defineConfig({
   use: {
     baseURL: remoteBaseUrl ?? "http://localhost:3000",
     trace: "on-first-retry",
+    // Toasts and drawers then render without transitions, so axe never samples a half-faded
+    // element (it did in CI: contrast "failures" from 1.4:1 to 4.3:1 mid-fade). Also exercises
+    // the reduced-motion path the app must support (§7.4).
+    reducedMotion: "reduce",
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },

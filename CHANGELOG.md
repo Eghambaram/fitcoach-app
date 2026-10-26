@@ -113,6 +113,8 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Fixed
 
+- Package session use listed a switched mark (attended → no-show) in random order: the reversal and the new mark share the transaction's timestamp, so the tie was broken by UUID. The reversal now always comes first.
+- E2E accessibility checks run with reduced motion, so axe never samples a toast mid-fade (CI reported contrast "failures" of 1.4–4.3:1 that were transitions, not colours).
 - Leads and clients lists: a debounced search, or two quick filter changes, could undo a filter chosen just before. Filters now always build on the newest URL (`useUrlQuery`).
 - Drawers with only read-only content can now be scrolled from the keyboard (axe `scrollable-region-focusable`).
 - Package and exercise contracts: nullable strings carry a length bound, so the generated API client types them as strings.

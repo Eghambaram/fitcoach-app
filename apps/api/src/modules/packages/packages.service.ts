@@ -275,7 +275,13 @@ export class PackagesService {
           eq(packageSessionLedger.packageId, packageId),
         ),
       )
-      .orderBy(desc(packageSessionLedger.createdAt), desc(packageSessionLedger.id))
+      // Rows written in one transaction share created_at (now() is the transaction time): when an
+      // attended mark is switched to no-show, the reversal comes before the new mark.
+      .orderBy(
+        desc(packageSessionLedger.createdAt),
+        desc(sql`${packageSessionLedger.reversesId} is null`),
+        desc(packageSessionLedger.id),
+      )
       .limit(200);
     return rows.map(({ entry, date, startTime }) => ({
       id: entry.id,
