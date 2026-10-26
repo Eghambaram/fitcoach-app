@@ -18,6 +18,7 @@ import { HealthModule } from "./modules/health/health.module";
 import { JobsModule } from "./modules/jobs/jobs.module";
 import { LeadsModule } from "./modules/leads/leads.module";
 import { OnboardingModule } from "./modules/onboarding/onboarding.module";
+import { ProgramsModule } from "./modules/programs/programs.module";
 import { PackagesModule } from "./modules/packages/packages.module";
 import { PlatformModule } from "./modules/platform/platform.module";
 import { PublicPageModule } from "./modules/public-page/public-page.module";
@@ -44,6 +45,7 @@ import { SettingsModule } from "./modules/settings/settings.module";
     ClientsModule,
     PackagesModule,
     ExercisesModule,
+    ProgramsModule,
     PublicPageModule,
   ],
   providers: [

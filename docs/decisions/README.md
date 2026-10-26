@@ -57,3 +57,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0050](0050-clients-list-and-lifecycle.md)             | Clients list, client profile and lifecycle                                                  |
 | [0051](0051-packages-ledger-and-payments.md)           | Packages, the signed session ledger and manually recorded payments                          |
 | [0052](0052-exercise-library-and-starter-templates.md) | Exercise library, starter templates and the Programs entry point                            |
+| [0053](0053-program-builder-and-assignment.md)         | Program builder, assignment snapshots and the rolling session window                        |

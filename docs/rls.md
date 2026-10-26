@@ -160,6 +160,20 @@ No client policy on these tables: the client portal (step 4.1) gets sessions lef
 
 Proven by `exercises.db.test.ts`.
 
+### Program builder, assignments and planned sessions (step 3.4)
+
+Migration 0027 expands the step 3.3 policies above:
+
+| Table                        | fitcoach_app                                                                                             | Policy                                                                                                | Notes                                                                                                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `programs`                   | SELECT, INSERT; UPDATE of name, description, goal, duration, days per week, `is_template`, `archived_at` | insert signed (`created_by_user_id`) into the trainer's workspace, writable; update only own rows     | Never deleted (assignments point at them); archived instead. Global templates unchanged by any policy.                                                               |
+| `program_workouts`           | SELECT, INSERT, DELETE; UPDATE of name, day, position, notes                                             | own workspace, writable                                                                               | The builder saves a program whole: delete + insert in one transaction. Triggers from 0024 still apply.                                                               |
+| `program_exercises`          | SELECT, INSERT, DELETE; UPDATE of the target columns                                                     | own workspace, writable                                                                               | As above.                                                                                                                                                            |
+| `client_program_assignments` | SELECT, INSERT; UPDATE of `status`, `ended_at`                                                           | trainer's workspace; insert signed, `active`, from the trainer's own program; update only active rows | One active per client (partial unique). CHECK keeps `ended_at` with the status. Snapshot and dates can't change. No DELETE for either role.                          |
+| `workout_sessions`           | SELECT, INSERT, DELETE                                                                                   | trainer's workspace; insert only `planned`; delete only `planned`                                     | Started/finished sessions are history. Unique per (assignment, date, workout). The daily planning job runs as fitcoach_system. Logging updates arrive with step 3.5. |
+
+Proven by `programs.db.test.ts`.
+
 ## Proven by tests
 
 - Every `public` table has ENABLE + FORCE RLS (`rls-coverage.db.test.ts`).

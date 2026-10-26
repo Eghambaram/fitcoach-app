@@ -1060,6 +1060,134 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/programs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgramsController_list"];
+    put?: never;
+    post: operations["ProgramsController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/programs/templates": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgramsController_templates"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/programs/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgramsController_get"];
+    put: operations["ProgramsController_save"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/programs/{id}/archive": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ProgramsController_archive"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/programs/{id}/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ProgramsController_restore"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/programs/{id}/assign": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ProgramsController_assign"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/workouts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgramsController_clientWorkouts"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/assignments/{id}/end": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ProgramsController_end"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/exercises": {
     parameters: {
       query?: never;
@@ -1118,22 +1246,6 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations["ExercisesController_restore"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/programs/templates": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["ProgramsController_templates"];
-    put?: never;
-    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -2761,6 +2873,266 @@ export interface components {
       action: "pause" | "resume" | "archive" | "restore";
       reason?: string;
     };
+    ProgramListResponseDto: {
+      programs: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        /** @enum {string|null} */
+        goal:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other"
+          | null;
+        durationWeeks: number;
+        daysPerWeek: number;
+        isTemplate: boolean;
+        archived: boolean;
+        activeAssignments: number;
+        /** Format: date-time */
+        updatedAt: string;
+      }[];
+    };
+    ProgramTemplatesResponseDto: {
+      templates: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        description: string | null;
+        /** @enum {string|null} */
+        goal:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other"
+          | null;
+        durationWeeks: number;
+        daysPerWeek: number;
+        workouts: {
+          /** Format: uuid */
+          id: string;
+          name: string;
+          dayNumber: number;
+          notes: string | null;
+          exercises: {
+            /** Format: uuid */
+            id: string;
+            position: number;
+            exercise: {
+              /** Format: uuid */
+              id: string;
+              name: string;
+              /** @enum {string} */
+              category: "strength" | "cardio" | "plyometric" | "mobility";
+              muscleGroups: (
+                | "chest"
+                | "back"
+                | "shoulders"
+                | "biceps"
+                | "triceps"
+                | "forearms"
+                | "core"
+                | "glutes"
+                | "quads"
+                | "hamstrings"
+                | "calves"
+                | "hips"
+                | "full_body"
+              )[];
+            };
+            sets: number;
+            repsMin: number | null;
+            repsMax: number | null;
+            durationSeconds: number | null;
+            restSeconds: number | null;
+            clientInstructions: string | null;
+          }[];
+        }[];
+      }[];
+    };
+    CreateProgramRequestDto: {
+      /** Format: uuid */
+      fromProgramId?: string;
+      name?: string;
+      asTemplate?: boolean;
+    };
+    ProgramDetailDto: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      description: string | null;
+      /** @enum {string|null} */
+      goal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other"
+        | null;
+      durationWeeks: number;
+      daysPerWeek: number;
+      isTemplate: boolean;
+      global: boolean;
+      archived: boolean;
+      activeAssignments: number;
+      /** Format: date-time */
+      updatedAt: string;
+      workouts: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        dayNumber: number;
+        notes: string | null;
+        exercises: {
+          /** Format: uuid */
+          id: string;
+          position: number;
+          exercise: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            category: "strength" | "cardio" | "plyometric" | "mobility";
+            muscleGroups: (
+              | "chest"
+              | "back"
+              | "shoulders"
+              | "biceps"
+              | "triceps"
+              | "forearms"
+              | "core"
+              | "glutes"
+              | "quads"
+              | "hamstrings"
+              | "calves"
+              | "hips"
+              | "full_body"
+            )[];
+            archived: boolean;
+          };
+          sets: number;
+          repsMin: number | null;
+          repsMax: number | null;
+          durationSeconds: number | null;
+          targetLoadKg: number | null;
+          restSeconds: number | null;
+          trainerNotes: string | null;
+          clientInstructions: string | null;
+        }[];
+      }[];
+    };
+    ProgramInputDto: {
+      name: string;
+      description?: string;
+      /** @enum {string|null} */
+      goal:
+        | "lose_weight"
+        | "build_muscle"
+        | "get_stronger"
+        | "improve_fitness"
+        | "sports_performance"
+        | "other"
+        | null;
+      durationWeeks: number;
+      workouts: {
+        name: string;
+        dayNumber: number;
+        notes?: string;
+        exercises: {
+          /** Format: uuid */
+          exerciseId: string;
+          sets: number;
+          repsMin: number | null;
+          repsMax: number | null;
+          durationSeconds: number | null;
+          targetLoadKg: number | null;
+          restSeconds: number | null;
+          trainerNotes?: string;
+          clientInstructions?: string;
+        }[];
+      }[];
+    };
+    AssignProgramRequestDto: {
+      /** Format: uuid */
+      clientId: string;
+      startsOn: string;
+      schedule: {
+        workoutIndex: number;
+        weekday: number;
+      }[];
+      instructions?: string;
+      equipmentNotes?: string;
+    };
+    AssignProgramResponseDto: {
+      assignment: {
+        /** Format: uuid */
+        id: string;
+        /** Format: uuid */
+        programId: string | null;
+        name: string;
+        startsOn: string;
+        endsOn: string;
+        /** @enum {string} */
+        status: "active" | "completed" | "ended";
+        schedule: {
+          workoutIndex: number;
+          name: string;
+          weekday: number;
+        }[];
+        instructions: string | null;
+        equipmentNotes: string | null;
+        /** Format: date-time */
+        createdAt: string;
+      };
+      sessionsPlanned: number;
+      replaced: string | null;
+    };
+    ClientWorkoutsResponseDto: {
+      assignment: {
+        /** Format: uuid */
+        id: string;
+        /** Format: uuid */
+        programId: string | null;
+        name: string;
+        startsOn: string;
+        endsOn: string;
+        /** @enum {string} */
+        status: "active" | "completed" | "ended";
+        schedule: {
+          workoutIndex: number;
+          name: string;
+          weekday: number;
+        }[];
+        instructions: string | null;
+        equipmentNotes: string | null;
+        /** Format: date-time */
+        createdAt: string;
+      } | null;
+      upcoming: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        scheduledOn: string;
+        /** @enum {string} */
+        status: "planned" | "in_progress" | "completed" | "skipped";
+        workoutIndex: number;
+      }[];
+      recent: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        scheduledOn: string;
+        /** @enum {string} */
+        status: "planned" | "in_progress" | "completed" | "skipped";
+        workoutIndex: number;
+      }[];
+    };
     ExerciseListResponseDto: {
       exercises: {
         /** Format: uuid */
@@ -2901,65 +3273,6 @@ export interface components {
       instructions?: string;
       safetyNotes?: string;
       mediaUrl?: "" | string;
-    };
-    ProgramTemplatesResponseDto: {
-      templates: {
-        /** Format: uuid */
-        id: string;
-        name: string;
-        description: string | null;
-        /** @enum {string|null} */
-        goal:
-          | "lose_weight"
-          | "build_muscle"
-          | "get_stronger"
-          | "improve_fitness"
-          | "sports_performance"
-          | "other"
-          | null;
-        durationWeeks: number;
-        daysPerWeek: number;
-        workouts: {
-          /** Format: uuid */
-          id: string;
-          name: string;
-          dayNumber: number;
-          notes: string | null;
-          exercises: {
-            /** Format: uuid */
-            id: string;
-            position: number;
-            exercise: {
-              /** Format: uuid */
-              id: string;
-              name: string;
-              /** @enum {string} */
-              category: "strength" | "cardio" | "plyometric" | "mobility";
-              muscleGroups: (
-                | "chest"
-                | "back"
-                | "shoulders"
-                | "biceps"
-                | "triceps"
-                | "forearms"
-                | "core"
-                | "glutes"
-                | "quads"
-                | "hamstrings"
-                | "calves"
-                | "hips"
-                | "full_body"
-              )[];
-            };
-            sets: number;
-            repsMin: number | null;
-            repsMax: number | null;
-            durationSeconds: number | null;
-            restSeconds: number | null;
-            clientInstructions: string | null;
-          }[];
-        }[];
-      }[];
     };
     PublicPageResponseDto: {
       slug: string;
@@ -4862,6 +5175,227 @@ export interface operations {
       };
     };
   };
+  ProgramsController_list: {
+    parameters: {
+      query?: {
+        archived?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramListResponseDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateProgramRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramDetailDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_templates: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramTemplatesResponseDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramDetailDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_save: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProgramInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramDetailDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_archive: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramDetailDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_restore: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ProgramDetailDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_assign: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description UUID per user intent */
+        "Idempotency-Key"?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssignProgramRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssignProgramResponseDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_clientWorkouts: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientWorkoutsResponseDto"];
+        };
+      };
+    };
+  };
+  ProgramsController_end: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientWorkoutsResponseDto"];
+        };
+      };
+    };
+  };
   ExercisesController_list: {
     parameters: {
       query?: {
@@ -5020,25 +5554,6 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ExerciseDto"];
-        };
-      };
-    };
-  };
-  ProgramsController_templates: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ProgramTemplatesResponseDto"];
         };
       };
     };

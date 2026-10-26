@@ -19,7 +19,6 @@ import {
   Archive,
   CalendarPlus,
   ClipboardCheck,
-  Dumbbell,
   LineChart,
   MessageCircle,
   PauseCircle,
@@ -49,6 +48,7 @@ import { dayLabel, timeLabel } from "../calendar/dates";
 import { formatDateTime } from "../leads/lead-display";
 import { RecordPaymentForm } from "../packages/package-forms";
 import { clientPackagesKey, PackageCard, PackagesTab } from "../packages/packages-tab";
+import { WorkoutsTab } from "../programs/workouts-tab";
 import { Avatar } from "../shell/app-shell";
 import { ClientStatusPill } from "./client-display";
 
@@ -628,11 +628,7 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
           <PackagesTab clientId={client.id} archived={archived} onChanged={refreshClient} />
         </Tabs.Content>
         <Tabs.Content value="workouts">
-          <Later
-            icon={Dumbbell}
-            title="Programs and workouts are coming soon"
-            description="The program you assign and the workouts they log will show here."
-          />
+          <WorkoutsTab clientId={client.id} archived={archived} />
         </Tabs.Content>
         <Tabs.Content value="schedule">
           <Schedule client={client} />
