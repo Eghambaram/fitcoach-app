@@ -16,6 +16,7 @@ import { ConfirmDialog, Modal } from "@/components/shared/overlays";
 import { type PillTone, StatusPill } from "@/components/shared/status";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "../leads/lead-display";
@@ -187,6 +188,24 @@ export function PortalAccessCard({
       unwrap(browserApi.GET("/v1/clients/{id}/portal", { params: { path: { id: clientId } } })),
   });
   const invite = useInvite(clientId, setCreated);
+  const features = useMutation({
+    mutationFn: (workoutSelfLogging: boolean) =>
+      unwrap(
+        browserApi.PUT("/v1/clients/{id}/portal/features", {
+          params: { path: { id: clientId } },
+          body: { workoutSelfLogging },
+        }),
+      ),
+    onSuccess: (access) => {
+      queryClient.setQueryData(portalAccessKey(clientId), access);
+      toast.success(
+        access.features.workoutSelfLogging
+          ? "They can now log their own workouts."
+          : "Workout logging is back with you.",
+      );
+    },
+    onError: (failure) => toast.error(failure.message),
+  });
   const revoke = useMutation({
     mutationFn: () =>
       unwrap(
@@ -224,6 +243,21 @@ export function PortalAccessCard({
       ) : (
         <>
           <p className="text-sm text-muted-foreground">{statusLine(query.data)}</p>
+          {archived ? null : (
+            <label className="flex min-h-11 items-start gap-3 text-sm">
+              <Checkbox
+                checked={query.data.features.workoutSelfLogging}
+                disabled={!online || features.isPending}
+                onChange={(event) => features.mutate(event.target.checked)}
+              />
+              <span>
+                <span className="font-medium">Let {name.split(" ")[0]} log their own workouts</span>
+                <span className="block text-muted-foreground">
+                  Off: they can see their workouts, and you log them together.
+                </span>
+              </span>
+            </label>
+          )}
           {archived ? (
             <p className="text-sm text-muted-foreground">Restore this client to invite them.</p>
           ) : (

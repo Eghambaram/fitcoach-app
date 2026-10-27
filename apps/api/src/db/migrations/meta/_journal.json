@@ -225,6 +225,20 @@
       "when": 1793076939047,
       "tag": "0031_client_portal_access_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793082541272,
+      "tag": "0032_client_app",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793082543362,
+      "tag": "0033_client_app_rls",
+      "breakpoints": true
     }
   ]
 }

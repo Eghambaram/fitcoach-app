@@ -6,6 +6,31 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 4.2 client app screens (PROMPT §9):
+  - **Navigation:** Home · Workouts · Schedule · More. Progress and Check-in arrive with 4.3/4.4.
+  - **Home:**
+    - Greeting and a week strip.
+    - Today's workout (Start or View).
+    - **Sessions left** with expiry, never prices.
+    - Weekly streak and next session.
+    - Contact trainer (WhatsApp and Call).
+  - **My workouts:** Upcoming (this week / next week / later) and Past. **Workout details** shows notes from the trainer, estimated time, equipment and muscle-group chips, and the exercises.
+  - **Self-logging:** the client logs a workout with the same live screen as the trainer, but only when the trainer turns on **Let … log their own workouts** on the Client app card. They can add "How did it go?" feedback, which the trainer sees as the client's feedback.
+  - **Schedule:** own sessions with mode, location and online link, never session notes.
+  - **More:** trainer card, profile, help and sign out. **Profile:** details, goals (read-only), package, and contact preference and units (editable).
+  - **API:**
+    - **Client:** `GET /v1/client/home|workouts|workouts/:id|schedule|profile`, `POST /v1/client/workouts/:id/start|finish`, `PUT /v1/client/workout-sets/:id`, `PUT /v1/client/profile/preferences`.
+    - **Trainer:** `PUT /v1/clients/:id/portal/features`.
+    - **Changes to existing responses:** workout detail gains `clientFeedback` and `summary.estimatedMinutes`; `GET /v1/client/me` gains the trainer's phone and the client's features.
+  - **Database:**
+    - Client-facing views `client_portal_appointments` and `client_portal_packages`.
+    - Client read policies; client workout writes behind the feature flag, with a trigger keeping each side to its own fields.
+    - `clients.weight_unit` / `length_unit`, `workout_sessions.client_feedback`.
+    - ADR-0056.
+  - **Tests:**
+    - **RLS:** own rows only; views without notes or prices; self-logging gate and field guard; preferences function.
+    - **API:** no prices, notes or trainer notes on any client response; logging gated by the flag; trainer-only actions refused; tampering both ways.
+    - **e2e:** home, schedule, logging a workout, profile settings and the trainer seeing the feedback, on desktop and mobile.
 - Step 4.1 client invite link and client login (PROMPT D19, §8.3, §12.2):
   - **Client profile → Overview → Client app:**
     - **Status:** not invited, invited (with expiry), invite expired, active (with join date) or access revoked.

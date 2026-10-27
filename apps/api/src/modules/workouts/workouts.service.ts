@@ -17,9 +17,11 @@ import {
   type WorkoutSessionStatus,
   type WorkoutSet,
 } from "@fitcoach/shared";
-import { and, asc, eq, inArray, isNull, max, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, max, or, type SQL, sql } from "drizzle-orm";
+import { ClsService } from "nestjs-cls";
 import { DomainError } from "../../common/errors/domain-error";
 import { IdempotencyService } from "../../common/idempotency/idempotency.service";
+import type { AppClsStore } from "../../common/request-context";
 import { DbContext } from "../../db/db-context";
 import {
   appointments,
@@ -31,7 +33,17 @@ import {
   workoutSets,
   workspaces,
 } from "../../db/schema";
-import { ProgramsService, type Trainer } from "../programs/programs.service";
+
+/**
+ * Who is logging: a trainer (any workout in their workspace) or a client (only their own, step
+ * 4.2). Always from the session (CLAUDE.md rule 1).
+ */
+export type Scope = {
+  actor: "trainer" | "client";
+  userId: string;
+  workspaceId: string;
+  clientId: string | null;
+};
 
 type SessionRow = typeof workoutSessions.$inferSelect;
 type SnapshotExercise = ProgramDetail["workouts"][number]["exercises"][number];
@@ -47,6 +59,15 @@ type PlanRow = Omit<
   exerciseId: string;
   plannedExerciseId: string | null;
 };
+
+/** Rough minutes from the targets: sets × (work + rest); ~4 s per rep. Shown as an estimate. */
+function estimateMinutes(items: WorkoutExercise[]): number {
+  const seconds = items.reduce((total, item) => {
+    const work = item.durationSeconds ?? (item.repsMax ?? item.repsMin ?? 10) * 4;
+    return total + item.sets * (work + (item.restSeconds ?? 60));
+  }, 0);
+  return Math.max(1, Math.round(seconds / 60));
+}
 
 const notFound = () => DomainError.notFound("That workout doesn't exist.");
 const notInProgress = (status: WorkoutSessionStatus) =>
@@ -73,19 +94,50 @@ const invalid = (fieldErrors: Record<string, string[]>, message = "Some details 
 export class WorkoutsService {
   constructor(
     private readonly db: DbContext,
-    private readonly programs: ProgramsService,
+    private readonly cls: ClsService<AppClsStore>,
     private readonly idempotency: IdempotencyService,
   ) {}
+
+  scope(): Scope {
+    const auth = this.cls.get("auth");
+    if (auth?.actor === "trainer" && auth.workspaceId) {
+      return {
+        actor: "trainer",
+        userId: auth.userId,
+        workspaceId: auth.workspaceId,
+        clientId: null,
+      };
+    }
+    if (auth?.actor === "client" && auth.workspaceId && auth.clientId) {
+      return {
+        actor: "client",
+        userId: auth.userId,
+        workspaceId: auth.workspaceId,
+        clientId: auth.clientId,
+      };
+    }
+    throw DomainError.forbidden();
+  }
+
+  /** The workout, within the scope: a client only ever reaches their own. */
+  private sessionWhere(scope: Scope, id: string): SQL {
+    return and(
+      eq(workoutSessions.id, id),
+      eq(workoutSessions.workspaceId, scope.workspaceId),
+      scope.clientId ? eq(workoutSessions.clientId, scope.clientId) : undefined,
+    ) as SQL;
+  }
+
+  private trainerOnly(scope: Scope): void {
+    if (scope.actor !== "trainer") throw DomainError.forbidden();
+  }
 
   /**
    * The session, locked while it can still change. FOR UPDATE also applies the UPDATE policy, which
    * hides finished and skipped sessions, so those are read without a lock (they can't change).
    */
-  private async lock(trainer: Trainer, id: string): Promise<SessionRow> {
-    const where = and(
-      eq(workoutSessions.id, id),
-      eq(workoutSessions.workspaceId, trainer.workspaceId),
-    );
+  private async lock(scope: Scope, id: string): Promise<SessionRow> {
+    const where = this.sessionWhere(scope, id);
     const [locked] = await this.db.tx.select().from(workoutSessions).where(where).for("update");
     if (locked) return locked;
     const [row] = await this.db.tx.select().from(workoutSessions).where(where);
@@ -93,8 +145,8 @@ export class WorkoutsService {
     return row;
   }
 
-  private async lockInProgress(trainer: Trainer, id: string): Promise<SessionRow> {
-    const session = await this.lock(trainer, id);
+  private async lockInProgress(scope: Scope, id: string): Promise<SessionRow> {
+    const session = await this.lock(scope, id);
     if (session.status !== "in_progress") {
       throw notInProgress(session.status as WorkoutSessionStatus);
     }
@@ -102,23 +154,23 @@ export class WorkoutsService {
   }
 
   /** The session exercise (in this workspace) and its workout, locked. */
-  private async lockExercise(trainer: Trainer, sessionExerciseId: string) {
+  private async lockExercise(scope: Scope, sessionExerciseId: string) {
     const [row] = await this.db.tx
       .select()
       .from(workoutSessionExercises)
       .where(
         and(
           eq(workoutSessionExercises.id, sessionExerciseId),
-          eq(workoutSessionExercises.workspaceId, trainer.workspaceId),
+          eq(workoutSessionExercises.workspaceId, scope.workspaceId),
         ),
       );
     if (!row) throw DomainError.notFound("That exercise isn't part of this workout.");
-    await this.lockInProgress(trainer, row.workoutSessionId);
+    await this.lockInProgress(scope, row.workoutSessionId);
     return row;
   }
 
   /** Library exercises by id, with whether they may be used now (global or own, not archived). */
-  private async exerciseRows(trainer: Trainer, ids: string[]): Promise<Map<string, ExerciseRow>> {
+  private async exerciseRows(scope: Scope, ids: string[]): Promise<Map<string, ExerciseRow>> {
     if (ids.length === 0) return new Map();
     const rows = await this.db.tx
       .select({
@@ -135,14 +187,14 @@ export class WorkoutsService {
       .where(
         and(
           inArray(exercises.id, [...new Set(ids)]),
-          or(isNull(exercises.workspaceId), eq(exercises.workspaceId, trainer.workspaceId)),
+          or(isNull(exercises.workspaceId), eq(exercises.workspaceId, scope.workspaceId)),
         ),
       );
     return new Map(rows.map((row) => [row.id, row]));
   }
 
-  private async usableExercise(trainer: Trainer, id: string): Promise<ExerciseRow> {
-    const row = (await this.exerciseRows(trainer, [id])).get(id);
+  private async usableExercise(scope: Scope, id: string): Promise<ExerciseRow> {
+    const row = (await this.exerciseRows(scope, [id])).get(id);
     if (!row || !row.usable)
       throw invalid({ exerciseId: ["Choose an exercise from your library"] });
     return row;
@@ -155,10 +207,10 @@ export class WorkoutsService {
   }
 
   async get(id: string): Promise<WorkoutDetail> {
-    return this.detail(this.programs.trainer(), id);
+    return this.detail(this.scope(), id);
   }
 
-  private async detail(trainer: Trainer, id: string): Promise<WorkoutDetail> {
+  private async detail(scope: Scope, id: string): Promise<WorkoutDetail> {
     const [row] = await this.db.tx
       .select({
         session: workoutSessions,
@@ -193,7 +245,7 @@ export class WorkoutsService {
           eq(appointments.id, workoutSessions.appointmentId),
         ),
       )
-      .where(and(eq(workoutSessions.id, id), eq(workoutSessions.workspaceId, trainer.workspaceId)));
+      .where(this.sessionWhere(scope, id));
     if (!row) throw notFound();
     const { session } = row;
     const planned = this.snapshotWorkout(row.snapshot, session.workoutIndex);
@@ -203,7 +255,7 @@ export class WorkoutsService {
       .from(workoutSessionExercises)
       .where(
         and(
-          eq(workoutSessionExercises.workspaceId, trainer.workspaceId),
+          eq(workoutSessionExercises.workspaceId, scope.workspaceId),
           eq(workoutSessionExercises.workoutSessionId, session.id),
         ),
       )
@@ -234,7 +286,7 @@ export class WorkoutsService {
             .from(workoutSets)
             .where(
               and(
-                eq(workoutSets.workspaceId, trainer.workspaceId),
+                eq(workoutSets.workspaceId, scope.workspaceId),
                 inArray(
                   workoutSets.workoutSessionExerciseId,
                   logged.map((item) => item.id),
@@ -260,13 +312,13 @@ export class WorkoutsService {
     }
 
     const library = await this.exerciseRows(
-      trainer,
+      scope,
       plan.flatMap((item) => [item.exerciseId, item.plannedExerciseId ?? item.exerciseId]),
     );
     const suggestionIds = plan.flatMap(
       (item) => library.get(item.plannedExerciseId ?? item.exerciseId)?.substitutionIds ?? [],
     );
-    const suggestions = await this.exerciseRows(trainer, suggestionIds);
+    const suggestions = await this.exerciseRows(scope, suggestionIds);
     const ref = (exerciseId: string) => ({
       id: exerciseId,
       name: library.get(exerciseId)?.name ?? "Exercise",
@@ -326,6 +378,7 @@ export class WorkoutsService {
       startedAt: session.startedAt?.toISOString() ?? null,
       completedAt: session.completedAt?.toISOString() ?? null,
       feedback: session.trainerFeedback,
+      clientFeedback: session.clientFeedback,
       skipReason: session.skipReason,
       client: {
         id: session.clientId,
@@ -358,6 +411,7 @@ export class WorkoutsService {
           session.startedAt && end
             ? Math.max(0, Math.round((end.getTime() - session.startedAt.getTime()) / 60_000))
             : null,
+        estimatedMinutes: estimateMinutes(items),
       },
     };
   }
@@ -367,9 +421,9 @@ export class WorkoutsService {
    * day (the nearest one not linked to another workout). Starting again returns the same workout.
    */
   async start(id: string): Promise<WorkoutDetail> {
-    const trainer = this.programs.trainer();
-    const session = await this.lock(trainer, id);
-    if (session.status === "in_progress") return this.detail(trainer, id);
+    const scope = this.scope();
+    const session = await this.lock(scope, id);
+    if (session.status === "in_progress") return this.detail(scope, id);
     if (session.status !== "planned") throw notInProgress(session.status as WorkoutSessionStatus);
 
     const [owner] = await this.db.tx
@@ -386,7 +440,7 @@ export class WorkoutsService {
           eq(clientProgramAssignments.id, session.assignmentId),
         ),
       )
-      .where(and(eq(clients.workspaceId, trainer.workspaceId), eq(clients.id, session.clientId)));
+      .where(and(eq(clients.workspaceId, scope.workspaceId), eq(clients.id, session.clientId)));
     if (!owner) throw notFound();
     if (owner.status !== "active") {
       throw new DomainError(
@@ -403,7 +457,7 @@ export class WorkoutsService {
       .innerJoin(workspaces, eq(workspaces.id, appointments.workspaceId))
       .where(
         and(
-          eq(appointments.workspaceId, trainer.workspaceId),
+          eq(appointments.workspaceId, scope.workspaceId),
           eq(appointments.clientId, session.clientId),
           inArray(appointments.kind, ["session", "online_session"]),
           sql`${appointments.status} <> 'cancelled'`,
@@ -421,11 +475,11 @@ export class WorkoutsService {
     await this.db.tx
       .update(workoutSessions)
       .set({ status: "in_progress", startedAt: sql`now()`, appointmentId: appointment?.id ?? null })
-      .where(and(eq(workoutSessions.id, id), eq(workoutSessions.workspaceId, trainer.workspaceId)));
+      .where(this.sessionWhere(scope, id));
     if (planned.exercises.length > 0) {
       await this.db.tx.insert(workoutSessionExercises).values(
         planned.exercises.map((item: SnapshotExercise, index) => ({
-          workspaceId: trainer.workspaceId,
+          workspaceId: scope.workspaceId,
           workoutSessionId: id,
           position: index + 1,
           exerciseId: item.exercise.id,
@@ -441,7 +495,7 @@ export class WorkoutsService {
         })),
       );
     }
-    return this.detail(trainer, id);
+    return this.detail(scope, id);
   }
 
   /**
@@ -450,13 +504,13 @@ export class WorkoutsService {
    * duplicated.
    */
   async putSet(setId: string, input: PutWorkoutSetRequest): Promise<WorkoutDetail> {
-    const trainer = this.programs.trainer();
-    const exercise = await this.lockExercise(trainer, input.sessionExerciseId);
+    const scope = this.scope();
+    const exercise = await this.lockExercise(scope, input.sessionExerciseId);
 
     const [byId] = await this.db.tx
       .select()
       .from(workoutSets)
-      .where(and(eq(workoutSets.id, setId), eq(workoutSets.workspaceId, trainer.workspaceId)));
+      .where(and(eq(workoutSets.id, setId), eq(workoutSets.workspaceId, scope.workspaceId)));
     if (
       byId &&
       (byId.workoutSessionExerciseId !== exercise.id || byId.setNumber !== input.setNumber)
@@ -474,7 +528,7 @@ export class WorkoutsService {
           .from(workoutSets)
           .where(
             and(
-              eq(workoutSets.workspaceId, trainer.workspaceId),
+              eq(workoutSets.workspaceId, scope.workspaceId),
               eq(workoutSets.workoutSessionExerciseId, exercise.id),
               eq(workoutSets.setNumber, input.setNumber),
             ),
@@ -493,7 +547,7 @@ export class WorkoutsService {
         .update(workoutSets)
         .set(values)
         .where(
-          and(eq(workoutSets.id, byNumber.id), eq(workoutSets.workspaceId, trainer.workspaceId)),
+          and(eq(workoutSets.id, byNumber.id), eq(workoutSets.workspaceId, scope.workspaceId)),
         );
     } else {
       const [last] = await this.db.tx
@@ -501,7 +555,7 @@ export class WorkoutsService {
         .from(workoutSets)
         .where(
           and(
-            eq(workoutSets.workspaceId, trainer.workspaceId),
+            eq(workoutSets.workspaceId, scope.workspaceId),
             eq(workoutSets.workoutSessionExerciseId, exercise.id),
           ),
         );
@@ -510,13 +564,13 @@ export class WorkoutsService {
       }
       await this.db.tx.insert(workoutSets).values({
         id: setId,
-        workspaceId: trainer.workspaceId,
+        workspaceId: scope.workspaceId,
         workoutSessionExerciseId: exercise.id,
         setNumber: input.setNumber,
         ...values,
       });
     }
-    return this.detail(trainer, exercise.workoutSessionId);
+    return this.detail(scope, exercise.workoutSessionId);
   }
 
   /** Swap an exercise for another (logged sets stay); the planned one is kept for the record. */
@@ -524,34 +578,36 @@ export class WorkoutsService {
     sessionExerciseId: string,
     input: SubstituteExerciseRequest,
   ): Promise<WorkoutDetail> {
-    const trainer = this.programs.trainer();
-    const item = await this.lockExercise(trainer, sessionExerciseId);
+    const scope = this.scope();
+    this.trainerOnly(scope);
+    const item = await this.lockExercise(scope, sessionExerciseId);
     if (item.exerciseId !== input.exerciseId) {
-      await this.usableExercise(trainer, input.exerciseId);
+      await this.usableExercise(scope, input.exerciseId);
       await this.db.tx
         .update(workoutSessionExercises)
         .set({ exerciseId: input.exerciseId })
         .where(
           and(
             eq(workoutSessionExercises.id, item.id),
-            eq(workoutSessionExercises.workspaceId, trainer.workspaceId),
+            eq(workoutSessionExercises.workspaceId, scope.workspaceId),
           ),
         );
     }
-    return this.detail(trainer, item.workoutSessionId);
+    return this.detail(scope, item.workoutSessionId);
   }
 
   /** An extra exercise at the end of the workout (not added to the program). */
   async addExercise(id: string, input: AddWorkoutExerciseRequest): Promise<WorkoutDetail> {
-    const trainer = this.programs.trainer();
-    await this.lockInProgress(trainer, id);
-    await this.usableExercise(trainer, input.exerciseId);
+    const scope = this.scope();
+    this.trainerOnly(scope);
+    await this.lockInProgress(scope, id);
+    await this.usableExercise(scope, input.exerciseId);
     const [last] = await this.db.tx
       .select({ value: max(workoutSessionExercises.position) })
       .from(workoutSessionExercises)
       .where(
         and(
-          eq(workoutSessionExercises.workspaceId, trainer.workspaceId),
+          eq(workoutSessionExercises.workspaceId, scope.workspaceId),
           eq(workoutSessionExercises.workoutSessionId, id),
         ),
       );
@@ -564,7 +620,7 @@ export class WorkoutsService {
       );
     }
     await this.db.tx.insert(workoutSessionExercises).values({
-      workspaceId: trainer.workspaceId,
+      workspaceId: scope.workspaceId,
       workoutSessionId: id,
       position,
       exerciseId: input.exerciseId,
@@ -578,7 +634,7 @@ export class WorkoutsService {
       trainerNotes: input.trainerNotes || null,
       clientInstructions: input.clientInstructions || null,
     });
-    return this.detail(trainer, id);
+    return this.detail(scope, id);
   }
 
   finish(
@@ -596,9 +652,9 @@ export class WorkoutsService {
 
   /** in_progress → completed. Needs at least one completed set; finishing twice is a no-op. */
   private async runFinish(id: string, input: FinishWorkoutRequest): Promise<WorkoutDetail> {
-    const trainer = this.programs.trainer();
-    const session = await this.lock(trainer, id);
-    if (session.status === "completed") return this.detail(trainer, id);
+    const scope = this.scope();
+    const session = await this.lock(scope, id);
+    if (session.status === "completed") return this.detail(scope, id);
     if (session.status !== "in_progress")
       throw notInProgress(session.status as WorkoutSessionStatus);
     const [done] = await this.db.tx
@@ -613,7 +669,7 @@ export class WorkoutsService {
       )
       .where(
         and(
-          eq(workoutSets.workspaceId, trainer.workspaceId),
+          eq(workoutSets.workspaceId, scope.workspaceId),
           eq(workoutSessionExercises.workoutSessionId, id),
           eq(workoutSets.completed, true),
         ),
@@ -630,22 +686,26 @@ export class WorkoutsService {
       .set({
         status: "completed",
         completedAt: sql`now()`,
-        trainerFeedback: input.feedback || null,
+        // Each side writes only their own feedback (trigger, migration 0033).
+        ...(scope.actor === "client"
+          ? { clientFeedback: input.feedback || null }
+          : { trainerFeedback: input.feedback || null }),
       })
-      .where(and(eq(workoutSessions.id, id), eq(workoutSessions.workspaceId, trainer.workspaceId)));
-    return this.detail(trainer, id);
+      .where(this.sessionWhere(scope, id));
+    return this.detail(scope, id);
   }
 
   /** planned or in_progress → skipped (anything logged stays). Skipping twice is a no-op. */
   async skip(id: string, input: SkipWorkoutRequest): Promise<WorkoutDetail> {
-    const trainer = this.programs.trainer();
-    const session = await this.lock(trainer, id);
-    if (session.status === "skipped") return this.detail(trainer, id);
+    const scope = this.scope();
+    this.trainerOnly(scope);
+    const session = await this.lock(scope, id);
+    if (session.status === "skipped") return this.detail(scope, id);
     if (session.status === "completed") throw notInProgress("completed");
     await this.db.tx
       .update(workoutSessions)
       .set({ status: "skipped", skipReason: input.reason || null })
-      .where(and(eq(workoutSessions.id, id), eq(workoutSessions.workspaceId, trainer.workspaceId)));
-    return this.detail(trainer, id);
+      .where(this.sessionWhere(scope, id));
+    return this.detail(scope, id);
   }
 }

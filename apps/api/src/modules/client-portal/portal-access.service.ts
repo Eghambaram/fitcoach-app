@@ -1,12 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import {
   CLIENT_INVITE_TTL_DAYS,
+  type ClientFeatures,
+  clientFeaturesSchema,
   type CreateInviteRequest,
   type CreateInviteResponse,
   ERROR_CODES,
   firstName,
   type InviteChannel,
   type PortalAccess,
+  type UpdateClientFeaturesRequest,
 } from "@fitcoach/shared";
 import { and, desc, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import { ClsService } from "nestjs-cls";
@@ -26,8 +29,20 @@ import { recordAudit } from "../audit/audit.service";
 type Trainer = AuthContext & { workspaceId: string };
 type ClientRow = Pick<
   typeof clients.$inferSelect,
-  "id" | "status" | "fullName" | "phoneE164" | "email" | "userId" | "portalRevokedAt"
+  "id" | "status" | "fullName" | "phoneE164" | "email" | "userId" | "portalRevokedAt" | "features"
 >;
+
+const DEFAULT_FEATURES: ClientFeatures = {
+  workoutSelfLogging: false,
+  checkIns: true,
+  progressSelfLogging: false,
+};
+
+/** The stored flags, with defaults for any missing key. */
+export function readFeatures(value: unknown): ClientFeatures {
+  const parsed = clientFeaturesSchema.partial().safeParse(value);
+  return { ...DEFAULT_FEATURES, ...(parsed.success ? parsed.data : {}) };
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const notFound = () => DomainError.notFound("That client doesn't exist.");
@@ -65,6 +80,7 @@ export class PortalAccessService {
         email: clients.email,
         userId: clients.userId,
         portalRevokedAt: clients.portalRevokedAt,
+        features: clients.features,
       })
       .from(clients)
       .where(and(eq(clients.id, clientId), eq(clients.workspaceId, trainer.workspaceId)));
@@ -124,6 +140,7 @@ export class PortalAccessService {
       joinedAt: joinedAt?.toISOString() ?? null,
       canWhatsApp: usable && client.phoneE164 !== null,
       canEmail: usable && client.email !== null,
+      features: readFeatures(client.features),
     };
   }
 
@@ -227,6 +244,28 @@ export class PortalAccessService {
         input.channel === "whatsapp" ? this.whatsApp.build(context, client, { link }) : null,
       emailed,
     };
+  }
+
+  /** Per-client features (§8.3), e.g. letting the client log their own workouts. */
+  async setFeatures(clientId: string, input: UpdateClientFeaturesRequest): Promise<PortalAccess> {
+    const trainer = this.trainer();
+    const client = await this.client(trainer, clientId, true);
+    const features = { ...readFeatures(client.features), ...input };
+    await this.db.tx
+      .update(clients)
+      .set({ features })
+      .where(and(eq(clients.id, client.id), eq(clients.workspaceId, trainer.workspaceId)));
+    await recordAudit(this.db.tx, {
+      actorKind: "trainer",
+      actorUserId: trainer.userId,
+      workspaceId: trainer.workspaceId,
+      action: "client.features_changed",
+      targetType: "client",
+      targetId: client.id,
+      before: readFeatures(client.features),
+      after: features,
+    });
+    return this.access(trainer, { ...client, features });
   }
 
   /** Turns portal access off: open links stop working and the client is signed out everywhere. */

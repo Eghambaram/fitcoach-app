@@ -32,12 +32,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input, Textarea } from "@/components/ui/input";
-import { browserApi, unwrap } from "@/lib/api/browser";
 import { cn } from "@/lib/utils";
 import { attendanceMessage } from "../calendar/appointment-drawer";
 import { dayLabel } from "../calendar/dates";
 import { clientPackagesKey } from "../packages/packages-tab";
 import { ExercisePicker } from "../programs/program-builder";
+import type { WorkoutApi } from "./workout-api";
 
 const STATUS_TONES: Record<WorkoutSessionStatus, PillTone> = {
   planned: "info",
@@ -47,8 +47,6 @@ const STATUS_TONES: Record<WorkoutSessionStatus, PillTone> = {
 };
 
 type Values = Pick<PutWorkoutSetRequest, "reps" | "loadKg" | "durationSeconds">;
-
-export const workoutKey = (id: string) => ["workout", id];
 
 function seconds(value: number): string {
   if (value < 60) return `${value}s`;
@@ -348,28 +346,30 @@ function SummaryTiles({ workout }: { workout: WorkoutDetail }) {
  * it is completed (`PUT /workout-sets/:id` with an id made on this device), so a refresh restores
  * everything from the API. Saving is disabled while offline.
  */
-export function LiveWorkout({ initial }: { initial: WorkoutDetail }) {
+export function LiveWorkout({
+  initial,
+  api,
+  back,
+  audience = "trainer",
+}: {
+  initial: WorkoutDetail;
+  api: WorkoutApi;
+  back: { href: string; label: string };
+  /** The client app hides trainer-only parts (skip, swap, add, attendance). */
+  audience?: "trainer" | "client";
+}) {
   const online = useOnline();
   const queryClient = useQueryClient();
-  const key = workoutKey(initial.id);
-  const query = useQuery({
-    queryKey: key,
-    queryFn: () =>
-      unwrap(browserApi.GET("/v1/workout-sessions/{id}", { params: { path: { id: initial.id } } })),
-    initialData: initial,
-  });
+  const key = api.key;
+  const query = useQuery({ queryKey: key, queryFn: () => api.get(), initialData: initial });
   const workout = query.data;
   const store = (next: WorkoutDetail) => queryClient.setQueryData(key, next);
 
   const [skipping, setSkipping] = useState(false);
   const [skipReason, setSkipReason] = useState("");
+  const canStart = audience === "client" || workout.client.active;
   const start = useMutation({
-    mutationFn: () =>
-      unwrap(
-        browserApi.POST("/v1/workout-sessions/{id}/start", {
-          params: { path: { id: workout.id } },
-        }),
-      ),
+    mutationFn: () => api.start(),
     onSuccess: (next) => {
       store(next);
       if (next.appointment) toast.success("Workout started. Linked to today's session.");
@@ -377,13 +377,10 @@ export function LiveWorkout({ initial }: { initial: WorkoutDetail }) {
     onError: (failure) => toast.error(failure.message),
   });
   const skip = useMutation({
-    mutationFn: () =>
-      unwrap(
-        browserApi.POST("/v1/workout-sessions/{id}/skip", {
-          params: { path: { id: workout.id } },
-          body: { reason: skipReason },
-        }),
-      ),
+    mutationFn: () => {
+      if (!api.skip) throw new Error("Skipping isn't available here.");
+      return api.skip(skipReason);
+    },
     onSuccess: (next) => {
       store(next);
       setSkipping(false);
@@ -396,10 +393,10 @@ export function LiveWorkout({ initial }: { initial: WorkoutDetail }) {
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3">
         <Link
-          href={`/app/clients/${workout.client.id}?tab=workouts`}
+          href={back.href}
           className="flex min-h-11 w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="size-4" aria-hidden="true" /> {workout.client.fullName}
+          <ArrowLeft className="size-4" aria-hidden="true" /> {back.label}
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -432,7 +429,7 @@ export function LiveWorkout({ initial }: { initial: WorkoutDetail }) {
             </Card>
           ) : null}
           <ExerciseList workout={workout} />
-          {workout.client.active ? null : (
+          {canStart ? null : (
             <p className="text-sm text-muted-foreground">
               {workout.client.fullName} isn&apos;t an active client, so this workout can&apos;t
               start.
@@ -442,30 +439,34 @@ export function LiveWorkout({ initial }: { initial: WorkoutDetail }) {
             <Button
               size="lg"
               loading={start.isPending}
-              disabled={!online || !workout.client.active}
+              disabled={!online || !canStart}
               onClick={() => start.mutate()}
             >
               Start workout
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              disabled={!online}
-              onClick={() => setSkipping(true)}
-            >
-              Skip workout
-            </Button>
+            {api.skip ? (
+              <Button
+                variant="outline"
+                size="lg"
+                disabled={!online}
+                onClick={() => setSkipping(true)}
+              >
+                Skip workout
+              </Button>
+            ) : null}
           </div>
         </div>
       ) : workout.status === "in_progress" ? (
         <InProgress
           workout={workout}
+          api={api}
+          audience={audience}
           online={online}
           store={store}
-          onSkip={() => setSkipping(true)}
+          onSkip={api.skip ? () => setSkipping(true) : undefined}
         />
       ) : (
-        <Finished workout={workout} online={online} />
+        <Finished workout={workout} api={api} audience={audience} online={online} />
       )}
 
       <Modal
@@ -504,14 +505,18 @@ export function LiveWorkout({ initial }: { initial: WorkoutDetail }) {
 
 function InProgress({
   workout,
+  api,
+  audience,
   online,
   store,
   onSkip,
 }: {
   workout: WorkoutDetail;
+  api: WorkoutApi;
+  audience: "trainer" | "client";
   online: boolean;
   store: (next: WorkoutDetail) => void;
-  onSkip: () => void;
+  onSkip?: () => void;
 }) {
   const firstOpen = workout.exercises.findIndex((item) => !item.done);
   const [index, setIndex] = useState(firstOpen >= 0 ? firstOpen : 0);
@@ -554,18 +559,13 @@ function InProgress({
         setIds.current.get(slot) ??
         crypto.randomUUID();
       setIds.current.set(slot, id);
-      return unwrap(
-        browserApi.PUT("/v1/workout-sets/{id}", {
-          params: { path: { id } },
-          body: {
-            sessionExerciseId: item.id,
-            setNumber: number,
-            ...values,
-            rpe: item.logged.find((set) => set.setNumber === number)?.rpe ?? null,
-            completed,
-          },
-        }),
-      );
+      return api.putSet(id, {
+        sessionExerciseId: item.id,
+        setNumber: number,
+        ...values,
+        rpe: item.logged.find((set) => set.setNumber === number)?.rpe ?? null,
+        completed,
+      });
     },
     onSuccess: (next, { number, completed }) => {
       store(next);
@@ -582,13 +582,10 @@ function InProgress({
     onError: (failure) => toast.error(failure.message),
   });
   const swap = useMutation({
-    mutationFn: (exerciseId: string) =>
-      unwrap(
-        browserApi.POST("/v1/workout-session-exercises/{id}/substitute", {
-          params: { path: { id: item?.id ?? "" } },
-          body: { exerciseId },
-        }),
-      ),
+    mutationFn: (exerciseId: string) => {
+      if (!api.substitute || !item?.id) throw new Error("Swapping isn't available here.");
+      return api.substitute(item.id, exerciseId);
+    },
     onSuccess: (next) => {
       store(next);
       setSwapping(false);
@@ -598,20 +595,16 @@ function InProgress({
   const add = useMutation({
     mutationFn: (exercise: Exercise) => {
       const timed = exercise.category === "cardio" || exercise.category === "mobility";
-      return unwrap(
-        browserApi.POST("/v1/workout-sessions/{id}/exercises", {
-          params: { path: { id: workout.id } },
-          body: {
-            exerciseId: exercise.id,
-            sets: 3,
-            repsMin: timed ? null : 10,
-            repsMax: null,
-            durationSeconds: timed ? 30 : null,
-            targetLoadKg: null,
-            restSeconds: 60,
-          },
-        }),
-      );
+      if (!api.addExercise) throw new Error("Adding exercises isn't available here.");
+      return api.addExercise({
+        exerciseId: exercise.id,
+        sets: 3,
+        repsMin: timed ? null : 10,
+        repsMax: null,
+        durationSeconds: timed ? 30 : null,
+        targetLoadKg: null,
+        restSeconds: 60,
+      });
     },
     onSuccess: (next) => {
       store(next);
@@ -621,13 +614,7 @@ function InProgress({
     onError: (failure) => toast.error(failure.message),
   });
   const finish = useMutation({
-    mutationFn: () =>
-      unwrap(
-        browserApi.POST("/v1/workout-sessions/{id}/finish", {
-          params: { path: { id: workout.id }, header: { "Idempotency-Key": finishKey } },
-          body: { feedback },
-        }),
-      ),
+    mutationFn: () => api.finish(feedback, finishKey),
     onSuccess: (next) => {
       store(next);
       setFinishing(false);
@@ -640,9 +627,11 @@ function InProgress({
     return (
       <Card className="flex flex-col gap-3 p-5">
         <p className="text-sm text-muted-foreground">This workout has no exercises.</p>
-        <Button variant="outline" disabled={!online} onClick={() => setAdding(true)}>
-          Add exercise
-        </Button>
+        {api.addExercise ? (
+          <Button variant="outline" disabled={!online} onClick={() => setAdding(true)}>
+            Add exercise
+          </Button>
+        ) : null}
       </Card>
     );
   }
@@ -665,9 +654,11 @@ function InProgress({
             {item.substitutedFor ? ` · instead of ${item.substitutedFor.name}` : ""}
           </p>
         </div>
-        <Button variant="outline" disabled={!online} onClick={() => setSwapping(true)}>
-          <Repeat aria-hidden="true" /> Swap
-        </Button>
+        {api.substitute ? (
+          <Button variant="outline" disabled={!online} onClick={() => setSwapping(true)}>
+            <Repeat aria-hidden="true" /> Swap
+          </Button>
+        ) : null}
       </div>
       <ExerciseThumb item={item} large />
       {item.clientInstructions || item.trainerNotes ? (
@@ -802,9 +793,11 @@ function InProgress({
   const listPanel = (
     <div className="flex flex-col gap-3">
       <ExerciseList workout={workout} current={index} onSelect={select} />
-      <Button variant="outline" disabled={!online} onClick={() => setAdding(true)}>
-        <Plus aria-hidden="true" /> Add exercise
-      </Button>
+      {api.addExercise ? (
+        <Button variant="outline" disabled={!online} onClick={() => setAdding(true)}>
+          <Plus aria-hidden="true" /> Add exercise
+        </Button>
+      ) : null}
     </div>
   );
 
@@ -853,9 +846,11 @@ function InProgress({
         >
           Finish workout
         </Button>
-        <Button variant="ghost" size="lg" disabled={!online} onClick={onSkip}>
-          Skip workout
-        </Button>
+        {onSkip ? (
+          <Button variant="ghost" size="lg" disabled={!online} onClick={onSkip}>
+            Skip workout
+          </Button>
+        ) : null}
       </div>
 
       <Modal
@@ -915,10 +910,19 @@ function InProgress({
           <SummaryTiles workout={workout} />
           {workout.summary.setsCompleted === 0 ? (
             <p role="alert" className="text-sm text-danger">
-              No sets are completed yet. Complete a set, or skip the workout instead.
+              {audience === "client"
+                ? "No sets are completed yet. Complete a set first."
+                : "No sets are completed yet. Complete a set, or skip the workout instead."}
             </p>
           ) : null}
-          <Field label="Feedback (optional)" hint="Saved in their workout history.">
+          <Field
+            label={audience === "client" ? "How did it go? (optional)" : "Feedback (optional)"}
+            hint={
+              audience === "client"
+                ? "Shared with your trainer."
+                : "Saved in their workout history."
+            }
+          >
             <Textarea
               value={feedback}
               maxLength={1000}
@@ -945,19 +949,26 @@ function InProgress({
 }
 
 /** Summary after finishing (or a skipped workout), with "Mark attended" for the linked session. */
-function Finished({ workout, online }: { workout: WorkoutDetail; online: boolean }) {
+function Finished({
+  workout,
+  api,
+  audience,
+  online,
+}: {
+  workout: WorkoutDetail;
+  api: WorkoutApi;
+  audience: "trainer" | "client";
+  online: boolean;
+}) {
   const queryClient = useQueryClient();
   const attend = useMutation({
-    mutationFn: (appointmentId: string) =>
-      unwrap(
-        browserApi.POST("/v1/appointments/{id}/attendance", {
-          params: { path: { id: appointmentId } },
-          body: { status: "completed" },
-        }),
-      ),
+    mutationFn: (appointmentId: string) => {
+      if (!api.markAttended) throw new Error("Attendance is marked by your trainer.");
+      return api.markAttended(appointmentId);
+    },
     onSuccess: async (next) => {
       toast.success(attendanceMessage(next));
-      await queryClient.invalidateQueries({ queryKey: workoutKey(workout.id) });
+      await queryClient.invalidateQueries({ queryKey: api.key });
       await queryClient.invalidateQueries({ queryKey: clientPackagesKey(workout.client.id) });
     },
     onError: (failure) => toast.error(failure.message),
@@ -977,7 +988,15 @@ function Finished({ workout, online }: { workout: WorkoutDetail; online: boolean
               <span className="font-medium">Feedback:</span> {workout.feedback}
             </p>
           ) : null}
-          {appointment && open && workout.status === "completed" ? (
+          {workout.clientFeedback ? (
+            <p className="text-sm whitespace-pre-line">
+              <span className="font-medium">
+                {audience === "client" ? "Your feedback:" : "Client's feedback:"}
+              </span>{" "}
+              {workout.clientFeedback}
+            </p>
+          ) : null}
+          {api.markAttended && appointment && open && workout.status === "completed" ? (
             <div className="flex flex-col gap-2 rounded-control border border-border p-4">
               <p className="text-sm">
                 This workout was part of today&apos;s session.{" "}

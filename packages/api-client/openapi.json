@@ -3362,6 +3362,48 @@
         ]
       }
     },
+    "/v1/clients/{id}/portal/features": {
+      "put": {
+        "operationId": "PortalAccessController_features",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFeaturesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalAccessDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client-portal"
+        ]
+      }
+    },
     "/v1/client-auth/invite/preview": {
       "post": {
         "operationId": "ClientAuthController_preview",
@@ -3507,99 +3549,60 @@
         ]
       }
     },
-    "/v1/exercises": {
+    "/v1/client/home": {
       "get": {
-        "operationId": "ExercisesController_list",
+        "operationId": "ClientPortalController_home",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientHomeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/workouts": {
+      "get": {
+        "operationId": "ClientPortalController_workouts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalWorkoutsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/workouts/{id}": {
+      "get": {
+        "operationId": "ClientPortalController_workout",
         "parameters": [
           {
-            "name": "q",
-            "required": false,
-            "in": "query",
+            "name": "id",
+            "required": true,
+            "in": "path",
             "schema": {
-              "maxLength": 80,
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
               "type": "string"
-            }
-          },
-          {
-            "name": "category",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "strength",
-                "cardio",
-                "plyometric",
-                "mobility"
-              ]
-            }
-          },
-          {
-            "name": "muscle",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "chest",
-                "back",
-                "shoulders",
-                "biceps",
-                "triceps",
-                "forearms",
-                "core",
-                "glutes",
-                "quads",
-                "hamstrings",
-                "calves",
-                "hips",
-                "full_body"
-              ]
-            }
-          },
-          {
-            "name": "equipment",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "bodyweight",
-                "barbell",
-                "dumbbell",
-                "kettlebell",
-                "band",
-                "cable",
-                "machine",
-                "bench",
-                "pull_up_bar",
-                "box",
-                "cardio_machine",
-                "mat"
-              ]
-            }
-          },
-          {
-            "name": "source",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": "all",
-              "type": "string",
-              "enum": [
-                "all",
-                "library",
-                "custom"
-              ]
-            }
-          },
-          {
-            "name": "archived",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "default": false,
-              "type": "boolean"
             }
           }
         ],
@@ -3609,25 +3612,194 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExerciseListResponseDto"
+                  "$ref": "#/components/schemas/ClientWorkoutResponseDto"
                 }
               }
             }
           }
         },
         "tags": [
-          "exercises"
+          "client"
         ]
-      },
+      }
+    },
+    "/v1/client/workouts/{id}/start": {
       "post": {
-        "operationId": "ExercisesController_create",
+        "operationId": "ClientPortalController_start",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientWorkoutResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/workout-sets/{id}": {
+      "put": {
+        "operationId": "ClientPortalController_putSet",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutSetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientWorkoutResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/workouts/{id}/finish": {
+      "post": {
+        "operationId": "ClientPortalController_finish",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "UUID per user intent",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinishWorkoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientWorkoutResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/schedule": {
+      "get": {
+        "operationId": "ClientPortalController_schedule",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientScheduleDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/profile": {
+      "get": {
+        "operationId": "ClientPortalController_profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/profile/preferences": {
+      "put": {
+        "operationId": "ClientPortalController_preferences",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ExerciseInputDto"
+                "$ref": "#/components/schemas/UpdatePreferencesDto"
               }
             }
           }
@@ -3638,150 +3810,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExerciseDto"
+                  "$ref": "#/components/schemas/ClientProfileDto"
                 }
               }
             }
           }
         },
         "tags": [
-          "exercises"
-        ]
-      }
-    },
-    "/v1/exercises/{id}": {
-      "get": {
-        "operationId": "ExercisesController_get",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExerciseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "exercises"
-        ]
-      },
-      "put": {
-        "operationId": "ExercisesController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ExerciseInputDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExerciseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "exercises"
-        ]
-      }
-    },
-    "/v1/exercises/{id}/archive": {
-      "post": {
-        "operationId": "ExercisesController_archive",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExerciseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "exercises"
-        ]
-      }
-    },
-    "/v1/exercises/{id}/restore": {
-      "post": {
-        "operationId": "ExercisesController_restore",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExerciseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "exercises"
+          "client"
         ]
       }
     },
@@ -4065,6 +4101,284 @@
         },
         "tags": [
           "workouts"
+        ]
+      }
+    },
+    "/v1/exercises": {
+      "get": {
+        "operationId": "ExercisesController_list",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 80,
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "strength",
+                "cardio",
+                "plyometric",
+                "mobility"
+              ]
+            }
+          },
+          {
+            "name": "muscle",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chest",
+                "back",
+                "shoulders",
+                "biceps",
+                "triceps",
+                "forearms",
+                "core",
+                "glutes",
+                "quads",
+                "hamstrings",
+                "calves",
+                "hips",
+                "full_body"
+              ]
+            }
+          },
+          {
+            "name": "equipment",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "bodyweight",
+                "barbell",
+                "dumbbell",
+                "kettlebell",
+                "band",
+                "cable",
+                "machine",
+                "bench",
+                "pull_up_bar",
+                "box",
+                "cardio_machine",
+                "mat"
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "all",
+              "type": "string",
+              "enum": [
+                "all",
+                "library",
+                "custom"
+              ]
+            }
+          },
+          {
+            "name": "archived",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      },
+      "post": {
+        "operationId": "ExercisesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      }
+    },
+    "/v1/exercises/{id}": {
+      "get": {
+        "operationId": "ExercisesController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      },
+      "put": {
+        "operationId": "ExercisesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      }
+    },
+    "/v1/exercises/{id}/archive": {
+      "post": {
+        "operationId": "ExercisesController_archive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
+        ]
+      }
+    },
+    "/v1/exercises/{id}/restore": {
+      "post": {
+        "operationId": "ExercisesController_restore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "exercises"
         ]
       }
     },
@@ -11220,6 +11534,25 @@
           },
           "canEmail": {
             "type": "boolean"
+          },
+          "features": {
+            "type": "object",
+            "properties": {
+              "workoutSelfLogging": {
+                "type": "boolean"
+              },
+              "checkIns": {
+                "type": "boolean"
+              },
+              "progressSelfLogging": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "workoutSelfLogging",
+              "checkIns",
+              "progressSelfLogging"
+            ]
           }
         },
         "required": [
@@ -11227,7 +11560,8 @@
           "invite",
           "joinedAt",
           "canWhatsApp",
-          "canEmail"
+          "canEmail",
+          "features"
         ]
       },
       "CreateInviteRequestDto": {
@@ -11300,6 +11634,25 @@
               },
               "canEmail": {
                 "type": "boolean"
+              },
+              "features": {
+                "type": "object",
+                "properties": {
+                  "workoutSelfLogging": {
+                    "type": "boolean"
+                  },
+                  "checkIns": {
+                    "type": "boolean"
+                  },
+                  "progressSelfLogging": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "workoutSelfLogging",
+                  "checkIns",
+                  "progressSelfLogging"
+                ]
               }
             },
             "required": [
@@ -11307,7 +11660,8 @@
               "invite",
               "joinedAt",
               "canWhatsApp",
-              "canEmail"
+              "canEmail",
+              "features"
             ]
           },
           "link": {
@@ -11360,6 +11714,20 @@
           "whatsApp",
           "emailed"
         ]
+      },
+      "UpdateFeaturesDto": {
+        "type": "object",
+        "properties": {
+          "workoutSelfLogging": {
+            "type": "boolean"
+          },
+          "checkIns": {
+            "type": "boolean"
+          },
+          "progressSelfLogging": {
+            "type": "boolean"
+          }
+        }
       },
       "InvitePreviewRequestDto": {
         "type": "object",
@@ -11482,11 +11850,36 @@
                 "type": "string",
                 "format": "uri",
                 "nullable": true
+              },
+              "phoneE164": {
+                "type": "string",
+                "maxLength": 16,
+                "nullable": true
               }
             },
             "required": [
               "displayName",
-              "avatarUrl"
+              "avatarUrl",
+              "phoneE164"
+            ]
+          },
+          "features": {
+            "type": "object",
+            "properties": {
+              "workoutSelfLogging": {
+                "type": "boolean"
+              },
+              "checkIns": {
+                "type": "boolean"
+              },
+              "progressSelfLogging": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "workoutSelfLogging",
+              "checkIns",
+              "progressSelfLogging"
             ]
           },
           "workspace": {
@@ -11512,8 +11905,1804 @@
         "required": [
           "client",
           "trainer",
+          "features",
           "workspace"
         ]
+      },
+      "ClientHomeResponseDto": {
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "pattern": "^d{4}-d{2}-d{2}$"
+          },
+          "week": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "pattern": "^d{4}-d{2}-d{2}$"
+                },
+                "workouts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "scheduledOn": {
+                        "type": "string",
+                        "pattern": "^d{4}-d{2}-d{2}$"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "planned",
+                          "in_progress",
+                          "completed",
+                          "skipped"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "scheduledOn",
+                      "status"
+                    ]
+                  }
+                },
+                "sessions": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "date",
+                "workouts",
+                "sessions"
+              ]
+            }
+          },
+          "todayWorkout": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "scheduledOn": {
+                "type": "string",
+                "pattern": "^d{4}-d{2}-d{2}$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "planned",
+                  "in_progress",
+                  "completed",
+                  "skipped"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "scheduledOn",
+              "status"
+            ],
+            "nullable": true
+          },
+          "nextSession": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "session",
+                  "online_session",
+                  "trial",
+                  "consultation"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "scheduled",
+                  "confirmed",
+                  "completed",
+                  "cancelled",
+                  "no_show"
+                ]
+              },
+              "startsAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "date": {
+                "type": "string",
+                "pattern": "^d{4}-d{2}-d{2}$"
+              },
+              "startTime": {
+                "type": "string"
+              },
+              "endTime": {
+                "type": "string"
+              },
+              "durationMin": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 120,
+                "nullable": true
+              },
+              "meetingUrl": {
+                "type": "string",
+                "maxLength": 300,
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "status",
+              "startsAt",
+              "date",
+              "startTime",
+              "endTime",
+              "durationMin",
+              "location",
+              "meetingUrl"
+            ],
+            "nullable": true
+          },
+          "package": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "session_pack",
+                  "time_based",
+                  "online_coaching"
+                ]
+              },
+              "sessionsLeft": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "sessionsIncluded": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "expiresOn": {
+                "type": "string",
+                "maxLength": 10,
+                "nullable": true
+              }
+            },
+            "required": [
+              "name",
+              "kind",
+              "sessionsLeft",
+              "sessionsIncluded",
+              "expiresOn"
+            ],
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "streakWeeks": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "programName": {
+            "type": "string",
+            "maxLength": 80,
+            "nullable": true
+          }
+        },
+        "required": [
+          "today",
+          "week",
+          "todayWorkout",
+          "nextSession",
+          "package",
+          "streakWeeks",
+          "programName"
+        ]
+      },
+      "PortalWorkoutsResponseDto": {
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "pattern": "^d{4}-d{2}-d{2}$"
+          },
+          "upcoming": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "scheduledOn": {
+                  "type": "string",
+                  "pattern": "^d{4}-d{2}-d{2}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "planned",
+                    "in_progress",
+                    "completed",
+                    "skipped"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "scheduledOn",
+                "status"
+              ]
+            }
+          },
+          "past": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "scheduledOn": {
+                  "type": "string",
+                  "pattern": "^d{4}-d{2}-d{2}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "planned",
+                    "in_progress",
+                    "completed",
+                    "skipped"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "scheduledOn",
+                "status"
+              ]
+            }
+          }
+        },
+        "required": [
+          "today",
+          "upcoming",
+          "past"
+        ]
+      },
+      "ClientWorkoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "workout": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "scheduledOn": {
+                "type": "string",
+                "maxLength": 10
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "planned",
+                  "in_progress",
+                  "completed",
+                  "skipped"
+                ]
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "nullable": true
+              },
+              "completedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "nullable": true
+              },
+              "feedback": {
+                "type": "string",
+                "maxLength": 1000,
+                "nullable": true
+              },
+              "clientFeedback": {
+                "type": "string",
+                "maxLength": 1000,
+                "nullable": true
+              },
+              "skipReason": {
+                "type": "string",
+                "maxLength": 200,
+                "nullable": true
+              },
+              "client": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "fullName": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "fullName",
+                  "active"
+                ]
+              },
+              "program": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "nullable": true
+                  },
+                  "instructions": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "nullable": true
+                  },
+                  "equipmentNotes": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "name",
+                  "notes",
+                  "instructions",
+                  "equipmentNotes"
+                ]
+              },
+              "appointment": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "scheduled",
+                      "confirmed",
+                      "completed",
+                      "cancelled",
+                      "no_show"
+                    ]
+                  },
+                  "startsAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  "started": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status",
+                  "startsAt",
+                  "started"
+                ],
+                "nullable": true
+              },
+              "exercises": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "nullable": true
+                    },
+                    "position": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "exercise": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "category": {
+                          "type": "string",
+                          "enum": [
+                            "strength",
+                            "cardio",
+                            "plyometric",
+                            "mobility"
+                          ]
+                        },
+                        "muscleGroups": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "chest",
+                              "back",
+                              "shoulders",
+                              "biceps",
+                              "triceps",
+                              "forearms",
+                              "core",
+                              "glutes",
+                              "quads",
+                              "hamstrings",
+                              "calves",
+                              "hips",
+                              "full_body"
+                            ]
+                          }
+                        },
+                        "equipment": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "bodyweight",
+                              "barbell",
+                              "dumbbell",
+                              "kettlebell",
+                              "band",
+                              "cable",
+                              "machine",
+                              "bench",
+                              "pull_up_bar",
+                              "box",
+                              "cardio_machine",
+                              "mat"
+                            ]
+                          }
+                        },
+                        "mediaUrl": {
+                          "type": "string",
+                          "maxLength": 500,
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "category",
+                        "muscleGroups",
+                        "equipment",
+                        "mediaUrl"
+                      ]
+                    },
+                    "substitutedFor": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "nullable": true
+                    },
+                    "added": {
+                      "type": "boolean"
+                    },
+                    "substitutions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ]
+                      }
+                    },
+                    "sets": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "repsMin": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "repsMax": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "durationSeconds": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "targetLoadKg": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "restSeconds": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "trainerNotes": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "nullable": true
+                    },
+                    "clientInstructions": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "nullable": true
+                    },
+                    "logged": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "setNumber": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "reps": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "nullable": true
+                          },
+                          "loadKg": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "durationSeconds": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "nullable": true
+                          },
+                          "rpe": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "completed": {
+                            "type": "boolean"
+                          },
+                          "completedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "setNumber",
+                          "reps",
+                          "loadKg",
+                          "durationSeconds",
+                          "rpe",
+                          "completed",
+                          "completedAt"
+                        ]
+                      }
+                    },
+                    "done": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "position",
+                    "exercise",
+                    "substitutedFor",
+                    "added",
+                    "substitutions",
+                    "sets",
+                    "repsMin",
+                    "repsMax",
+                    "durationSeconds",
+                    "targetLoadKg",
+                    "restSeconds",
+                    "trainerNotes",
+                    "clientInstructions",
+                    "logged",
+                    "done"
+                  ]
+                }
+              },
+              "summary": {
+                "type": "object",
+                "properties": {
+                  "exercisesTotal": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "exercisesDone": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "setsPlanned": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "setsCompleted": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "volumeKg": {
+                    "type": "number"
+                  },
+                  "durationMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "nullable": true
+                  },
+                  "estimatedMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "exercisesTotal",
+                  "exercisesDone",
+                  "setsPlanned",
+                  "setsCompleted",
+                  "volumeKg",
+                  "durationMinutes",
+                  "estimatedMinutes"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "scheduledOn",
+              "status",
+              "startedAt",
+              "completedAt",
+              "feedback",
+              "clientFeedback",
+              "skipReason",
+              "client",
+              "program",
+              "appointment",
+              "exercises",
+              "summary"
+            ]
+          },
+          "canLog": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "workout",
+          "canLog"
+        ]
+      },
+      "PutSetDto": {
+        "type": "object",
+        "properties": {
+          "sessionExerciseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "setNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "reps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 200,
+            "nullable": true
+          },
+          "loadKg": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "multipleOf": 0.25,
+            "nullable": true
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7200,
+            "nullable": true
+          },
+          "rpe": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "multipleOf": 0.5,
+            "nullable": true
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessionExerciseId",
+          "setNumber",
+          "reps",
+          "loadKg",
+          "durationSeconds",
+          "rpe",
+          "completed"
+        ]
+      },
+      "FinishWorkoutDto": {
+        "type": "object",
+        "properties": {
+          "feedback": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      },
+      "ClientScheduleDto": {
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "pattern": "^d{4}-d{2}-d{2}$"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "upcoming": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "session",
+                    "online_session",
+                    "trial",
+                    "consultation"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "scheduled",
+                    "confirmed",
+                    "completed",
+                    "cancelled",
+                    "no_show"
+                  ]
+                },
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "date": {
+                  "type": "string",
+                  "pattern": "^d{4}-d{2}-d{2}$"
+                },
+                "startTime": {
+                  "type": "string"
+                },
+                "endTime": {
+                  "type": "string"
+                },
+                "durationMin": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "location": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "nullable": true
+                },
+                "meetingUrl": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "status",
+                "startsAt",
+                "date",
+                "startTime",
+                "endTime",
+                "durationMin",
+                "location",
+                "meetingUrl"
+              ]
+            }
+          },
+          "past": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "session",
+                    "online_session",
+                    "trial",
+                    "consultation"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "scheduled",
+                    "confirmed",
+                    "completed",
+                    "cancelled",
+                    "no_show"
+                  ]
+                },
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                "date": {
+                  "type": "string",
+                  "pattern": "^d{4}-d{2}-d{2}$"
+                },
+                "startTime": {
+                  "type": "string"
+                },
+                "endTime": {
+                  "type": "string"
+                },
+                "durationMin": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "location": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "nullable": true
+                },
+                "meetingUrl": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "status",
+                "startsAt",
+                "date",
+                "startTime",
+                "endTime",
+                "durationMin",
+                "location",
+                "meetingUrl"
+              ]
+            }
+          }
+        },
+        "required": [
+          "today",
+          "timezone",
+          "upcoming",
+          "past"
+        ]
+      },
+      "ClientProfileDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "nullable": true
+          },
+          "phoneE164": {
+            "type": "string",
+            "maxLength": 16,
+            "nullable": true
+          },
+          "preferredContact": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "phone",
+              "email",
+              null
+            ],
+            "nullable": true
+          },
+          "units": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit"
+            ]
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "goal": {
+                  "type": "string",
+                  "enum": [
+                    "lose_weight",
+                    "build_muscle",
+                    "get_stronger",
+                    "improve_fitness",
+                    "sports_performance",
+                    "other"
+                  ]
+                },
+                "targetText": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "nullable": true
+                },
+                "targetDate": {
+                  "type": "string",
+                  "pattern": "^d{4}-d{2}-d{2}$",
+                  "nullable": true
+                },
+                "primary": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "goal",
+                "targetText",
+                "targetDate",
+                "primary"
+              ]
+            }
+          },
+          "package": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "session_pack",
+                  "time_based",
+                  "online_coaching"
+                ]
+              },
+              "sessionsLeft": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "sessionsIncluded": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "expiresOn": {
+                "type": "string",
+                "maxLength": 10,
+                "nullable": true
+              }
+            },
+            "required": [
+              "name",
+              "kind",
+              "sessionsLeft",
+              "sessionsIncluded",
+              "expiresOn"
+            ],
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "required": [
+          "fullName",
+          "email",
+          "phoneE164",
+          "preferredContact",
+          "units",
+          "goals",
+          "package"
+        ]
+      },
+      "UpdatePreferencesDto": {
+        "type": "object",
+        "properties": {
+          "preferredContact": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "phone",
+              "email",
+              null
+            ],
+            "nullable": true
+          },
+          "weightUnit": {
+            "type": "string",
+            "enum": [
+              "kg",
+              "lb"
+            ]
+          },
+          "lengthUnit": {
+            "type": "string",
+            "enum": [
+              "cm",
+              "in"
+            ]
+          }
+        },
+        "required": [
+          "preferredContact",
+          "weightUnit",
+          "lengthUnit"
+        ]
+      },
+      "WorkoutDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scheduledOn": {
+            "type": "string",
+            "maxLength": 10
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "planned",
+              "in_progress",
+              "completed",
+              "skipped"
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
+          },
+          "feedback": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "clientFeedback": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "skipReason": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          },
+          "client": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "fullName": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "fullName",
+              "active"
+            ]
+          },
+          "program": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 1000,
+                "nullable": true
+              },
+              "instructions": {
+                "type": "string",
+                "maxLength": 1000,
+                "nullable": true
+              },
+              "equipmentNotes": {
+                "type": "string",
+                "maxLength": 500,
+                "nullable": true
+              }
+            },
+            "required": [
+              "name",
+              "notes",
+              "instructions",
+              "equipmentNotes"
+            ]
+          },
+          "appointment": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "scheduled",
+                  "confirmed",
+                  "completed",
+                  "cancelled",
+                  "no_show"
+                ]
+              },
+              "startsAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "started": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "startsAt",
+              "started"
+            ],
+            "nullable": true
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "nullable": true
+                },
+                "position": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "exercise": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string",
+                      "enum": [
+                        "strength",
+                        "cardio",
+                        "plyometric",
+                        "mobility"
+                      ]
+                    },
+                    "muscleGroups": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "chest",
+                          "back",
+                          "shoulders",
+                          "biceps",
+                          "triceps",
+                          "forearms",
+                          "core",
+                          "glutes",
+                          "quads",
+                          "hamstrings",
+                          "calves",
+                          "hips",
+                          "full_body"
+                        ]
+                      }
+                    },
+                    "equipment": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "bodyweight",
+                          "barbell",
+                          "dumbbell",
+                          "kettlebell",
+                          "band",
+                          "cable",
+                          "machine",
+                          "bench",
+                          "pull_up_bar",
+                          "box",
+                          "cardio_machine",
+                          "mat"
+                        ]
+                      }
+                    },
+                    "mediaUrl": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "category",
+                    "muscleGroups",
+                    "equipment",
+                    "mediaUrl"
+                  ]
+                },
+                "substitutedFor": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "nullable": true
+                },
+                "added": {
+                  "type": "boolean"
+                },
+                "substitutions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ]
+                  }
+                },
+                "sets": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "repsMin": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "repsMax": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "durationSeconds": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "targetLoadKg": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "restSeconds": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "nullable": true
+                },
+                "trainerNotes": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "nullable": true
+                },
+                "clientInstructions": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "nullable": true
+                },
+                "logged": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "setNumber": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "reps": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      },
+                      "loadKg": {
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "durationSeconds": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "nullable": true
+                      },
+                      "rpe": {
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "completed": {
+                        "type": "boolean"
+                      },
+                      "completedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "setNumber",
+                      "reps",
+                      "loadKg",
+                      "durationSeconds",
+                      "rpe",
+                      "completed",
+                      "completedAt"
+                    ]
+                  }
+                },
+                "done": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "position",
+                "exercise",
+                "substitutedFor",
+                "added",
+                "substitutions",
+                "sets",
+                "repsMin",
+                "repsMax",
+                "durationSeconds",
+                "targetLoadKg",
+                "restSeconds",
+                "trainerNotes",
+                "clientInstructions",
+                "logged",
+                "done"
+              ]
+            }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "exercisesTotal": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "exercisesDone": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "setsPlanned": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "setsCompleted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "volumeKg": {
+                "type": "number"
+              },
+              "durationMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "estimatedMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "exercisesTotal",
+              "exercisesDone",
+              "setsPlanned",
+              "setsCompleted",
+              "volumeKg",
+              "durationMinutes",
+              "estimatedMinutes"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "scheduledOn",
+          "status",
+          "startedAt",
+          "completedAt",
+          "feedback",
+          "clientFeedback",
+          "skipReason",
+          "client",
+          "program",
+          "appointment",
+          "exercises",
+          "summary"
+        ]
+      },
+      "PutWorkoutSetRequestDto": {
+        "type": "object",
+        "properties": {
+          "sessionExerciseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "setNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "reps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 200,
+            "nullable": true
+          },
+          "loadKg": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "multipleOf": 0.25,
+            "nullable": true
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7200,
+            "nullable": true
+          },
+          "rpe": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "multipleOf": 0.5,
+            "nullable": true
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessionExerciseId",
+          "setNumber",
+          "reps",
+          "loadKg",
+          "durationSeconds",
+          "rpe",
+          "completed"
+        ]
+      },
+      "SubstituteExerciseRequestDto": {
+        "type": "object",
+        "properties": {
+          "exerciseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "exerciseId"
+        ]
+      },
+      "AddWorkoutExerciseRequestDto": {
+        "type": "object",
+        "properties": {
+          "exerciseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "sets": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "repsMin": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "nullable": true
+          },
+          "repsMax": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "nullable": true
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 7200,
+            "nullable": true
+          },
+          "targetLoadKg": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "multipleOf": 0.25,
+            "nullable": true
+          },
+          "restSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 900,
+            "nullable": true
+          },
+          "trainerNotes": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "clientInstructions": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "exerciseId",
+          "sets",
+          "repsMin",
+          "repsMax",
+          "durationSeconds",
+          "targetLoadKg",
+          "restSeconds"
+        ]
+      },
+      "FinishWorkoutRequestDto": {
+        "type": "object",
+        "properties": {
+          "feedback": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      },
+      "SkipWorkoutRequestDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
       },
       "ExerciseListResponseDto": {
         "type": "object",
@@ -11897,600 +14086,6 @@
           "equipment",
           "difficulty"
         ]
-      },
-      "WorkoutDetailDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "name": {
-            "type": "string"
-          },
-          "scheduledOn": {
-            "type": "string",
-            "maxLength": 10
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "planned",
-              "in_progress",
-              "completed",
-              "skipped"
-            ]
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-            "nullable": true
-          },
-          "completedAt": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-            "nullable": true
-          },
-          "feedback": {
-            "type": "string",
-            "maxLength": 1000,
-            "nullable": true
-          },
-          "skipReason": {
-            "type": "string",
-            "maxLength": 200,
-            "nullable": true
-          },
-          "client": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid",
-                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-              },
-              "fullName": {
-                "type": "string"
-              },
-              "active": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "id",
-              "fullName",
-              "active"
-            ]
-          },
-          "program": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "notes": {
-                "type": "string",
-                "maxLength": 1000,
-                "nullable": true
-              },
-              "instructions": {
-                "type": "string",
-                "maxLength": 1000,
-                "nullable": true
-              },
-              "equipmentNotes": {
-                "type": "string",
-                "maxLength": 500,
-                "nullable": true
-              }
-            },
-            "required": [
-              "name",
-              "notes",
-              "instructions",
-              "equipmentNotes"
-            ]
-          },
-          "appointment": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid",
-                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-              },
-              "status": {
-                "type": "string",
-                "enum": [
-                  "scheduled",
-                  "confirmed",
-                  "completed",
-                  "cancelled",
-                  "no_show"
-                ]
-              },
-              "startsAt": {
-                "type": "string",
-                "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-              },
-              "started": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "id",
-              "status",
-              "startsAt",
-              "started"
-            ],
-            "nullable": true
-          },
-          "exercises": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                  "nullable": true
-                },
-                "position": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
-                },
-                "exercise": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "category": {
-                      "type": "string",
-                      "enum": [
-                        "strength",
-                        "cardio",
-                        "plyometric",
-                        "mobility"
-                      ]
-                    },
-                    "muscleGroups": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "chest",
-                          "back",
-                          "shoulders",
-                          "biceps",
-                          "triceps",
-                          "forearms",
-                          "core",
-                          "glutes",
-                          "quads",
-                          "hamstrings",
-                          "calves",
-                          "hips",
-                          "full_body"
-                        ]
-                      }
-                    },
-                    "equipment": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "bodyweight",
-                          "barbell",
-                          "dumbbell",
-                          "kettlebell",
-                          "band",
-                          "cable",
-                          "machine",
-                          "bench",
-                          "pull_up_bar",
-                          "box",
-                          "cardio_machine",
-                          "mat"
-                        ]
-                      }
-                    },
-                    "mediaUrl": {
-                      "type": "string",
-                      "maxLength": 500,
-                      "nullable": true
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "name",
-                    "category",
-                    "muscleGroups",
-                    "equipment",
-                    "mediaUrl"
-                  ]
-                },
-                "substitutedFor": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "name"
-                  ],
-                  "nullable": true
-                },
-                "added": {
-                  "type": "boolean"
-                },
-                "substitutions": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                      },
-                      "name": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "name"
-                    ]
-                  }
-                },
-                "sets": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
-                },
-                "repsMin": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991,
-                  "nullable": true
-                },
-                "repsMax": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991,
-                  "nullable": true
-                },
-                "durationSeconds": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991,
-                  "nullable": true
-                },
-                "targetLoadKg": {
-                  "type": "number",
-                  "nullable": true
-                },
-                "restSeconds": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991,
-                  "nullable": true
-                },
-                "trainerNotes": {
-                  "type": "string",
-                  "maxLength": 500,
-                  "nullable": true
-                },
-                "clientInstructions": {
-                  "type": "string",
-                  "maxLength": 500,
-                  "nullable": true
-                },
-                "logged": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                      },
-                      "setNumber": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991
-                      },
-                      "reps": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "nullable": true
-                      },
-                      "loadKg": {
-                        "type": "number",
-                        "nullable": true
-                      },
-                      "durationSeconds": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "nullable": true
-                      },
-                      "rpe": {
-                        "type": "number",
-                        "nullable": true
-                      },
-                      "completed": {
-                        "type": "boolean"
-                      },
-                      "completedAt": {
-                        "type": "string",
-                        "format": "date-time",
-                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-                        "nullable": true
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "setNumber",
-                      "reps",
-                      "loadKg",
-                      "durationSeconds",
-                      "rpe",
-                      "completed",
-                      "completedAt"
-                    ]
-                  }
-                },
-                "done": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "id",
-                "position",
-                "exercise",
-                "substitutedFor",
-                "added",
-                "substitutions",
-                "sets",
-                "repsMin",
-                "repsMax",
-                "durationSeconds",
-                "targetLoadKg",
-                "restSeconds",
-                "trainerNotes",
-                "clientInstructions",
-                "logged",
-                "done"
-              ]
-            }
-          },
-          "summary": {
-            "type": "object",
-            "properties": {
-              "exercisesTotal": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "exercisesDone": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "setsPlanned": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "setsCompleted": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991
-              },
-              "volumeKg": {
-                "type": "number"
-              },
-              "durationMinutes": {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991,
-                "nullable": true
-              }
-            },
-            "required": [
-              "exercisesTotal",
-              "exercisesDone",
-              "setsPlanned",
-              "setsCompleted",
-              "volumeKg",
-              "durationMinutes"
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "scheduledOn",
-          "status",
-          "startedAt",
-          "completedAt",
-          "feedback",
-          "skipReason",
-          "client",
-          "program",
-          "appointment",
-          "exercises",
-          "summary"
-        ]
-      },
-      "PutWorkoutSetRequestDto": {
-        "type": "object",
-        "properties": {
-          "sessionExerciseId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "setNumber": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 20
-          },
-          "reps": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 200,
-            "nullable": true
-          },
-          "loadKg": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1000,
-            "multipleOf": 0.25,
-            "nullable": true
-          },
-          "durationSeconds": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 7200,
-            "nullable": true
-          },
-          "rpe": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 10,
-            "multipleOf": 0.5,
-            "nullable": true
-          },
-          "completed": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "sessionExerciseId",
-          "setNumber",
-          "reps",
-          "loadKg",
-          "durationSeconds",
-          "rpe",
-          "completed"
-        ]
-      },
-      "SubstituteExerciseRequestDto": {
-        "type": "object",
-        "properties": {
-          "exerciseId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          }
-        },
-        "required": [
-          "exerciseId"
-        ]
-      },
-      "AddWorkoutExerciseRequestDto": {
-        "type": "object",
-        "properties": {
-          "exerciseId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "sets": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 20
-          },
-          "repsMin": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100,
-            "nullable": true
-          },
-          "repsMax": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100,
-            "nullable": true
-          },
-          "durationSeconds": {
-            "type": "integer",
-            "minimum": 5,
-            "maximum": 7200,
-            "nullable": true
-          },
-          "targetLoadKg": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1000,
-            "multipleOf": 0.25,
-            "nullable": true
-          },
-          "restSeconds": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 900,
-            "nullable": true
-          },
-          "trainerNotes": {
-            "type": "string",
-            "maxLength": 500
-          },
-          "clientInstructions": {
-            "type": "string",
-            "maxLength": 500
-          }
-        },
-        "required": [
-          "exerciseId",
-          "sets",
-          "repsMin",
-          "repsMax",
-          "durationSeconds",
-          "targetLoadKg",
-          "restSeconds"
-        ]
-      },
-      "FinishWorkoutRequestDto": {
-        "type": "object",
-        "properties": {
-          "feedback": {
-            "type": "string",
-            "maxLength": 1000
-          }
-        }
-      },
-      "SkipWorkoutRequestDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "type": "string",
-            "maxLength": 200
-          }
-        }
       },
       "PublicPageResponseDto": {
         "type": "object",

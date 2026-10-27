@@ -112,7 +112,9 @@ describe("client invite link", () => {
       client: { id: asha.id, firstName: "Asha" },
       workspace: { readOnly: false },
     });
-    expect(JSON.stringify(me.body)).not.toMatch(/limitations|phone|email/);
+    // Only allow-listed client fields; the trainer's phone is there for "Contact trainer".
+    expect(Object.keys(me.body.client).sort()).toEqual(["firstName", "fullName", "id"]);
+    expect(JSON.stringify(me.body)).not.toMatch(/limitations|email/);
     expect((await phone.get("/v1/auth/me")).body).toMatchObject({ actor: "client" });
 
     // Used once: the same link never works again.

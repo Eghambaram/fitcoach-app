@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { emailSchema } from "./auth";
+import { WEIGHT_UNITS, LENGTH_UNITS } from "./settings";
 import { whatsAppLinkSchema } from "./follow-ups";
+import { FITNESS_GOALS } from "./leads";
+import { PREFERRED_CONTACTS } from "./onboarding";
+import { clientPortalPackageSchema } from "./packages";
+import { WORKOUT_SESSION_STATUSES } from "./programs";
+import { APPOINTMENT_KINDS, APPOINTMENT_STATUSES } from "./scheduling";
+import { workoutDetailSchema } from "./workouts";
 
 /** Client portal access: invite links, client sign-in and the portal's own profile (D19, step 4.1). */
 
@@ -24,6 +31,16 @@ export const PORTAL_STATUS_LABELS: Record<PortalStatus, string> = {
 export const INVITE_CHANNELS = ["whatsapp", "email"] as const;
 export type InviteChannel = (typeof INVITE_CHANNELS)[number];
 
+/** Per-client feature flags (§8.3). Check-ins and progress self-logging take effect in 4.3/4.4. */
+export const clientFeaturesSchema = z.object({
+  workoutSelfLogging: z.boolean(),
+  checkIns: z.boolean(),
+  progressSelfLogging: z.boolean(),
+});
+export type ClientFeatures = z.infer<typeof clientFeaturesSchema>;
+export const updateClientFeaturesRequestSchema = clientFeaturesSchema.partial();
+export type UpdateClientFeaturesRequest = z.infer<typeof updateClientFeaturesRequestSchema>;
+
 /** Trainer view of a client's portal access (§8.3). */
 export const portalAccessSchema = z.object({
   status: z.enum(PORTAL_STATUSES),
@@ -39,6 +56,7 @@ export const portalAccessSchema = z.object({
   joinedAt: z.string().datetime().nullable(),
   canWhatsApp: z.boolean(),
   canEmail: z.boolean(),
+  features: clientFeaturesSchema,
 });
 export type PortalAccess = z.infer<typeof portalAccessSchema>;
 
@@ -108,7 +126,10 @@ export const clientMeResponseSchema = z.object({
   trainer: z.object({
     displayName: z.string(),
     avatarUrl: z.string().url().nullable(),
+    /** For "Contact trainer" (WhatsApp / call); null when the trainer hasn't added one. */
+    phoneE164: z.string().max(16).nullable(),
   }),
+  features: clientFeaturesSchema,
   workspace: z.object({
     name: z.string(),
     timezone: z.string(),
@@ -117,3 +138,102 @@ export const clientMeResponseSchema = z.object({
   }),
 });
 export type ClientMeResponse = z.infer<typeof clientMeResponseSchema>;
+
+// ---------------------------------------------------------------------------------------------
+// Client app screens (§9, step 4.2)
+// ---------------------------------------------------------------------------------------------
+
+const isoDate = z.string().regex(/^d{4}-d{2}-d{2}$/);
+
+export const clientWorkoutSummarySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  scheduledOn: isoDate,
+  status: z.enum(WORKOUT_SESSION_STATUSES),
+});
+export type ClientWorkoutSummary = z.infer<typeof clientWorkoutSummarySchema>;
+
+/** One of the client's own appointments: no notes, no cancel reasons (client view). */
+export const clientAppointmentSchema = z.object({
+  id: z.string().uuid(),
+  kind: z.enum(APPOINTMENT_KINDS),
+  status: z.enum(APPOINTMENT_STATUSES),
+  startsAt: z.string().datetime(),
+  /** Local to the workspace time zone. */
+  date: isoDate,
+  startTime: z.string(),
+  endTime: z.string(),
+  durationMin: z.number().int(),
+  location: z.string().max(120).nullable(),
+  meetingUrl: z.string().max(300).nullable(),
+});
+export type ClientAppointment = z.infer<typeof clientAppointmentSchema>;
+
+export const clientHomeResponseSchema = z.object({
+  /** Today in the workspace time zone. */
+  today: isoDate,
+  /** Monday to Sunday of this week. */
+  week: z.array(
+    z.object({
+      date: isoDate,
+      workouts: z.array(clientWorkoutSummarySchema),
+      sessions: z.number().int(),
+    }),
+  ),
+  todayWorkout: clientWorkoutSummarySchema.nullable(),
+  nextSession: clientAppointmentSchema.nullable(),
+  package: clientPortalPackageSchema.nullable(),
+  /** Consecutive weeks (up to last week, plus this week once done) with every planned workout done. */
+  streakWeeks: z.number().int(),
+  programName: z.string().max(80).nullable(),
+});
+export type ClientHomeResponse = z.infer<typeof clientHomeResponseSchema>;
+
+export const portalWorkoutsResponseSchema = z.object({
+  today: isoDate,
+  upcoming: z.array(clientWorkoutSummarySchema),
+  past: z.array(clientWorkoutSummarySchema),
+});
+export type PortalWorkoutsResponse = z.infer<typeof portalWorkoutsResponseSchema>;
+
+/** A workout in the client app: trainer notes and trainer feedback are removed. */
+export const clientWorkoutResponseSchema = z.object({
+  workout: workoutDetailSchema,
+  /** Self-logging is on for this client and the workout can be logged. */
+  canLog: z.boolean(),
+});
+export type ClientWorkoutResponse = z.infer<typeof clientWorkoutResponseSchema>;
+
+export const clientPortalScheduleResponseSchema = z.object({
+  today: isoDate,
+  timezone: z.string(),
+  upcoming: z.array(clientAppointmentSchema),
+  past: z.array(clientAppointmentSchema),
+});
+export type ClientPortalScheduleResponse = z.infer<typeof clientPortalScheduleResponseSchema>;
+
+export const clientProfileResponseSchema = z.object({
+  fullName: z.string(),
+  email: z.string().max(254).nullable(),
+  phoneE164: z.string().max(16).nullable(),
+  preferredContact: z.enum(PREFERRED_CONTACTS).nullable(),
+  units: z.object({ weightUnit: z.enum(WEIGHT_UNITS), lengthUnit: z.enum(LENGTH_UNITS) }),
+  /** Read-only: set with the trainer. */
+  goals: z.array(
+    z.object({
+      goal: z.enum(FITNESS_GOALS),
+      targetText: z.string().max(200).nullable(),
+      targetDate: isoDate.nullable(),
+      primary: z.boolean(),
+    }),
+  ),
+  package: clientPortalPackageSchema.nullable(),
+});
+export type ClientProfileResponse = z.infer<typeof clientProfileResponseSchema>;
+
+export const updateClientPreferencesRequestSchema = z.object({
+  preferredContact: z.enum(PREFERRED_CONTACTS).nullable(),
+  weightUnit: z.enum(WEIGHT_UNITS),
+  lengthUnit: z.enum(LENGTH_UNITS),
+});
+export type UpdateClientPreferencesRequest = z.infer<typeof updateClientPreferencesRequestSchema>;
