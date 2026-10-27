@@ -70,6 +70,7 @@ describe("navigation (PROMPT §6)", () => {
       "/app/clients",
       "/app/calendar",
       "/app/programs",
+      "/app/check-ins",
       "/app/settings",
     ]);
   });

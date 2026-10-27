@@ -18,7 +18,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
   CalendarPlus,
-  ClipboardCheck,
   LineChart,
   MessageCircle,
   PauseCircle,
@@ -48,6 +47,7 @@ import { dayLabel, timeLabel } from "../calendar/dates";
 import { formatDateTime } from "../leads/lead-display";
 import { RecordPaymentForm } from "../packages/package-forms";
 import { clientPackagesKey, PackageCard, PackagesTab } from "../packages/packages-tab";
+import { ClientCheckInsTab } from "../check-ins/client-check-ins-tab";
 import { WorkoutsTab } from "../programs/workouts-tab";
 import { Avatar } from "../shell/app-shell";
 import { ClientStatusPill } from "./client-display";
@@ -639,11 +639,7 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
           <Schedule client={client} />
         </Tabs.Content>
         <Tabs.Content value="check-ins">
-          <Later
-            icon={ClipboardCheck}
-            title="Check-ins are coming soon"
-            description="Their self-reported check-ins (feeling, energy, sleep, soreness) will show here."
-          />
+          <ClientCheckInsTab clientId={client.id} archived={archived} />
         </Tabs.Content>
         <Tabs.Content value="progress" className="flex flex-col gap-3">
           {client.measurements.length === 0 ? (

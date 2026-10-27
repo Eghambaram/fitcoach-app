@@ -185,6 +185,8 @@ export const clientHomeResponseSchema = z.object({
   package: clientPortalPackageSchema.nullable(),
   /** Consecutive weeks (up to last week, plus this week once done) with every planned workout done. */
   streakWeeks: z.number().int(),
+  /** Today is a check-in day and nothing is sent yet (§8.7). */
+  checkInDue: z.boolean(),
   programName: z.string().max(80).nullable(),
 });
 export type ClientHomeResponse = z.infer<typeof clientHomeResponseSchema>;

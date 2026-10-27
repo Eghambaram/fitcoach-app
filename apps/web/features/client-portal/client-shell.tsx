@@ -2,7 +2,7 @@
 
 import type { ClientMeResponse } from "@fitcoach/shared";
 import { useMutation } from "@tanstack/react-query";
-import { CalendarDays, Dumbbell, House, LogOut, Menu } from "lucide-react";
+import { CalendarDays, ClipboardCheck, Dumbbell, House, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -13,12 +13,13 @@ import { browserApi, unwrap } from "@/lib/api/browser";
 import { cn } from "@/lib/utils";
 
 /**
- * Client navigation (PROMPT §9). Progress and Check-in join with steps 4.3 and 4.4; until then
- * only screens that work are listed (CLAUDE.md rule 22).
+ * Client navigation (PROMPT §9). Check-in shows only when the trainer has check-ins on for this
+ * client; Progress joins with step 4.4. Only screens that work are listed (CLAUDE.md rule 22).
  */
 const NAV = [
   { href: "/client/home", label: "Home", icon: House },
   { href: "/client/workouts", label: "Workouts", icon: Dumbbell },
+  { href: "/client/check-in", label: "Check-in", icon: ClipboardCheck, feature: "checkIns" },
   { href: "/client/schedule", label: "Schedule", icon: CalendarDays },
   { href: "/client/more", label: "More", icon: Menu },
 ] as const;
@@ -40,6 +41,7 @@ export function ClientShell({ me, children }: { me: ClientMeResponse; children: 
   const pathname = usePathname();
   const signOut = useClientSignOut();
   const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const nav = NAV.filter((item) => !("feature" in item) || me.features[item.feature]);
   return (
     <div className="flex min-h-dvh flex-col bg-background pb-20 sm:pb-0">
       <header className="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3">
@@ -47,7 +49,7 @@ export function ClientShell({ me, children }: { me: ClientMeResponse; children: 
           <Logo />
         </Link>
         <nav aria-label="Client app" className="hidden gap-1 sm:flex">
-          {NAV.map(({ href, label, icon: Icon }) => (
+          {nav.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -85,9 +87,12 @@ export function ClientShell({ me, children }: { me: ClientMeResponse; children: 
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">{children}</main>
       <nav
         aria-label="Client app"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-card pb-safe sm:hidden"
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-30 grid border-t border-border bg-card pb-safe sm:hidden",
+          nav.length === 5 ? "grid-cols-5" : "grid-cols-4",
+        )}
       >
-        {NAV.map(({ href, label, icon: Icon }) => (
+        {nav.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}

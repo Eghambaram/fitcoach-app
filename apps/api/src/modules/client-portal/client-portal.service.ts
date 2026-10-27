@@ -38,6 +38,7 @@ import {
   workspaces,
 } from "../../db/schema";
 import { FilesService } from "../files/files.service";
+import { CheckInsService } from "../check-ins/check-ins.service";
 import { WorkoutsService } from "../workouts/workouts.service";
 import { readFeatures } from "./portal-access.service";
 
@@ -76,6 +77,7 @@ export class ClientPortalService {
     private readonly cls: ClsService<AppClsStore>,
     private readonly files: FilesService,
     private readonly workouts: WorkoutsService,
+    private readonly checkIns: CheckInsService,
   ) {}
 
   scope(): Scope {
@@ -304,6 +306,7 @@ export class ClientPortalService {
       nextSession: next ?? null,
       package: await this.activePackage(scope),
       streakWeeks: await this.streak(scope, monday, today),
+      checkInDue: (await this.checkIns.clientState(scope)).due,
       programName: program?.name ?? null,
     };
   }
