@@ -172,9 +172,11 @@ describe("program builder, assignments and planned sessions (step 3.4)", () => {
           "completed",
         ]),
       ).toBe("42501");
+      // Logging (step 3.5) may update sessions, but only along the lifecycle.
       expect(await sqlStateIn(client, "update workout_sessions set status = 'completed'")).toBe(
-        "42501",
+        "23514",
       );
+      expect(await sqlStateIn(client, "update workout_sessions set name = 'x'")).toBe("42501");
     });
     // A session the client has started (step 3.5) can't be deleted by the trainer.
     await owner.query(

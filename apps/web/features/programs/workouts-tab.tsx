@@ -26,21 +26,33 @@ const STATUS_TONES: Record<WorkoutSessionStatus, PillTone> = {
   skipped: "neutral",
 };
 
+const ACTION_LABELS: Record<WorkoutSessionStatus, string> = {
+  planned: "Open",
+  in_progress: "Continue",
+  completed: "View",
+  skipped: "View",
+};
+
 function SessionList({ sessions, empty }: { sessions: WorkoutSession[]; empty: string }) {
   if (sessions.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
   return (
     <ul className="flex flex-col divide-y divide-border rounded-card border border-border bg-card">
       {sessions.map((session) => (
-        <li
-          key={session.id}
-          className="flex min-h-11 flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
-        >
-          <span>
-            <span className="font-medium">{dayLabel(session.scheduledOn)}</span> · {session.name}
-          </span>
-          <StatusPill tone={STATUS_TONES[session.status]}>
-            {WORKOUT_SESSION_STATUS_LABELS[session.status]}
-          </StatusPill>
+        <li key={session.id}>
+          <Link
+            href={`/app/workouts/${session.id}`}
+            className="flex min-h-11 flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-charcoal"
+          >
+            <span>
+              <span className="font-medium">{dayLabel(session.scheduledOn)}</span> · {session.name}
+            </span>
+            <span className="flex items-center gap-2">
+              <StatusPill tone={STATUS_TONES[session.status]}>
+                {WORKOUT_SESSION_STATUS_LABELS[session.status]}
+              </StatusPill>
+              <span className="font-semibold">{ACTION_LABELS[session.status]}</span>
+            </span>
+          </Link>
         </li>
       ))}
     </ul>
@@ -127,7 +139,7 @@ export function WorkoutsTab({ clientId, archived }: { clientId: string; archived
             </p>
           ) : null}
           <p className="text-xs text-muted-foreground">
-            They follow the program as it was when assigned. Workout logging comes next.
+            They follow the program as it was when assigned. Open a workout to log it.
           </p>
         </Card>
       ) : (

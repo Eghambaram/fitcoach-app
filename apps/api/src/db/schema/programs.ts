@@ -19,6 +19,7 @@ import {
 import { clients } from "./clients";
 import { timestamps } from "./columns";
 import { users } from "./identity";
+import { appointments } from "./scheduling";
 import { workspaces } from "./workspaces";
 
 const inList = (values: readonly string[]) => sql.raw(values.map((v) => `'${v}'`).join(", "));
@@ -342,10 +343,34 @@ export const workoutSessions = pgTable(
     status: text("status").notNull().default("planned"),
     startedAt: timestamp("started_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    /** The client's appointment this workout was done in (linked at start, ADR-0054). */
+    appointmentId: uuid("appointment_id"),
+    trainerFeedback: text("trainer_feedback"),
+    skipReason: text("skip_reason"),
     ...timestamps,
   },
   (t) => [
     unique("workout_sessions_workspace_id_id_key").on(t.workspaceId, t.id),
+    foreignKey({
+      name: "workout_sessions_appointment_fk",
+      columns: [t.workspaceId, t.appointmentId],
+      foreignColumns: [appointments.workspaceId, appointments.id],
+    }),
+    uniqueIndex("workout_sessions_appointment_key")
+      .on(t.appointmentId)
+      .where(sql`${t.appointmentId} is not null`),
+    check(
+      "workout_sessions_trainer_feedback_length",
+      sql`char_length(${t.trainerFeedback}) <= 1000`,
+    ),
+    check("workout_sessions_skip_reason_length", sql`char_length(${t.skipReason}) <= 200`),
+    check(
+      "workout_sessions_lifecycle",
+      sql`(${t.status} = 'planned' and ${t.startedAt} is null and ${t.completedAt} is null)
+        or (${t.status} = 'in_progress' and ${t.startedAt} is not null and ${t.completedAt} is null)
+        or (${t.status} = 'completed' and ${t.startedAt} is not null and ${t.completedAt} is not null)
+        or (${t.status} = 'skipped' and ${t.completedAt} is null)`,
+    ),
     foreignKey({
       name: "workout_sessions_client_fk",
       columns: [t.workspaceId, t.clientId],
@@ -368,5 +393,120 @@ export const workoutSessions = pgTable(
       "workout_sessions_status",
       sql`${t.status} in ('planned', 'in_progress', 'completed', 'skipped')`,
     ),
+  ],
+);
+
+/**
+ * The exercises of a started workout (PROMPT §8.5): copied from the assignment snapshot when the
+ * workout starts, so the program can change later without rewriting history. A substitution keeps
+ * the planned exercise in `planned_exercise_id`; an exercise added during the workout has none.
+ */
+export const workoutSessionExercises = pgTable(
+  "workout_session_exercises",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    workoutSessionId: uuid("workout_session_id").notNull(),
+    position: smallint("position").notNull(),
+    exerciseId: uuid("exercise_id")
+      .notNull()
+      .references(() => exercises.id, { onDelete: "restrict" }),
+    plannedExerciseId: uuid("planned_exercise_id").references(() => exercises.id, {
+      onDelete: "restrict",
+    }),
+    sets: smallint("sets").notNull(),
+    repsMin: smallint("reps_min"),
+    repsMax: smallint("reps_max"),
+    durationSeconds: integer("duration_seconds"),
+    targetLoadKg: numeric("target_load_kg", { precision: 6, scale: 2, mode: "number" }),
+    restSeconds: smallint("rest_seconds"),
+    trainerNotes: text("trainer_notes"),
+    clientInstructions: text("client_instructions"),
+    ...timestamps,
+  },
+  (t) => [
+    unique("workout_session_exercises_workspace_id_id_key").on(t.workspaceId, t.id),
+    foreignKey({
+      name: "workout_session_exercises_session_fk",
+      columns: [t.workspaceId, t.workoutSessionId],
+      foreignColumns: [workoutSessions.workspaceId, workoutSessions.id],
+    }).onDelete("cascade"),
+    unique("workout_session_exercises_position_key").on(t.workoutSessionId, t.position),
+    index("workout_session_exercises_exercise_id_idx").on(t.exerciseId),
+    index("workout_session_exercises_planned_exercise_id_idx").on(t.plannedExerciseId),
+    check("workout_session_exercises_position", sql`${t.position} between 1 and 40`),
+    check("workout_session_exercises_sets", sql`${t.sets} between 1 and 20`),
+    check(
+      "workout_session_exercises_target",
+      sql`(${t.durationSeconds} is not null and ${t.repsMin} is null and ${t.repsMax} is null)
+        or (${t.durationSeconds} is null and ${t.repsMin} is not null)`,
+    ),
+    check(
+      "workout_session_exercises_reps",
+      sql`${t.repsMin} is null or (${t.repsMin} between 1 and 100 and coalesce(${t.repsMax}, ${t.repsMin}) between ${t.repsMin} and 100)`,
+    ),
+    check(
+      "workout_session_exercises_duration",
+      sql`${t.durationSeconds} is null or ${t.durationSeconds} between 5 and 7200`,
+    ),
+    check(
+      "workout_session_exercises_load",
+      sql`${t.targetLoadKg} is null or ${t.targetLoadKg} between 0 and 1000`,
+    ),
+    check(
+      "workout_session_exercises_rest",
+      sql`${t.restSeconds} is null or ${t.restSeconds} between 0 and 900`,
+    ),
+    check(
+      "workout_session_exercises_trainer_notes_length",
+      sql`char_length(${t.trainerNotes}) <= 500`,
+    ),
+    check(
+      "workout_session_exercises_client_instructions_length",
+      sql`char_length(${t.clientInstructions}) <= 500`,
+    ),
+  ],
+);
+
+/**
+ * Logged sets (PROMPT §8.5). The id is generated by the device, so `PUT /workout-sets/:id` is an
+ * idempotent upsert (CLAUDE.md rule 15). Editable only while the workout is in progress.
+ */
+export const workoutSets = pgTable(
+  "workout_sets",
+  {
+    id: uuid("id").primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    workoutSessionExerciseId: uuid("workout_session_exercise_id").notNull(),
+    setNumber: smallint("set_number").notNull(),
+    reps: smallint("reps"),
+    loadKg: numeric("load_kg", { precision: 6, scale: 2, mode: "number" }),
+    durationSeconds: integer("duration_seconds"),
+    rpe: numeric("rpe", { precision: 3, scale: 1, mode: "number" }),
+    completed: boolean("completed").notNull().default(false),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    foreignKey({
+      name: "workout_sets_exercise_fk",
+      columns: [t.workspaceId, t.workoutSessionExerciseId],
+      foreignColumns: [workoutSessionExercises.workspaceId, workoutSessionExercises.id],
+    }).onDelete("cascade"),
+    unique("workout_sets_set_number_key").on(t.workoutSessionExerciseId, t.setNumber),
+    index("workout_sets_workspace_id_idx").on(t.workspaceId),
+    check("workout_sets_set_number", sql`${t.setNumber} between 1 and 20`),
+    check("workout_sets_reps", sql`${t.reps} is null or ${t.reps} between 0 and 200`),
+    check("workout_sets_load", sql`${t.loadKg} is null or ${t.loadKg} between 0 and 1000`),
+    check(
+      "workout_sets_duration",
+      sql`${t.durationSeconds} is null or ${t.durationSeconds} between 0 and 7200`,
+    ),
+    check("workout_sets_rpe", sql`${t.rpe} is null or ${t.rpe} between 1 and 10`),
+    check("workout_sets_completed", sql`${t.completed} = (${t.completedAt} is not null)`),
   ],
 );

@@ -197,6 +197,20 @@
       "when": 1793021479616,
       "tag": "0027_program_builder_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793074174751,
+      "tag": "0028_workout_logging",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793074177323,
+      "tag": "0029_workout_logging_rls",
+      "breakpoints": true
     }
   ]
 }

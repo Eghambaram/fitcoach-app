@@ -6,6 +6,19 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 3.5 live workout logging (PROMPT §8.5):
+  - **`/app/workouts/[id]`** (opened from Client profile → Workouts):
+    - **Before it starts:** the planned workout, with Start and Skip.
+    - **In progress:** the current exercise with its media (or a placeholder); reps/time and weight steppers; a rest timer; the set list (target vs actual); a big Complete set; Add set; Mark not done; Previous / Next exercise; Swap (library suggestions or any exercise); Add exercise; and an "X of Y exercises completed" bar.
+    - **Layout:** on desktop the exercise list sits beside the current exercise; on phones it's behind a toggle.
+    - **Finish workout** shows a summary (exercises, sets, volume, duration) and takes feedback. The summary offers **Mark attended** for the linked session, which uses one package session.
+  - Every set is saved as it is completed, with an id made on the device. A refresh restores everything and a retry never duplicates a set. Saves are disabled while offline.
+  - **API:** `GET /v1/workout-sessions/:id`, `POST /v1/workout-sessions/:id/start|finish|skip|exercises` (finish takes Idempotency-Key), `PUT /v1/workout-sets/:id`, `POST /v1/workout-session-exercises/:id/substitute`.
+  - **Database:** `workout_session_exercises`, `workout_sets`; workout session lifecycle, appointment link, feedback and skip reason. ADR-0054.
+  - **Tests:**
+    - **RLS:** writes only while in progress; lifecycle CHECK; finished is final; no deletes; foreign exercises and appointments refused; one workout per appointment; cross-tenant; empty context; suspended workspace.
+    - **API:** preview without side effects; starting twice; repeated and lost-id set saves; ordering and validation; substitution; added exercise; finish idempotency; finished is history; attendance deducts once; skip; tampering.
+    - **e2e:** logging with a refresh mid-way, then Mark attended, on desktop and mobile.
 - Step 3.4 program builder and assignment (PROMPT §8.5):
   - **`/app/programs`:** your programs (with how many clients follow each), your templates, archived programs, and the starter templates with **Use template** (your own copy opens in the builder) and Preview; New program.
   - **Builder (`/app/programs/[id]`):** name, goal, duration, description; workouts on weekdays; ordered exercises with sets, reps or time, load, rest, trainer notes and client instructions; drag to reorder, with Move up/down buttons as the keyboard alternative; add exercises from the library; add, move and remove workouts; sticky Save; unsaved-changes warning; Duplicate, Save as template, Archive / Restore. Starter templates open read-only with Use template.
