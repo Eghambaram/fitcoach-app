@@ -107,6 +107,7 @@ describe("drafts", () => {
       clientId: expect.any(String),
       fullName: "Asha Rao",
       measurementsRecorded: 0,
+      hasPhone: false,
     });
 
     const record = await clientRecord(done.body.clientId);
@@ -250,7 +251,12 @@ describe("from a converted lead", () => {
       units: { weightUnit: "lb", lengthUnit: "in" },
     });
     expect(done.status).toBe(201);
-    expect(done.body).toEqual({ clientId, fullName: "Kiran Rao", measurementsRecorded: 4 });
+    expect(done.body).toEqual({
+      clientId,
+      fullName: "Kiran Rao",
+      measurementsRecorded: 4,
+      hasPhone: true,
+    });
 
     const record = await clientRecord(clientId);
     expect(record.client).toMatchObject({

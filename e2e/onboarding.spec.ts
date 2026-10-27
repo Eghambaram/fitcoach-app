@@ -88,7 +88,8 @@ test("a trainer starts a client, leaves halfway, resumes the draft and creates t
   await expect(initialPackage).toHaveValue("");
   await page.getByRole("button", { name: "Create client" }).click();
   await expect(page.getByText("Asha Rao is now an active client")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Invite Asha via WhatsApp/ })).toBeDisabled();
+  // Without a phone number the client app invite (step 4.1) is sent from their profile.
+  await expect(page.getByText("Invite Asha to the client app from their profile.")).toBeVisible();
 
   // The draft is gone from the list.
   await page.getByRole("link", { name: "Add another client" }).click();

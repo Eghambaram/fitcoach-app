@@ -72,3 +72,39 @@ export function accountExistsMessage(to: string, loginUrl: string, resetUrl: str
     html: layout("You already have an account", paragraphs, { label: "Sign in", url: loginUrl }),
   };
 }
+
+/** A client portal invite (D19): the same single-use link as the WhatsApp invite. */
+export function clientInviteMessage(
+  to: string,
+  firstName: string,
+  trainerName: string,
+  url: string,
+): EmailMessage {
+  const paragraphs = [
+    `Hi ${firstName},`,
+    `${trainerName} has set up your FitCoach account so you can see your workouts and progress.`,
+    "Open the link below to get started. It works once and expires in 7 days.",
+    "If you weren't expecting this, you can ignore this email.",
+  ];
+  return {
+    to,
+    subject: `${trainerName} invited you to FitCoach`,
+    text: `${paragraphs.join("\n\n")}\n\n${url}\n`,
+    html: layout("You're invited to FitCoach", paragraphs, { label: "Open FitCoach", url }),
+  };
+}
+
+/** Client re-login code (§12.2): 6 digits, 10 minutes. */
+export function clientCodeMessage(to: string, code: string): EmailMessage {
+  const paragraphs = [
+    `Your FitCoach sign-in code is ${code}.`,
+    "It expires in 10 minutes. Don't share it with anyone.",
+    "If you didn't ask for a code, you can ignore this email.",
+  ];
+  return {
+    to,
+    subject: `${code} is your FitCoach sign-in code`,
+    text: `${paragraphs.join("\n\n")}\n`,
+    html: layout("Your sign-in code", paragraphs),
+  };
+}

@@ -30,6 +30,7 @@ export default async function TrainerLayout({ children }: { children: ReactNode 
   }
 
   const { me } = session;
+  if (me.actor === "client") redirect("/client/home");
   if (me.actor !== "trainer" || !me.workspace) {
     return (
       <main className="mx-auto max-w-lg px-4 py-16">

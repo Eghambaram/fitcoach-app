@@ -41,7 +41,7 @@ export class SessionGuard implements CanActivate {
           userId: session.userId,
           actor: session.actor,
           workspaceId: session.workspaceId,
-          clientId: null,
+          clientId: session.clientId,
           sessionId: session.id,
           workspaceStatus: session.workspaceStatus,
         });
@@ -118,5 +118,43 @@ export class WorkspaceGuard implements CanActivate {
         ? "Your account is waiting for approval. We'll email you when it's ready."
         : "This workspace isn't active.",
     );
+  }
+}
+
+/**
+ * Client sessions (PROMPT §4.3): a client always acts as exactly one client, taken from the session
+ * (never from the request). A suspended workspace makes the portal read-only (§16.0); routes that
+ * clients may call are marked `@Roles("client")` — RolesGuard already keeps them off trainer routes.
+ */
+@Injectable()
+export class ClientScopeGuard implements CanActivate {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly cls: ClsService<AppClsStore>,
+  ) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const auth = this.cls.get("auth");
+    if (!auth || auth.actor !== "client" || isPublic(this.reflector, context)) return true;
+    if (!auth.clientId || !auth.workspaceId) throw DomainError.forbidden();
+
+    const method = context.switchToHttp().getRequest<Request>().method;
+    const allowInactive =
+      this.reflector.getAllAndOverride<boolean>(ALLOW_INACTIVE_WORKSPACE, [
+        context.getHandler(),
+        context.getClass(),
+      ]) === true;
+    if (
+      !SAFE_METHODS.has(method) &&
+      !allowInactive &&
+      !(auth.workspaceStatus && WRITABLE_WORKSPACE_STATUSES.has(auth.workspaceStatus))
+    ) {
+      throw new DomainError(
+        ERROR_CODES.WORKSPACE_READ_ONLY,
+        403,
+        "Your trainer's account is paused, so changes can't be saved right now.",
+      );
+    }
+    return true;
   }
 }

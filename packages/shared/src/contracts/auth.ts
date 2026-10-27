@@ -128,7 +128,8 @@ export type WorkspaceStatus = (typeof WORKSPACE_STATUSES)[number];
 export const meResponseSchema = z.object({
   user: z.object({
     id: z.string().uuid(),
-    email: z.string(),
+    /** Null for a client who joined by invite link without an email on file. */
+    email: z.string().nullable(),
     emailVerified: z.boolean(),
   }),
   actor: z.enum(ACTORS),

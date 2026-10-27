@@ -5,7 +5,7 @@ import type { Actor } from "../../common/request-context";
 import { generateToken, hashToken } from "../../common/security/tokens";
 import { AppConfig } from "../../config/env";
 import type { Tx } from "../../db/database";
-import { sessions, users, workspaces } from "../../db/schema";
+import { clients, sessions, users, workspaces } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -40,6 +40,8 @@ export interface ResolvedSession {
   userId: string;
   actor: Actor;
   workspaceId: string | null;
+  /** Set for client sessions only: the client they act as. */
+  clientId: string | null;
   workspaceStatus: WorkspaceStatus | null;
   expiresAt: Date;
 }
@@ -58,6 +60,8 @@ export class SessionsService {
       userId: string;
       actor: Actor;
       workspaceId: string | null;
+      /** Required for client sessions (one client of one workspace). */
+      clientId?: string | null;
       ipHash?: string;
       userAgent?: string;
     },
@@ -71,6 +75,7 @@ export class SessionsService {
         userId: input.userId,
         actor: input.actor,
         workspaceId: input.workspaceId,
+        clientId: input.clientId ?? null,
         expiresAt,
         ipHash: input.ipHash,
         userAgent: input.userAgent?.slice(0, 300),
@@ -82,7 +87,8 @@ export class SessionsService {
 
   /**
    * Looks up the session for a cookie value. Pre-session by definition, so it uses SystemDb.
-   * Revoked, expired and disabled-user sessions resolve to null.
+   * Revoked, expired and disabled-user sessions resolve to null, and so do client sessions whose
+   * client was archived, had portal access revoked or whose workspace was cancelled.
    */
   async resolve(token: string): Promise<ResolvedSession | null> {
     const tokenHash = hashToken(this.config.sessionSecret, token);
@@ -93,6 +99,9 @@ export class SessionsService {
           userId: sessions.userId,
           actor: sessions.actor,
           workspaceId: sessions.workspaceId,
+          clientId: sessions.clientId,
+          clientStatus: clients.status,
+          portalRevokedAt: clients.portalRevokedAt,
           workspaceStatus: workspaces.status,
           expiresAt: sessions.expiresAt,
           lastSeenAt: sessions.lastSeenAt,
@@ -100,6 +109,10 @@ export class SessionsService {
         .from(sessions)
         .innerJoin(users, eq(users.id, sessions.userId))
         .leftJoin(workspaces, eq(workspaces.id, sessions.workspaceId))
+        .leftJoin(
+          clients,
+          and(eq(clients.workspaceId, sessions.workspaceId), eq(clients.id, sessions.clientId)),
+        )
         .where(
           and(
             eq(sessions.tokenHash, tokenHash),
@@ -111,6 +124,15 @@ export class SessionsService {
       if (!row) return null;
 
       const actor = row.actor as Actor;
+      if (
+        actor === "client" &&
+        (!row.clientStatus ||
+          !["active", "paused"].includes(row.clientStatus) ||
+          row.portalRevokedAt !== null ||
+          row.workspaceStatus === "cancelled")
+      ) {
+        return null;
+      }
       let expiresAt = row.expiresAt;
       const sliding = actor !== "platform_owner";
       if (sliding && Date.now() - row.lastSeenAt.getTime() > SLIDE_INTERVAL_MS) {
@@ -126,6 +148,7 @@ export class SessionsService {
         userId: row.userId,
         actor,
         workspaceId: row.workspaceId,
+        clientId: row.clientId,
         workspaceStatus: (row.workspaceStatus as WorkspaceStatus | null) ?? null,
         expiresAt,
       };

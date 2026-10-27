@@ -19,7 +19,8 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    email: citext("email").notNull().unique("users_email_key"),
+    /** NULL only for a client who accepted an invite without an email on file (ADR-0055). */
+    email: citext("email").unique("users_email_key"),
     /** argon2id; NULL for clients who only ever sign in by link/OTP (step 4.1). */
     passwordHash: text("password_hash"),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
@@ -70,6 +71,11 @@ export const sessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     actor: text("actor").notNull(),
     workspaceId: uuid("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }),
+    /**
+     * The client a client session acts as (step 4.1). The composite FK to clients is added in
+     * migration 0031 (declaring it here would import clients into identity, a cycle).
+     */
+    clientId: uuid("client_id"),
     /** Authenticator assurance level: 1 = password/OTP, 2 = + TOTP (platform owners, step 6.1). */
     aal: smallint("aal").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -83,6 +89,11 @@ export const sessions = pgTable(
   (t) => [
     index("sessions_user_id_idx").on(t.userId),
     index("sessions_workspace_id_idx").on(t.workspaceId),
+    index("sessions_client_id_idx").on(t.clientId),
+    check(
+      "sessions_client",
+      sql`(${t.actor} = 'client') = (${t.clientId} is not null and ${t.workspaceId} is not null)`,
+    ),
     index("sessions_expires_at_idx").on(t.expiresAt),
     check("sessions_actor", sql`${t.actor} in ('trainer', 'client', 'platform_owner')`),
     check("sessions_aal", sql`${t.aal} in (1, 2)`),
@@ -115,6 +126,9 @@ export const authTokens = pgTable(
   (t) => [
     index("auth_tokens_user_id_purpose_idx").on(t.userId, t.purpose),
     index("auth_tokens_expires_at_idx").on(t.expiresAt),
-    check("auth_tokens_purpose", sql`${t.purpose} in ('verify_email', 'reset_password')`),
+    check(
+      "auth_tokens_purpose",
+      sql`${t.purpose} in ('verify_email', 'reset_password', 'email_otp')`,
+    ),
   ],
 );
