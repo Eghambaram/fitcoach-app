@@ -21,7 +21,7 @@ import {
   PREFERRED_CONTACTS,
 } from "@fitcoach/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CheckCircle2, MessageCircle } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useRef, useState } from "react";
@@ -36,6 +36,7 @@ import { Checkbox, Input, Select, Textarea } from "@/components/ui/input";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { ApiRequestError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
+import { InviteViaWhatsAppButton } from "../clients/portal-access";
 import {
   initialPackageBody,
   InitialPackageFields,
@@ -262,15 +263,23 @@ export function OnboardingWizard({ initial }: { initial: OnboardingDraft }) {
             : ""}
           .
         </p>
-        <div className="flex flex-col gap-1">
-          <Button variant="outline" disabled className="self-start">
-            <MessageCircle aria-hidden="true" />
-            Invite {first} via WhatsApp
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            Client app invites are coming soon. {first} doesn&apos;t need anything from you yet.
+        {created.hasPhone ? (
+          <div className="flex flex-col gap-1">
+            <InviteViaWhatsAppButton
+              clientId={created.clientId}
+              name={created.fullName}
+              variant="primary"
+              className="self-start"
+            />
+            <p className="text-xs text-muted-foreground">
+              {first} gets a link to the client app. It works once and expires in 7 days.
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Invite {first} to the client app from their profile.
           </p>
-        </div>
+        )}
         <div className="flex flex-wrap gap-2 border-t border-border pt-4">
           <Button variant="dark" asChild>
             <Link href={`/app/clients/${created.clientId}`}>Open profile</Link>

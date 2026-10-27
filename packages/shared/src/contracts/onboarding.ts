@@ -243,5 +243,7 @@ export const finalizeOnboardingResponseSchema = z.object({
   clientId: z.string().uuid(),
   fullName: z.string(),
   measurementsRecorded: z.number().int(),
+  /** WhatsApp invites need a phone number. */
+  hasPhone: z.boolean(),
 });
 export type FinalizeOnboardingResponse = z.infer<typeof finalizeOnboardingResponseSchema>;

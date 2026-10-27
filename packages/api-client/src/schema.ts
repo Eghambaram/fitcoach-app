@@ -1188,6 +1188,134 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/clients/{id}/portal": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PortalAccessController_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/portal/invite": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PortalAccessController_invite"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/portal/revoke": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PortalAccessController_revoke"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client-auth/invite/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientAuthController_preview"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client-auth/invite/accept": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientAuthController_accept"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client-auth/code": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientAuthController_requestCode"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client-auth/code/verify": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientAuthController_verifyCode"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientPortalController_me"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/exercises": {
     parameters: {
       query?: never;
@@ -1456,7 +1584,7 @@ export interface components {
       user: {
         /** Format: uuid */
         id: string;
-        email: string;
+        email: string | null;
         emailVerified: boolean;
       };
       /** @enum {string} */
@@ -2522,6 +2650,7 @@ export interface components {
       clientId: string;
       fullName: string;
       measurementsRecorded: number;
+      hasPhone: boolean;
     };
     ListResponseDto: {
       appointments: {
@@ -3244,6 +3373,104 @@ export interface components {
         status: "planned" | "in_progress" | "completed" | "skipped";
         workoutIndex: number;
       }[];
+    };
+    PortalAccessDto: {
+      /** @enum {string} */
+      status: "not_invited" | "invited" | "expired" | "active" | "revoked";
+      invite: {
+        /** @enum {string} */
+        channel: "whatsapp" | "email";
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        expiresAt: string;
+      } | null;
+      /** Format: date-time */
+      joinedAt: string | null;
+      canWhatsApp: boolean;
+      canEmail: boolean;
+    };
+    CreateInviteRequestDto: {
+      /** @enum {string} */
+      channel: "whatsapp" | "email";
+    };
+    CreateInviteResponseDto: {
+      access: {
+        /** @enum {string} */
+        status: "not_invited" | "invited" | "expired" | "active" | "revoked";
+        invite: {
+          /** @enum {string} */
+          channel: "whatsapp" | "email";
+          /** Format: date-time */
+          createdAt: string;
+          /** Format: date-time */
+          expiresAt: string;
+        } | null;
+        /** Format: date-time */
+        joinedAt: string | null;
+        canWhatsApp: boolean;
+        canEmail: boolean;
+      };
+      /** Format: uri */
+      link: string;
+      /** Format: date-time */
+      expiresAt: string;
+      whatsApp: {
+        /** @enum {string} */
+        purpose:
+          | "follow_up"
+          | "trial_confirmation"
+          | "client_invite"
+          | "payment_reminder"
+          | "package_renewal"
+          | "check_in_nudge"
+          | "session_reminder";
+        text: string;
+        /** Format: uri */
+        url: string;
+      } | null;
+      emailed: boolean;
+    };
+    InvitePreviewRequestDto: {
+      token: string;
+    };
+    InvitePreviewResponseDto: {
+      trainerName: string;
+      businessName: string;
+      /** Format: uri */
+      trainerAvatarUrl: string | null;
+    };
+    AcceptInviteRequestDto: {
+      token: string;
+      /** @enum {boolean} */
+      acceptTerms: true;
+    };
+    RequestCodeRequestDto: {
+      /** Format: email */
+      email: string;
+    };
+    VerifyCodeRequestDto: {
+      /** Format: email */
+      email: string;
+      code: string;
+    };
+    ClientMeResponseDto: {
+      client: {
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+        firstName: string;
+      };
+      trainer: {
+        displayName: string;
+        /** Format: uri */
+        avatarUrl: string | null;
+      };
+      workspace: {
+        name: string;
+        timezone: string;
+        readOnly: boolean;
+      };
     };
     ExerciseListResponseDto: {
       exercises: {
@@ -5653,6 +5880,184 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ClientWorkoutsResponseDto"];
+        };
+      };
+    };
+  };
+  PortalAccessController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PortalAccessDto"];
+        };
+      };
+    };
+  };
+  PortalAccessController_invite: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateInviteRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CreateInviteResponseDto"];
+        };
+      };
+    };
+  };
+  PortalAccessController_revoke: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PortalAccessDto"];
+        };
+      };
+    };
+  };
+  ClientAuthController_preview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["InvitePreviewRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["InvitePreviewResponseDto"];
+        };
+      };
+    };
+  };
+  ClientAuthController_accept: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AcceptInviteRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  ClientAuthController_requestCode: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RequestCodeRequestDto"];
+      };
+    };
+    responses: {
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AcceptedResponseDto"];
+        };
+      };
+    };
+  };
+  ClientAuthController_verifyCode: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["VerifyCodeRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  ClientPortalController_me: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientMeResponseDto"];
         };
       };
     };

@@ -6,6 +6,31 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 4.1 client invite link and client login (PROMPT D19, §8.3, §12.2):
+  - **Client profile → Overview → Client app:**
+    - **Status:** not invited, invited (with expiry), invite expired, active (with join date) or access revoked.
+    - **Invite via WhatsApp** opens a dialog with the prefilled message, **Open WhatsApp** and **Copy link**.
+    - **Send link by email** for clients with an email address.
+    - **Turn off access** signs the client out and stops open links.
+    - The onboarding success screen offers **Invite via WhatsApp** when the client has a phone.
+  - **Links:** single use, 7-day expiry, only a hash stored. A new link revokes older ones.
+  - **`/invite/[token]`:** the client sees who invited them, accepts the terms and lands in the client app with a 60-day session. A used or expired link explains what to do next.
+  - **`/client/login`:** a 6-digit email code (10 minutes, 5 tries, rate-limited). The page never reveals whether an email has access.
+  - **`/client/home`:** a first client home with their trainer. Clients who open `/app` go to their own home.
+  - **API:**
+    - **Trainer:** `GET /v1/clients/:id/portal`, `POST /v1/clients/:id/portal/invite|revoke`.
+    - **Public:** `POST /v1/client-auth/invite/preview|accept`, `POST /v1/client-auth/code`, `POST /v1/client-auth/code/verify`.
+    - **Client:** `GET /v1/client/me`.
+    - **Onboarding:** the finalize response gains `hasPhone`.
+  - **Security:**
+    - Client sessions carry their client; a new ClientScopeGuard requires it and makes the portal read-only in a suspended workspace.
+    - The first client RLS policies cover only the client's own row, their workspace and trainer.
+    - `users.email` is nullable for clients without an email.
+    - ADR-0055.
+  - **Tests:**
+    - **RLS:** trainer-only invites; final states; a client sees only their own row, workspace and trainer; forged contexts; client session integrity.
+    - **API:** invite → single-use accept → 60-day session; preview without client data; tampering both ways; regenerate and revoke; expiry; archived clients; email invites; email codes, wrong attempts, non-enumeration and rate limits.
+    - **e2e:** invite on one device, accept on a second, reuse fails on a third, email-code login, turn off access, on desktop and mobile.
 - Step 3.5 live workout logging (PROMPT §8.5):
   - **`/app/workouts/[id]`** (opened from Client profile → Workouts):
     - **Before it starts:** the planned workout, with Start and Skip.

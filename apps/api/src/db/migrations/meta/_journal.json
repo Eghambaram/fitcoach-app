@@ -211,6 +211,20 @@
       "when": 1793074177323,
       "tag": "0029_workout_logging_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793076934991,
+      "tag": "0030_client_portal_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793076939047,
+      "tag": "0031_client_portal_access_rls",
+      "breakpoints": true
     }
   ]
 }

@@ -51,6 +51,7 @@ import { clientPackagesKey, PackageCard, PackagesTab } from "../packages/package
 import { WorkoutsTab } from "../programs/workouts-tab";
 import { Avatar } from "../shell/app-shell";
 import { ClientStatusPill } from "./client-display";
+import { PortalAccessCard } from "./portal-access";
 
 const TABS = [
   ["overview", "Overview"],
@@ -519,6 +520,10 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
             onOpenPackages={() => showTab("packages")}
             onRecordPayment={() => setPaying(true)}
           />
+
+          {client.status === "onboarding_draft" ? null : (
+            <PortalAccessCard clientId={client.id} name={client.fullName} archived={archived} />
+          )}
 
           <div className="grid gap-3 sm:grid-cols-3">
             <Stat value={client.stats.weeksWithYou ?? "—"} label="Weeks with you" />

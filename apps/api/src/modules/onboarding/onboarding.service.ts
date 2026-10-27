@@ -553,6 +553,11 @@ export class OnboardingService {
       properties: { fromLead: clientId !== undefined, measurements: baseline.length },
     });
 
-    return { clientId: id, fullName: input.fullName, measurementsRecorded: baseline.length };
+    return {
+      clientId: id,
+      fullName: input.fullName,
+      measurementsRecorded: baseline.length,
+      hasPhone: phoneE164 !== null,
+    };
   }
 }

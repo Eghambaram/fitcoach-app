@@ -64,6 +64,8 @@ export const clients = pgTable(
     /** When onboarding finished (the client became active). */
     onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /** The trainer turned off portal access (step 4.1); a new invite clears it. */
+    portalRevokedAt: timestamp("portal_revoked_at", { withTimezone: true }),
     createdByUserId: uuid("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
@@ -424,5 +426,42 @@ export const clientNotes = pgTable(
     ),
     index("client_notes_author_user_id_idx").on(t.authorUserId),
     check("client_notes_body_length", sql`char_length(${t.body}) between 1 and 2000`),
+  ],
+);
+
+/**
+ * Client portal invite links (PROMPT §8.3, D19): 32 random bytes, only the HMAC is stored, single
+ * use, 7-day expiry, revocable. A dedicated table rather than `auth_tokens`: the client may have no
+ * login (or no email) until they accept, and the link belongs to a client in a workspace (ADR-0055).
+ */
+export const clientInvites = pgTable(
+  "client_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull(),
+    tokenHash: text("token_hash").notNull().unique("client_invites_token_hash_key"),
+    channel: text("channel").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "client_invites_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    index("client_invites_workspace_client_idx").on(t.workspaceId, t.clientId, t.createdAt),
+    index("client_invites_created_by_user_id_idx").on(t.createdByUserId),
+    check("client_invites_channel", sql`${t.channel} in ('whatsapp', 'email')`),
+    check("client_invites_expiry", sql`${t.expiresAt} > ${t.createdAt}`),
+    check("client_invites_closed_once", sql`${t.consumedAt} is null or ${t.revokedAt} is null`),
   ],
 );

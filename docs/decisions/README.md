@@ -59,3 +59,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0052](0052-exercise-library-and-starter-templates.md) | Exercise library, starter templates and the Programs entry point                            |
 | [0053](0053-program-builder-and-assignment.md)         | Program builder, assignment snapshots and the rolling session window                        |
 | [0054](0054-live-workout-logging.md)                   | Live workout logging, device-generated set ids and the appointment link                     |
+| [0055](0055-client-invites-and-client-sessions.md)     | Client invite links, client sessions and the first client policies                          |
