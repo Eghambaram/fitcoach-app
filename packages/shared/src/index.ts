@@ -13,6 +13,7 @@ export * from "./contracts/programs";
 export * from "./contracts/public-page";
 export * from "./contracts/scheduling";
 export * from "./contracts/settings";
+export * from "./contracts/workouts";
 export * from "./defaults";
 export * from "./messaging";
 export * from "./money";

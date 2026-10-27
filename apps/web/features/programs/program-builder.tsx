@@ -120,7 +120,7 @@ function move<T>(items: T[], from: number, to: number): T[] {
 }
 
 /** Search the library and pick an exercise to add (§8.5). */
-function ExercisePicker({ onPick }: { onPick: (exercise: Exercise) => void }) {
+export function ExercisePicker({ onPick }: { onPick: (exercise: Exercise) => void }) {
   const [search, setSearch] = useState("");
   const [term, setTerm] = useState("");
   useEffect(() => {

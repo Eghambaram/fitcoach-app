@@ -24,6 +24,7 @@ import { PlatformModule } from "./modules/platform/platform.module";
 import { PublicPageModule } from "./modules/public-page/public-page.module";
 import { SchedulingModule } from "./modules/scheduling/scheduling.module";
 import { SettingsModule } from "./modules/settings/settings.module";
+import { WorkoutsModule } from "./modules/workouts/workouts.module";
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SettingsModule } from "./modules/settings/settings.module";
     PackagesModule,
     ExercisesModule,
     ProgramsModule,
+    WorkoutsModule,
     PublicPageModule,
   ],
   providers: [

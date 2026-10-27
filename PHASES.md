@@ -29,7 +29,7 @@ For steps with screens, Claude Code also opens the board rows that `docs/design/
 - [x] 0.1 Plan
 - [x] 1.1 Monorepo + Docker · [x] 1.2 API + DB roles + RLS · [x] 1.3 Auth · [x] 1.4 Web shells · [x] 1.5 Storage · [x] 1.6 Railway staging
 - [x] 2.1 Settings + public page · [x] 2.2 Leads · [x] 2.3 Follow-ups + templates · [x] 2.4 Conversion · [x] 2.5 Onboarding · [x] 2.6 Calendar
-- [x] 3.1 Clients · [x] 3.2 Packages · [x] 3.3 Exercises + templates · [x] 3.4 Programs · [ ] 3.5 Live workout
+- [x] 3.1 Clients · [x] 3.2 Packages · [x] 3.3 Exercises + templates · [x] 3.4 Programs · [x] 3.5 Live workout
 - [ ] 4.1 Client invite + login · [ ] 4.2 Client app · [ ] 4.3 Check-ins · [ ] 4.4 Progress
 - [ ] 5.1 Dashboard · [ ] 5.2 Notifications + jobs · [ ] 5.3 Beta readiness
 - [ ] 6.1 Platform owner · [ ] 6.2 Backups + production · [ ] 6.3 Launch checklist
