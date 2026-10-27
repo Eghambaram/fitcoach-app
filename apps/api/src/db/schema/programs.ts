@@ -346,6 +346,8 @@ export const workoutSessions = pgTable(
     /** The client's appointment this workout was done in (linked at start, ADR-0054). */
     appointmentId: uuid("appointment_id"),
     trainerFeedback: text("trainer_feedback"),
+    /** How it went, from the client when they log it themselves (step 4.2). */
+    clientFeedback: text("client_feedback"),
     skipReason: text("skip_reason"),
     ...timestamps,
   },
@@ -363,6 +365,7 @@ export const workoutSessions = pgTable(
       "workout_sessions_trainer_feedback_length",
       sql`char_length(${t.trainerFeedback}) <= 1000`,
     ),
+    check("workout_sessions_client_feedback_length", sql`char_length(${t.clientFeedback}) <= 1000`),
     check("workout_sessions_skip_reason_length", sql`char_length(${t.skipReason}) <= 200`),
     check(
       "workout_sessions_lifecycle",

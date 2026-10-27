@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { LiveWorkout, WorkoutError } from "@/features/workouts/live-workout";
+import { WorkoutError } from "@/features/workouts/live-workout";
+import { TrainerLiveWorkout } from "@/features/workouts/trainer-live-workout";
 import { serverApi } from "@/lib/api/server";
 
 export const metadata: Metadata = { title: "Workout" };
@@ -12,5 +13,5 @@ export default async function WorkoutPage({ params }: { params: Promise<{ id: st
     params: { path: { id } },
   });
   if (!data) return <WorkoutError missing={response.status === 404 || response.status === 400} />;
-  return <LiveWorkout key={data.id} initial={data} />;
+  return <TrainerLiveWorkout key={data.id} initial={data} />;
 }

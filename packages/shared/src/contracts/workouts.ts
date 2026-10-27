@@ -130,6 +130,8 @@ export const workoutSummarySchema = z.object({
   volumeKg: z.number(),
   /** Start to finish (or to now while in progress). */
   durationMinutes: z.number().int().nullable(),
+  /** Rough time from the targets: sets × (work + rest). An estimate. */
+  estimatedMinutes: z.number().int(),
 });
 export type WorkoutSummary = z.infer<typeof workoutSummarySchema>;
 
@@ -140,7 +142,10 @@ export const workoutDetailSchema = z.object({
   status: z.enum(WORKOUT_SESSION_STATUSES),
   startedAt: z.string().datetime().nullable(),
   completedAt: z.string().datetime().nullable(),
+  /** Trainer feedback (trainer view only; null in the client app). */
   feedback: z.string().max(1000).nullable(),
+  /** The client's own feedback when they logged it themselves. */
+  clientFeedback: z.string().max(1000).nullable(),
   skipReason: z.string().max(200).nullable(),
   client: z.object({ id: z.string().uuid(), fullName: z.string(), active: z.boolean() }),
   program: z.object({

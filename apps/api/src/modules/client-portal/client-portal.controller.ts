@@ -1,10 +1,35 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Req, Res } from "@nestjs/common";
-import { ApiAcceptedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Req,
+  Res,
+} from "@nestjs/common";
+import { ApiAcceptedResponse, ApiHeader, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import {
   acceptInviteRequestSchema,
   type AcceptedResponse,
+  type ClientHomeResponse,
+  clientHomeResponseSchema,
   type ClientMeResponse,
   clientMeResponseSchema,
+  type ClientPortalScheduleResponse,
+  clientPortalScheduleResponseSchema,
+  type ClientProfileResponse,
+  clientProfileResponseSchema,
+  type ClientWorkoutResponse,
+  clientWorkoutResponseSchema,
+  finishWorkoutRequestSchema,
+  type PortalWorkoutsResponse,
+  portalWorkoutsResponseSchema,
+  putWorkoutSetRequestSchema,
+  updateClientFeaturesRequestSchema,
+  updateClientPreferencesRequestSchema,
   createInviteRequestSchema,
   type CreateInviteResponse,
   createInviteResponseSchema,
@@ -38,6 +63,15 @@ class AcceptInviteRequestDto extends createZodDto(acceptInviteRequestSchema) {}
 class RequestCodeRequestDto extends createZodDto(requestCodeRequestSchema) {}
 class VerifyCodeRequestDto extends createZodDto(verifyCodeRequestSchema) {}
 class ClientMeResponseDto extends createZodDto(clientMeResponseSchema) {}
+class ClientHomeResponseDto extends createZodDto(clientHomeResponseSchema) {}
+class PortalWorkoutsResponseDto extends createZodDto(portalWorkoutsResponseSchema) {}
+class ClientWorkoutResponseDto extends createZodDto(clientWorkoutResponseSchema) {}
+class ClientScheduleDto extends createZodDto(clientPortalScheduleResponseSchema) {}
+class ClientProfileDto extends createZodDto(clientProfileResponseSchema) {}
+class UpdatePreferencesDto extends createZodDto(updateClientPreferencesRequestSchema) {}
+class UpdateFeaturesDto extends createZodDto(updateClientFeaturesRequestSchema) {}
+class PutSetDto extends createZodDto(putWorkoutSetRequestSchema) {}
+class FinishWorkoutDto extends createZodDto(finishWorkoutRequestSchema) {}
 class IdParamDto extends createZodDto(z.object({ id: z.string().uuid() })) {}
 
 const OK: OkResponse = { ok: true };
@@ -71,6 +105,13 @@ export class PortalAccessController {
   @ApiOkResponse({ type: PortalAccessDto })
   revoke(@Param() params: IdParamDto): Promise<PortalAccess> {
     return this.access.revoke(params.id);
+  }
+
+  /** Per-client features (§8.3): e.g. let the client log their own workouts. */
+  @Put("features")
+  @ApiOkResponse({ type: PortalAccessDto })
+  features(@Param() params: IdParamDto, @Body() body: UpdateFeaturesDto): Promise<PortalAccess> {
+    return this.access.setFeatures(params.id, body);
   }
 }
 
@@ -152,5 +193,73 @@ export class ClientPortalController {
   @ApiOkResponse({ type: ClientMeResponseDto })
   me(): Promise<ClientMeResponse> {
     return this.portal.me();
+  }
+
+  @AllowInactiveWorkspace()
+  @Get("home")
+  @ApiOkResponse({ type: ClientHomeResponseDto })
+  home(): Promise<ClientHomeResponse> {
+    return this.portal.home();
+  }
+
+  @AllowInactiveWorkspace()
+  @Get("workouts")
+  @ApiOkResponse({ type: PortalWorkoutsResponseDto })
+  workouts(): Promise<PortalWorkoutsResponse> {
+    return this.portal.workoutList();
+  }
+
+  @AllowInactiveWorkspace()
+  @Get("workouts/:id")
+  @ApiOkResponse({ type: ClientWorkoutResponseDto })
+  workout(@Param() params: IdParamDto): Promise<ClientWorkoutResponse> {
+    return this.portal.workout(params.id);
+  }
+
+  /** Self-logging only (the trainer turns it on per client). */
+  @Post("workouts/:id/start")
+  @HttpCode(200)
+  @ApiOkResponse({ type: ClientWorkoutResponseDto })
+  start(@Param() params: IdParamDto): Promise<ClientWorkoutResponse> {
+    return this.portal.startWorkout(params.id);
+  }
+
+  /** Idempotent upsert of one set; the id is generated on the device. */
+  @Put("workout-sets/:id")
+  @ApiOkResponse({ type: ClientWorkoutResponseDto })
+  putSet(@Param() params: IdParamDto, @Body() body: PutSetDto): Promise<ClientWorkoutResponse> {
+    return this.portal.putSet(params.id, body);
+  }
+
+  @Post("workouts/:id/finish")
+  @HttpCode(200)
+  @ApiHeader({ name: "Idempotency-Key", required: false, description: "UUID per user intent" })
+  @ApiOkResponse({ type: ClientWorkoutResponseDto })
+  finish(
+    @Param() params: IdParamDto,
+    @Body() body: FinishWorkoutDto,
+    @Headers("idempotency-key") idempotencyKey: string | undefined,
+  ): Promise<ClientWorkoutResponse> {
+    return this.portal.finishWorkout(params.id, body, idempotencyKey);
+  }
+
+  @AllowInactiveWorkspace()
+  @Get("schedule")
+  @ApiOkResponse({ type: ClientScheduleDto })
+  schedule(): Promise<ClientPortalScheduleResponse> {
+    return this.portal.schedule();
+  }
+
+  @AllowInactiveWorkspace()
+  @Get("profile")
+  @ApiOkResponse({ type: ClientProfileDto })
+  profile(): Promise<ClientProfileResponse> {
+    return this.portal.profile();
+  }
+
+  @Put("profile/preferences")
+  @ApiOkResponse({ type: ClientProfileDto })
+  preferences(@Body() body: UpdatePreferencesDto): Promise<ClientProfileResponse> {
+    return this.portal.updatePreferences(body);
   }
 }

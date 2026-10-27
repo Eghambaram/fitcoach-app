@@ -1236,6 +1236,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/clients/{id}/portal/features": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["PortalAccessController_features"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/client-auth/invite/preview": {
     parameters: {
       query?: never;
@@ -1316,31 +1332,15 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/v1/exercises": {
+  "/v1/client/home": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: operations["ExercisesController_list"];
+    get: operations["ClientPortalController_home"];
     put?: never;
-    post: operations["ExercisesController_create"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/exercises/{id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations["ExercisesController_get"];
-    put: operations["ExercisesController_update"];
     post?: never;
     delete?: never;
     options?: never;
@@ -1348,23 +1348,39 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/v1/exercises/{id}/archive": {
+  "/v1/client/workouts": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    get: operations["ClientPortalController_workouts"];
     put?: never;
-    post: operations["ExercisesController_archive"];
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  "/v1/exercises/{id}/restore": {
+  "/v1/client/workouts/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientPortalController_workout"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/workouts/{id}/start": {
     parameters: {
       query?: never;
       header?: never;
@@ -1373,7 +1389,87 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    post: operations["ExercisesController_restore"];
+    post: operations["ClientPortalController_start"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/workout-sets/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["ClientPortalController_putSet"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/workouts/{id}/finish": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientPortalController_finish"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/schedule": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientPortalController_schedule"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/profile": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientPortalController_profile"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/profile/preferences": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["ClientPortalController_preferences"];
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1486,6 +1582,70 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations["WorkoutsController_skip"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exercises": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ExercisesController_list"];
+    put?: never;
+    post: operations["ExercisesController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exercises/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ExercisesController_get"];
+    put: operations["ExercisesController_update"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exercises/{id}/archive": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ExercisesController_archive"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exercises/{id}/restore": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ExercisesController_restore"];
     delete?: never;
     options?: never;
     head?: never;
@@ -3389,6 +3549,11 @@ export interface components {
       joinedAt: string | null;
       canWhatsApp: boolean;
       canEmail: boolean;
+      features: {
+        workoutSelfLogging: boolean;
+        checkIns: boolean;
+        progressSelfLogging: boolean;
+      };
     };
     CreateInviteRequestDto: {
       /** @enum {string} */
@@ -3410,6 +3575,11 @@ export interface components {
         joinedAt: string | null;
         canWhatsApp: boolean;
         canEmail: boolean;
+        features: {
+          workoutSelfLogging: boolean;
+          checkIns: boolean;
+          progressSelfLogging: boolean;
+        };
       };
       /** Format: uri */
       link: string;
@@ -3430,6 +3600,11 @@ export interface components {
         url: string;
       } | null;
       emailed: boolean;
+    };
+    UpdateFeaturesDto: {
+      workoutSelfLogging?: boolean;
+      checkIns?: boolean;
+      progressSelfLogging?: boolean;
     };
     InvitePreviewRequestDto: {
       token: string;
@@ -3465,12 +3640,450 @@ export interface components {
         displayName: string;
         /** Format: uri */
         avatarUrl: string | null;
+        phoneE164: string | null;
+      };
+      features: {
+        workoutSelfLogging: boolean;
+        checkIns: boolean;
+        progressSelfLogging: boolean;
       };
       workspace: {
         name: string;
         timezone: string;
         readOnly: boolean;
       };
+    };
+    ClientHomeResponseDto: {
+      today: string;
+      week: {
+        date: string;
+        workouts: {
+          /** Format: uuid */
+          id: string;
+          name: string;
+          scheduledOn: string;
+          /** @enum {string} */
+          status: "planned" | "in_progress" | "completed" | "skipped";
+        }[];
+        sessions: number;
+      }[];
+      todayWorkout: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        scheduledOn: string;
+        /** @enum {string} */
+        status: "planned" | "in_progress" | "completed" | "skipped";
+      } | null;
+      nextSession: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        location: string | null;
+        meetingUrl: string | null;
+      } | null;
+      package: {
+        name: string;
+        /** @enum {string} */
+        kind: "session_pack" | "time_based" | "online_coaching";
+        sessionsLeft: number | null;
+        sessionsIncluded: number | null;
+        expiresOn: string | null;
+      } | null;
+      streakWeeks: number;
+      programName: string | null;
+    };
+    PortalWorkoutsResponseDto: {
+      today: string;
+      upcoming: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        scheduledOn: string;
+        /** @enum {string} */
+        status: "planned" | "in_progress" | "completed" | "skipped";
+      }[];
+      past: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        scheduledOn: string;
+        /** @enum {string} */
+        status: "planned" | "in_progress" | "completed" | "skipped";
+      }[];
+    };
+    ClientWorkoutResponseDto: {
+      workout: {
+        /** Format: uuid */
+        id: string;
+        name: string;
+        scheduledOn: string;
+        /** @enum {string} */
+        status: "planned" | "in_progress" | "completed" | "skipped";
+        /** Format: date-time */
+        startedAt: string | null;
+        /** Format: date-time */
+        completedAt: string | null;
+        feedback: string | null;
+        clientFeedback: string | null;
+        skipReason: string | null;
+        client: {
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+          active: boolean;
+        };
+        program: {
+          name: string;
+          notes: string | null;
+          instructions: string | null;
+          equipmentNotes: string | null;
+        };
+        appointment: {
+          /** Format: uuid */
+          id: string;
+          /** @enum {string} */
+          status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+          /** Format: date-time */
+          startsAt: string;
+          started: boolean;
+        } | null;
+        exercises: {
+          /** Format: uuid */
+          id: string | null;
+          position: number;
+          exercise: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            category: "strength" | "cardio" | "plyometric" | "mobility";
+            muscleGroups: (
+              | "chest"
+              | "back"
+              | "shoulders"
+              | "biceps"
+              | "triceps"
+              | "forearms"
+              | "core"
+              | "glutes"
+              | "quads"
+              | "hamstrings"
+              | "calves"
+              | "hips"
+              | "full_body"
+            )[];
+            equipment: (
+              | "bodyweight"
+              | "barbell"
+              | "dumbbell"
+              | "kettlebell"
+              | "band"
+              | "cable"
+              | "machine"
+              | "bench"
+              | "pull_up_bar"
+              | "box"
+              | "cardio_machine"
+              | "mat"
+            )[];
+            mediaUrl: string | null;
+          };
+          substitutedFor: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+          } | null;
+          added: boolean;
+          substitutions: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+          }[];
+          sets: number;
+          repsMin: number | null;
+          repsMax: number | null;
+          durationSeconds: number | null;
+          targetLoadKg: number | null;
+          restSeconds: number | null;
+          trainerNotes: string | null;
+          clientInstructions: string | null;
+          logged: {
+            /** Format: uuid */
+            id: string;
+            setNumber: number;
+            reps: number | null;
+            loadKg: number | null;
+            durationSeconds: number | null;
+            rpe: number | null;
+            completed: boolean;
+            /** Format: date-time */
+            completedAt: string | null;
+          }[];
+          done: boolean;
+        }[];
+        summary: {
+          exercisesTotal: number;
+          exercisesDone: number;
+          setsPlanned: number;
+          setsCompleted: number;
+          volumeKg: number;
+          durationMinutes: number | null;
+          estimatedMinutes: number;
+        };
+      };
+      canLog: boolean;
+    };
+    PutSetDto: {
+      /** Format: uuid */
+      sessionExerciseId: string;
+      setNumber: number;
+      reps: number | null;
+      loadKg: number | null;
+      durationSeconds: number | null;
+      rpe: number | null;
+      completed: boolean;
+    };
+    FinishWorkoutDto: {
+      feedback?: string;
+    };
+    ClientScheduleDto: {
+      today: string;
+      timezone: string;
+      upcoming: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        location: string | null;
+        meetingUrl: string | null;
+      }[];
+      past: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        date: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        location: string | null;
+        meetingUrl: string | null;
+      }[];
+    };
+    ClientProfileDto: {
+      fullName: string;
+      email: string | null;
+      phoneE164: string | null;
+      /** @enum {string|null} */
+      preferredContact: "whatsapp" | "phone" | "email" | null;
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+      goals: {
+        /** @enum {string} */
+        goal:
+          | "lose_weight"
+          | "build_muscle"
+          | "get_stronger"
+          | "improve_fitness"
+          | "sports_performance"
+          | "other";
+        targetText: string | null;
+        targetDate: string | null;
+        primary: boolean;
+      }[];
+      package: {
+        name: string;
+        /** @enum {string} */
+        kind: "session_pack" | "time_based" | "online_coaching";
+        sessionsLeft: number | null;
+        sessionsIncluded: number | null;
+        expiresOn: string | null;
+      } | null;
+    };
+    UpdatePreferencesDto: {
+      /** @enum {string|null} */
+      preferredContact: "whatsapp" | "phone" | "email" | null;
+      /** @enum {string} */
+      weightUnit: "kg" | "lb";
+      /** @enum {string} */
+      lengthUnit: "cm" | "in";
+    };
+    WorkoutDetailDto: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      scheduledOn: string;
+      /** @enum {string} */
+      status: "planned" | "in_progress" | "completed" | "skipped";
+      /** Format: date-time */
+      startedAt: string | null;
+      /** Format: date-time */
+      completedAt: string | null;
+      feedback: string | null;
+      clientFeedback: string | null;
+      skipReason: string | null;
+      client: {
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+        active: boolean;
+      };
+      program: {
+        name: string;
+        notes: string | null;
+        instructions: string | null;
+        equipmentNotes: string | null;
+      };
+      appointment: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        started: boolean;
+      } | null;
+      exercises: {
+        /** Format: uuid */
+        id: string | null;
+        position: number;
+        exercise: {
+          /** Format: uuid */
+          id: string;
+          name: string;
+          /** @enum {string} */
+          category: "strength" | "cardio" | "plyometric" | "mobility";
+          muscleGroups: (
+            | "chest"
+            | "back"
+            | "shoulders"
+            | "biceps"
+            | "triceps"
+            | "forearms"
+            | "core"
+            | "glutes"
+            | "quads"
+            | "hamstrings"
+            | "calves"
+            | "hips"
+            | "full_body"
+          )[];
+          equipment: (
+            | "bodyweight"
+            | "barbell"
+            | "dumbbell"
+            | "kettlebell"
+            | "band"
+            | "cable"
+            | "machine"
+            | "bench"
+            | "pull_up_bar"
+            | "box"
+            | "cardio_machine"
+            | "mat"
+          )[];
+          mediaUrl: string | null;
+        };
+        substitutedFor: {
+          /** Format: uuid */
+          id: string;
+          name: string;
+        } | null;
+        added: boolean;
+        substitutions: {
+          /** Format: uuid */
+          id: string;
+          name: string;
+        }[];
+        sets: number;
+        repsMin: number | null;
+        repsMax: number | null;
+        durationSeconds: number | null;
+        targetLoadKg: number | null;
+        restSeconds: number | null;
+        trainerNotes: string | null;
+        clientInstructions: string | null;
+        logged: {
+          /** Format: uuid */
+          id: string;
+          setNumber: number;
+          reps: number | null;
+          loadKg: number | null;
+          durationSeconds: number | null;
+          rpe: number | null;
+          completed: boolean;
+          /** Format: date-time */
+          completedAt: string | null;
+        }[];
+        done: boolean;
+      }[];
+      summary: {
+        exercisesTotal: number;
+        exercisesDone: number;
+        setsPlanned: number;
+        setsCompleted: number;
+        volumeKg: number;
+        durationMinutes: number | null;
+        estimatedMinutes: number;
+      };
+    };
+    PutWorkoutSetRequestDto: {
+      /** Format: uuid */
+      sessionExerciseId: string;
+      setNumber: number;
+      reps: number | null;
+      loadKg: number | null;
+      durationSeconds: number | null;
+      rpe: number | null;
+      completed: boolean;
+    };
+    SubstituteExerciseRequestDto: {
+      /** Format: uuid */
+      exerciseId: string;
+    };
+    AddWorkoutExerciseRequestDto: {
+      /** Format: uuid */
+      exerciseId: string;
+      sets: number;
+      repsMin: number | null;
+      repsMax: number | null;
+      durationSeconds: number | null;
+      targetLoadKg: number | null;
+      restSeconds: number | null;
+      trainerNotes?: string;
+      clientInstructions?: string;
+    };
+    FinishWorkoutRequestDto: {
+      feedback?: string;
+    };
+    SkipWorkoutRequestDto: {
+      reason?: string;
     };
     ExerciseListResponseDto: {
       exercises: {
@@ -3612,155 +4225,6 @@ export interface components {
       instructions?: string;
       safetyNotes?: string;
       mediaUrl?: "" | string;
-    };
-    WorkoutDetailDto: {
-      /** Format: uuid */
-      id: string;
-      name: string;
-      scheduledOn: string;
-      /** @enum {string} */
-      status: "planned" | "in_progress" | "completed" | "skipped";
-      /** Format: date-time */
-      startedAt: string | null;
-      /** Format: date-time */
-      completedAt: string | null;
-      feedback: string | null;
-      skipReason: string | null;
-      client: {
-        /** Format: uuid */
-        id: string;
-        fullName: string;
-        active: boolean;
-      };
-      program: {
-        name: string;
-        notes: string | null;
-        instructions: string | null;
-        equipmentNotes: string | null;
-      };
-      appointment: {
-        /** Format: uuid */
-        id: string;
-        /** @enum {string} */
-        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
-        /** Format: date-time */
-        startsAt: string;
-        started: boolean;
-      } | null;
-      exercises: {
-        /** Format: uuid */
-        id: string | null;
-        position: number;
-        exercise: {
-          /** Format: uuid */
-          id: string;
-          name: string;
-          /** @enum {string} */
-          category: "strength" | "cardio" | "plyometric" | "mobility";
-          muscleGroups: (
-            | "chest"
-            | "back"
-            | "shoulders"
-            | "biceps"
-            | "triceps"
-            | "forearms"
-            | "core"
-            | "glutes"
-            | "quads"
-            | "hamstrings"
-            | "calves"
-            | "hips"
-            | "full_body"
-          )[];
-          equipment: (
-            | "bodyweight"
-            | "barbell"
-            | "dumbbell"
-            | "kettlebell"
-            | "band"
-            | "cable"
-            | "machine"
-            | "bench"
-            | "pull_up_bar"
-            | "box"
-            | "cardio_machine"
-            | "mat"
-          )[];
-          mediaUrl: string | null;
-        };
-        substitutedFor: {
-          /** Format: uuid */
-          id: string;
-          name: string;
-        } | null;
-        added: boolean;
-        substitutions: {
-          /** Format: uuid */
-          id: string;
-          name: string;
-        }[];
-        sets: number;
-        repsMin: number | null;
-        repsMax: number | null;
-        durationSeconds: number | null;
-        targetLoadKg: number | null;
-        restSeconds: number | null;
-        trainerNotes: string | null;
-        clientInstructions: string | null;
-        logged: {
-          /** Format: uuid */
-          id: string;
-          setNumber: number;
-          reps: number | null;
-          loadKg: number | null;
-          durationSeconds: number | null;
-          rpe: number | null;
-          completed: boolean;
-          /** Format: date-time */
-          completedAt: string | null;
-        }[];
-        done: boolean;
-      }[];
-      summary: {
-        exercisesTotal: number;
-        exercisesDone: number;
-        setsPlanned: number;
-        setsCompleted: number;
-        volumeKg: number;
-        durationMinutes: number | null;
-      };
-    };
-    PutWorkoutSetRequestDto: {
-      /** Format: uuid */
-      sessionExerciseId: string;
-      setNumber: number;
-      reps: number | null;
-      loadKg: number | null;
-      durationSeconds: number | null;
-      rpe: number | null;
-      completed: boolean;
-    };
-    SubstituteExerciseRequestDto: {
-      /** Format: uuid */
-      exerciseId: string;
-    };
-    AddWorkoutExerciseRequestDto: {
-      /** Format: uuid */
-      exerciseId: string;
-      sets: number;
-      repsMin: number | null;
-      repsMax: number | null;
-      durationSeconds: number | null;
-      targetLoadKg: number | null;
-      restSeconds: number | null;
-      trainerNotes?: string;
-      clientInstructions?: string;
-    };
-    FinishWorkoutRequestDto: {
-      feedback?: string;
-    };
-    SkipWorkoutRequestDto: {
-      reason?: string;
     };
     PublicPageResponseDto: {
       slug: string;
@@ -5951,6 +6415,31 @@ export interface operations {
       };
     };
   };
+  PortalAccessController_features: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateFeaturesDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PortalAccessDto"];
+        };
+      };
+    };
+  };
   ClientAuthController_preview: {
     parameters: {
       query?: never;
@@ -6062,41 +6551,28 @@ export interface operations {
       };
     };
   };
-  ExercisesController_list: {
+  ClientPortalController_home: {
     parameters: {
-      query?: {
-        q?: string;
-        category?: "strength" | "cardio" | "plyometric" | "mobility";
-        muscle?:
-          | "chest"
-          | "back"
-          | "shoulders"
-          | "biceps"
-          | "triceps"
-          | "forearms"
-          | "core"
-          | "glutes"
-          | "quads"
-          | "hamstrings"
-          | "calves"
-          | "hips"
-          | "full_body";
-        equipment?:
-          | "bodyweight"
-          | "barbell"
-          | "dumbbell"
-          | "kettlebell"
-          | "band"
-          | "cable"
-          | "machine"
-          | "bench"
-          | "pull_up_bar"
-          | "box"
-          | "cardio_machine"
-          | "mat";
-        source?: "all" | "library" | "custom";
-        archived?: boolean;
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientHomeResponseDto"];
+        };
       };
+    };
+  };
+  ClientPortalController_workouts: {
+    parameters: {
+      query?: never;
       header?: never;
       path?: never;
       cookie?: never;
@@ -6108,12 +6584,145 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ExerciseListResponseDto"];
+          "application/json": components["schemas"]["PortalWorkoutsResponseDto"];
         };
       };
     };
   };
-  ExercisesController_create: {
+  ClientPortalController_workout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientWorkoutResponseDto"];
+        };
+      };
+    };
+  };
+  ClientPortalController_start: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientWorkoutResponseDto"];
+        };
+      };
+    };
+  };
+  ClientPortalController_putSet: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PutSetDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientWorkoutResponseDto"];
+        };
+      };
+    };
+  };
+  ClientPortalController_finish: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description UUID per user intent */
+        "Idempotency-Key"?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FinishWorkoutDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientWorkoutResponseDto"];
+        };
+      };
+    };
+  };
+  ClientPortalController_schedule: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientScheduleDto"];
+        };
+      };
+    };
+  };
+  ClientPortalController_profile: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientProfileDto"];
+        };
+      };
+    };
+  };
+  ClientPortalController_preferences: {
     parameters: {
       query?: never;
       header?: never;
@@ -6122,7 +6731,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ExerciseInputDto"];
+        "application/json": components["schemas"]["UpdatePreferencesDto"];
       };
     };
     responses: {
@@ -6131,95 +6740,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ExerciseDto"];
-        };
-      };
-    };
-  };
-  ExercisesController_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExerciseDto"];
-        };
-      };
-    };
-  };
-  ExercisesController_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ExerciseInputDto"];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExerciseDto"];
-        };
-      };
-    };
-  };
-  ExercisesController_archive: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExerciseDto"];
-        };
-      };
-    };
-  };
-  ExercisesController_restore: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ExerciseDto"];
+          "application/json": components["schemas"]["ClientProfileDto"];
         };
       };
     };
@@ -6390,6 +6911,168 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutDetailDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_list: {
+    parameters: {
+      query?: {
+        q?: string;
+        category?: "strength" | "cardio" | "plyometric" | "mobility";
+        muscle?:
+          | "chest"
+          | "back"
+          | "shoulders"
+          | "biceps"
+          | "triceps"
+          | "forearms"
+          | "core"
+          | "glutes"
+          | "quads"
+          | "hamstrings"
+          | "calves"
+          | "hips"
+          | "full_body";
+        equipment?:
+          | "bodyweight"
+          | "barbell"
+          | "dumbbell"
+          | "kettlebell"
+          | "band"
+          | "cable"
+          | "machine"
+          | "bench"
+          | "pull_up_bar"
+          | "box"
+          | "cardio_machine"
+          | "mat";
+        source?: "all" | "library" | "custom";
+        archived?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseListResponseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExerciseInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExerciseInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_archive: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
+        };
+      };
+    };
+  };
+  ExercisesController_restore: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExerciseDto"];
         };
       };
     };

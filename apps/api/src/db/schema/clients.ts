@@ -64,6 +64,9 @@ export const clients = pgTable(
     /** When onboarding finished (the client became active). */
     onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /** The client's own display units in the portal (step 4.2); NULL = the workspace default. */
+    weightUnit: text("weight_unit"),
+    lengthUnit: text("length_unit"),
     /** The trainer turned off portal access (step 4.1); a new invite clears it. */
     portalRevokedAt: timestamp("portal_revoked_at", { withTimezone: true }),
     createdByUserId: uuid("created_by_user_id").references(() => users.id, {
@@ -99,6 +102,8 @@ export const clients = pgTable(
       "clients_phone_e164",
       sql`${t.phoneE164} is null or ${t.phoneE164} ~ '^\\+[1-9][0-9]{6,14}$'`,
     ),
+    check("clients_weight_unit", sql`${t.weightUnit} is null or ${t.weightUnit} in ('kg', 'lb')`),
+    check("clients_length_unit", sql`${t.lengthUnit} is null or ${t.lengthUnit} in ('cm', 'in')`),
     check("clients_email_length", sql`${t.email} is null or char_length(${t.email}) <= 254`),
     check(
       "clients_goal",
