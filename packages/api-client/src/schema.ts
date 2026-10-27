@@ -1588,6 +1588,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/check-ins": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["CheckInsController_list"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/check-ins/{id}/review": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["CheckInsController_review"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/check-ins": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["CheckInsController_clientCheckIns"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/check-in-settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["CheckInsController_settings"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/check-in": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientCheckInController_get"];
+    put: operations["ClientCheckInController_submit"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/exercises": {
     parameters: {
       query?: never;
@@ -3700,6 +3780,7 @@ export interface components {
         expiresOn: string | null;
       } | null;
       streakWeeks: number;
+      checkInDue: boolean;
       programName: string | null;
     };
     PortalWorkoutsResponseDto: {
@@ -4084,6 +4165,180 @@ export interface components {
     };
     SkipWorkoutRequestDto: {
       reason?: string;
+    };
+    CheckInListResponseDto: {
+      items: {
+        /** Format: uuid */
+        id: string;
+        localDate: string;
+        /** @enum {string} */
+        feeling: "great" | "good" | "okay" | "tired" | "poor";
+        energy: number;
+        sleep: number;
+        /** @enum {string} */
+        soreness: "none" | "mild" | "moderate" | "high";
+        notes: string | null;
+        workoutFeedback: string | null;
+        edited: boolean;
+        /** Format: date-time */
+        submittedAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        reviewedAt: string | null;
+        reply: string | null;
+        client: {
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+        };
+      }[];
+      counts: {
+        unreviewed: number;
+        reviewed: number;
+      };
+      hasMore: boolean;
+    };
+    ReviewCheckInRequestDto: {
+      reply?: string;
+    };
+    TrainerCheckInDto: {
+      /** Format: uuid */
+      id: string;
+      localDate: string;
+      /** @enum {string} */
+      feeling: "great" | "good" | "okay" | "tired" | "poor";
+      energy: number;
+      sleep: number;
+      /** @enum {string} */
+      soreness: "none" | "mild" | "moderate" | "high";
+      notes: string | null;
+      workoutFeedback: string | null;
+      edited: boolean;
+      /** Format: date-time */
+      submittedAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      /** Format: date-time */
+      reviewedAt: string | null;
+      reply: string | null;
+      client: {
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+      };
+    };
+    ClientCheckInsResponseDto: {
+      today: string;
+      settings: {
+        enabled: boolean;
+        days: number[] | null;
+        effectiveDays: number[];
+      };
+      items: {
+        /** Format: uuid */
+        id: string;
+        localDate: string;
+        /** @enum {string} */
+        feeling: "great" | "good" | "okay" | "tired" | "poor";
+        energy: number;
+        sleep: number;
+        /** @enum {string} */
+        soreness: "none" | "mild" | "moderate" | "high";
+        notes: string | null;
+        workoutFeedback: string | null;
+        edited: boolean;
+        /** Format: date-time */
+        submittedAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        reviewedAt: string | null;
+        reply: string | null;
+      }[];
+      trend: {
+        date: string;
+        energy: number;
+        sleep: number;
+        feeling: number;
+      }[];
+      dueToday: boolean;
+      nudge: {
+        /** @enum {string} */
+        purpose:
+          | "follow_up"
+          | "trial_confirmation"
+          | "client_invite"
+          | "payment_reminder"
+          | "package_renewal"
+          | "check_in_nudge"
+          | "session_reminder";
+        text: string;
+        /** Format: uri */
+        url: string;
+      } | null;
+    };
+    UpdateCheckInSettingsDto: {
+      enabled: boolean;
+      days: number[] | null;
+    };
+    ClientCheckInResponseDto: {
+      today: string;
+      enabled: boolean;
+      due: boolean;
+      trainerName: string;
+      todays: {
+        /** Format: uuid */
+        id: string;
+        localDate: string;
+        /** @enum {string} */
+        feeling: "great" | "good" | "okay" | "tired" | "poor";
+        energy: number;
+        sleep: number;
+        /** @enum {string} */
+        soreness: "none" | "mild" | "moderate" | "high";
+        notes: string | null;
+        workoutFeedback: string | null;
+        edited: boolean;
+        /** Format: date-time */
+        submittedAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        reviewedAt: string | null;
+        reply: string | null;
+      } | null;
+      recent: {
+        /** Format: uuid */
+        id: string;
+        localDate: string;
+        /** @enum {string} */
+        feeling: "great" | "good" | "okay" | "tired" | "poor";
+        energy: number;
+        sleep: number;
+        /** @enum {string} */
+        soreness: "none" | "mild" | "moderate" | "high";
+        notes: string | null;
+        workoutFeedback: string | null;
+        edited: boolean;
+        /** Format: date-time */
+        submittedAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        reviewedAt: string | null;
+        reply: string | null;
+      }[];
+    };
+    CheckInInputDto: {
+      /** @enum {string} */
+      feeling: "great" | "good" | "okay" | "tired" | "poor";
+      energy: number;
+      sleep: number;
+      /** @enum {string} */
+      soreness: "none" | "mild" | "moderate" | "high";
+      notes?: string;
+      workoutFeedback?: string;
     };
     ExerciseListResponseDto: {
       exercises: {
@@ -6911,6 +7166,143 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["WorkoutDetailDto"];
+        };
+      };
+    };
+  };
+  CheckInsController_list: {
+    parameters: {
+      query?: {
+        status?: "unreviewed" | "reviewed" | "all";
+        clientId?: string;
+        feeling?: "great" | "good" | "okay" | "tired" | "poor";
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CheckInListResponseDto"];
+        };
+      };
+    };
+  };
+  CheckInsController_review: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ReviewCheckInRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TrainerCheckInDto"];
+        };
+      };
+    };
+  };
+  CheckInsController_clientCheckIns: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientCheckInsResponseDto"];
+        };
+      };
+    };
+  };
+  CheckInsController_settings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateCheckInSettingsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientCheckInsResponseDto"];
+        };
+      };
+    };
+  };
+  ClientCheckInController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientCheckInResponseDto"];
+        };
+      };
+    };
+  };
+  ClientCheckInController_submit: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CheckInInputDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientCheckInResponseDto"];
         };
       };
     };

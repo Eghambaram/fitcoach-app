@@ -9,6 +9,7 @@ import {
   jsonb,
   numeric,
   pgTable,
+  smallint,
   text,
   timestamp,
   unique,
@@ -64,6 +65,8 @@ export const clients = pgTable(
     /** When onboarding finished (the client became active). */
     onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /** Check-in weekdays (1 = Monday … 7 = Sunday); NULL = the workspace default (§8.7). */
+    checkInDays: smallint("check_in_days").array(),
     /** The client's own display units in the portal (step 4.2); NULL = the workspace default. */
     weightUnit: text("weight_unit"),
     lengthUnit: text("length_unit"),
@@ -101,6 +104,10 @@ export const clients = pgTable(
     check(
       "clients_phone_e164",
       sql`${t.phoneE164} is null or ${t.phoneE164} ~ '^\\+[1-9][0-9]{6,14}$'`,
+    ),
+    check(
+      "clients_check_in_days",
+      sql`${t.checkInDays} is null or (cardinality(${t.checkInDays}) between 1 and 7 and ${t.checkInDays} <@ array[1,2,3,4,5,6,7]::smallint[])`,
     ),
     check("clients_weight_unit", sql`${t.weightUnit} is null or ${t.weightUnit} in ('kg', 'lb')`),
     check("clients_length_unit", sql`${t.lengthUnit} is null or ${t.lengthUnit} in ('cm', 'in')`),

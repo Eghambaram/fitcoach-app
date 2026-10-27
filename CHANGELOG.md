@@ -6,6 +6,31 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 4.3 check-ins (PROMPT §8.7):
+  - **Client `/client/check-in`** (in the client nav when check-ins are on):
+    - The form: how you feel (Great to Poor, with icons and labels), energy and sleep sliders (1–10), soreness (none to high), notes and workout feedback. It takes under a minute.
+    - Afterwards a "Sent to {trainer}" confirmation. The check-in can be edited until midnight, and the trainer's replies show on it and on the last two weeks.
+  - **Home:** a "Time for today's check-in" prompt while it's due.
+  - **Trainer `/app/check-ins`** (now in the navigation):
+    - Unreviewed first, with To review / Reviewed / All tabs and counts, a feeling filter and Load more.
+    - **Mark reviewed** with an optional reply to the client.
+  - **Client profile → Check-ins:**
+    - Turn check-ins on or off and pick their days (or follow the workspace default).
+    - **Nudge on WhatsApp** while today's check-in is missing (`check_in_nudge` template).
+    - Self-reported trends for energy, sleep and feeling over 60 days, and their check-ins with review.
+  - **API:**
+    - **Client:** `GET|PUT /v1/client/check-in`.
+    - **Trainer:** `GET /v1/check-ins`, `POST /v1/check-ins/:id/review`, `GET /v1/clients/:id/check-ins`, `PUT /v1/clients/:id/check-in-settings`.
+    - **Changes to existing responses:** the client home gains `checkInDue`.
+  - **Database:**
+    - `check_ins` (one per client per local date) and `check_in_revisions` (filled by a trigger); `clients.check_in_days`.
+    - A trigger keeps the client's answers and the trainer's review apart.
+    - ADR-0057.
+  - **Web:** Recharts added for the trend chart.
+  - **Tests:**
+    - **RLS:** today-only, own-only and flag-gated writes; revisions; each side's columns; cross-tenant and empty context.
+    - **API:** round trip, edits after review, settings and due logic, Nudge link, tampering.
+    - **e2e:** check in on a phone, review and reply in the inbox, the client sees the reply, on desktop and mobile.
 - Step 4.2 client app screens (PROMPT §9):
   - **Navigation:** Home · Workouts · Schedule · More. Progress and Check-in arrive with 4.3/4.4.
   - **Home:**

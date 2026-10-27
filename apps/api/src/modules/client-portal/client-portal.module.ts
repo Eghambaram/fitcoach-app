@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { WhatsAppLinkBuilder } from "../../integrations/whatsapp/whatsapp-link-builder";
 import { AuthModule } from "../auth/auth.module";
+import { CheckInsModule } from "../check-ins/check-ins.module";
 import { WorkoutsModule } from "../workouts/workouts.module";
 import { FilesModule } from "../files/files.module";
 import {
@@ -13,7 +14,7 @@ import { ClientPortalService } from "./client-portal.service";
 import { PortalAccessService } from "./portal-access.service";
 
 @Module({
-  imports: [AuthModule, FilesModule, WorkoutsModule],
+  imports: [AuthModule, FilesModule, WorkoutsModule, CheckInsModule],
   controllers: [PortalAccessController, ClientAuthController, ClientPortalController],
   providers: [PortalAccessService, ClientAuthService, ClientPortalService, WhatsAppLinkBuilder],
 })

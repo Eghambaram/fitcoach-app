@@ -239,6 +239,20 @@
       "when": 1793082543362,
       "tag": "0033_client_app_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793108612420,
+      "tag": "0034_check_ins",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793108614445,
+      "tag": "0035_check_ins_rls",
+      "breakpoints": true
     }
   ]
 }

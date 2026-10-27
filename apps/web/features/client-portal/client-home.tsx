@@ -1,5 +1,5 @@
 import type { ClientHomeResponse, ClientMeResponse } from "@fitcoach/shared";
-import { CalendarDays, Dumbbell, Flame, Ticket } from "lucide-react";
+import { CalendarDays, ClipboardCheck, Dumbbell, Flame, Ticket } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -85,6 +85,19 @@ export function ClientHome({ me, home }: { me: ClientMeResponse; home: ClientHom
           );
         })}
       </ol>
+
+      {home.checkInDue ? (
+        <Card className="flex flex-col gap-3 border-lime-hover bg-lime/25 p-5">
+          <h2 className="flex items-center gap-2 font-semibold">
+            <ClipboardCheck className="size-5" aria-hidden="true" />
+            Time for today&apos;s check-in
+          </h2>
+          <p className="text-sm">How you feel, your energy and sleep. It takes under a minute.</p>
+          <Button asChild variant="dark" className="self-start">
+            <Link href="/client/check-in">Check in now</Link>
+          </Button>
+        </Card>
+      ) : null}
 
       <Card className="flex flex-col gap-3 p-5">
         <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
