@@ -95,6 +95,13 @@ jobs:
       - name: E2E (desktop + mobile)
         run: pnpm test:e2e
 
+      # One run of the nightly backup image against the stack: pg_dump, upload, heartbeat (ADR-0063).
+      - name: Nightly backup image
+        run: |
+          docker compose --profile full --profile backup run --rm db-backup
+          docker compose exec -T postgres psql -U postgres -d fitcoach -Atc \
+            "select status from backup_runs order by finished_at desc limit 1" | grep -qx succeeded
+
       - name: Stack logs
         if: failure()
         run: docker compose --profile full logs --no-color --tail 300

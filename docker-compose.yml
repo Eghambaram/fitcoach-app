@@ -104,6 +104,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-local-dev-session-secret-not-secret-0123456789}
       IP_HASH_SALT: ${IP_HASH_SALT:-local-dev-ip-hash-salt-not-secret}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-bG9jYWwtZGV2LWVuY3J5cHRpb24ta2V5LW5vdC1zZWM=}
+      BACKUP_HEARTBEAT_TOKEN: ${BACKUP_HEARTBEAT_TOKEN:-local-dev-backup-heartbeat-token-not-secret}
       SIGNUP_MODE: invite_code
       EMAIL_PROVIDER: smtp
       SMTP_URL: smtp://mailpit:1025
@@ -165,6 +166,30 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+  # ---- profile "backup": one run of the nightly db-backup job, against the full stack ----
+  # docker compose --profile full --profile backup run --rm db-backup  (docs/runbooks/restore.md)
+  db-backup:
+    profiles: [backup]
+    build:
+      context: .
+      dockerfile: infra/db-backup/Dockerfile
+    image: fitcoach-db-backup:local
+    restart: "no"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/fitcoach
+      STORAGE_ENDPOINT: http://storage:9000
+      STORAGE_REGION: us-east-1
+      STORAGE_ACCESS_KEY_ID: localaccesskey
+      STORAGE_SECRET_ACCESS_KEY: localsecretkey
+      STORAGE_PRIVATE_BUCKET: fitcoach-local-private
+      API_INTERNAL_URL: http://api:4000
+      BACKUP_HEARTBEAT_TOKEN: ${BACKUP_HEARTBEAT_TOKEN:-local-dev-backup-heartbeat-token-not-secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      storage-init:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:

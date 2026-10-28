@@ -23,5 +23,6 @@ Object.assign(process.env, {
   STORAGE_PRIVATE_BUCKET: storage.privateBucket,
   STORAGE_PUBLIC_BUCKET: storage.publicBucket,
   STORAGE_PUBLIC_BASE_URL: `${storage.endpoint}/${storage.publicBucket}`,
+  BACKUP_HEARTBEAT_TOKEN: "test-backup-heartbeat-token-0123456789",
   LOG_LEVEL: "silent",
 });

@@ -263,6 +263,14 @@ Proven by `notifications.db.test.ts`.
 
 Proven by `beta.db.test.ts`.
 
+### Backups (step 6.2, ADR-0063)
+
+| Table         | fitcoach_app | Policy                                                     | Notes                                                                                         |
+| ------------- | ------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `backup_runs` | none         | fitcoach_system: insert and read only (no UPDATE / DELETE) | Heartbeats from the db-backup cron via the token-protected endpoint; read by Platform Health. |
+
+Manual data deletion (`pnpm data:delete`, runbook `docs/runbooks/data-deletion.md`) runs as the **owner** role on purpose: it is the only path that removes append-only rows, and every run is audited.
+
 ### Platform owner (step 6.1, ADR-0062)
 
 | Table                     | fitcoach_app | Policy                                                   | Notes                                                                                                |
@@ -297,3 +305,4 @@ The admin endpoints read and change data only through `SystemDb`, behind `@Roles
 - Notifications: one per recipient and dedupe key; a trainer notifies only their own app clients and only about programs and sessions; a client reads only their own notices and notifies only their trainer, only about a check-in; other trainers see nothing; job runs are invisible to the app role and immutable for the system role (`notifications.db.test.ts`). Over HTTP: an overdue follow-up and an expiring package notify exactly once across repeated runs and a restarted API; job outcomes are recorded; purges run; clients get program and session notices and trainers get invite and check-in notices; mark read / all read; another user's notification answers 404 (`notifications.api.test.ts`).
 - Feedback and exports: a trainer sends feedback only as themselves into their own workspace and can't read, change or delete it; clients and empty contexts can't send it; a trainer asks for exports only as `pending` without an object key, sees only their workspace's, and can't change or delete them; a `ready` export needs its key and expiry (`beta.db.test.ts`). Over HTTP: another trainer can neither list nor download an export, even with its id; clients get 403; one pending export at a time; expired exports refuse downloads and their object is deleted; export and feedback work while suspended (`exports.api.test.ts`).
 - Platform owner: TOTP secrets and recovery codes are invisible and untouchable for the request role in every context (trainer, platform owner, empty); the system role reads and updates them but can't truncate; recovery code hashes are unique; trainers can't fake platform notifications (`platform.db.test.ts`). Over HTTP: the platform login refuses trainers like a wrong password; an AAL1 session reaches only me, logout and the MFA steps; a wrong, replayed or reused code fails; trainers, clients and anonymous callers get 403/401 on every platform route, whatever id they send; revoking the role ends the session; suspend needs a reason, signs the trainer out and makes the workspace read-only; every action is in the audit log; trainer detail carries counts, never a client's name (`platform.api.test.ts`).
+- Backups and deletion: `backup_runs` is unreadable for the request role and append-only for the system role; the heartbeat needs the token and a `backups/` key (`backups.api.test.ts`). Data deletion removes exactly one client (with its lead, login and notifications) and leaves other clients untouched, refuses ids from another workspace, refuses a converted lead, and writes an audit entry without names (`data-deletion.api.test.ts`).

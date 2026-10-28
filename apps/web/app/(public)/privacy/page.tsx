@@ -99,8 +99,12 @@ export default function PrivacyPage() {
           <li>Trainers can export all their workspace data as CSV files at any time.</li>
           <li>Export files are deleted automatically after a day.</li>
           <li>
-            During the beta, deletion of a client or a whole workspace is done on request by the
+            During the beta, a client&apos;s or an enquirer&apos;s data is deleted on request by the
             FitCoach team, using a logged procedure.
+          </li>
+          <li>
+            The database is backed up every night. Backups are kept for up to 35 days, so deleted
+            data disappears from them within that time.
           </li>
           <li>Sign-in sessions and spent sign-in codes are removed regularly.</li>
         </ul>

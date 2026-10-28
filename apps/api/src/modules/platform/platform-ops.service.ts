@@ -21,6 +21,7 @@ import { feedback } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 import { EmailService } from "../../integrations/email/email.service";
 import { StorageService } from "../../integrations/storage/storage.service";
+import { BackupsService } from "../backups/backups.service";
 import { recordAudit } from "../audit/audit.service";
 import {
   type BetaInviteSummary,
@@ -66,6 +67,7 @@ export class PlatformOpsService {
     private readonly config: AppConfig,
     private readonly storage: StorageService,
     private readonly email: EmailService,
+    private readonly backups: BackupsService,
   ) {}
 
   private owner(): AuthContext {
@@ -188,12 +190,13 @@ export class PlatformOpsService {
 
   async health(): Promise<PlatformHealth> {
     this.owner();
-    const [database, jobs, email, storage, budget] = await Promise.all([
+    const [database, jobs, email, storage, budget, backups] = await Promise.all([
       this.databaseHealth(),
       this.jobsHealth(),
       this.emailHealth(),
       this.storageHealth(),
       this.budgetHealth(),
+      this.backups.health(),
     ]);
     const failedJobs = await this.systemDb
       .run(
@@ -211,12 +214,7 @@ export class PlatformOpsService {
       checkedAt: new Date().toISOString(),
       database,
       jobs,
-      // The nightly db-backup cron and its heartbeat arrive in step 6.2.
-      backups: {
-        status: "unknown",
-        detail:
-          "No backup heartbeat has been recorded yet. The nightly backup is set up in step 6.2.",
-      },
+      backups,
       email,
       storage,
       storageBudget: budget,

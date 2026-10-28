@@ -70,6 +70,8 @@ const envSchema = z
       .int()
       .positive()
       .default(9 * 1024 ** 3),
+    /** Shared with the db-backup cron, which posts a heartbeat after each run (PROMPT §17.2). */
+    BACKUP_HEARTBEAT_TOKEN: z.string().min(32).optional(),
     LOG_LEVEL: z.enum(LOG_LEVELS).default("info"),
   })
   .superRefine((env, ctx) => {
@@ -106,6 +108,24 @@ const envSchema = z
     }
     if (env.APP_ENV === "production" && env.EMAIL_PROVIDER === "console") {
       problem("EMAIL_PROVIDER", "console is not allowed in production (D13)");
+    }
+    // Production-only (step 6.2, ADR-0063): files, exports and backups need R2; public media must
+    // come from the custom domain (r2.dev is rate-limited); the backup heartbeat must be wired.
+    if (env.APP_ENV === "production") {
+      if (!env.STORAGE_ENDPOINT)
+        problem("STORAGE_ENDPOINT", "object storage is required in production");
+      if (
+        env.STORAGE_PUBLIC_BASE_URL &&
+        new URL(env.STORAGE_PUBLIC_BASE_URL).hostname.endsWith(".r2.dev")
+      ) {
+        problem(
+          "STORAGE_PUBLIC_BASE_URL",
+          "must be the media custom domain in production, not r2.dev",
+        );
+      }
+      if (!env.BACKUP_HEARTBEAT_TOKEN) {
+        problem("BACKUP_HEARTBEAT_TOKEN", "is required in production (nightly backup heartbeat)");
+      }
     }
 
     const storageVars = [
@@ -168,6 +188,8 @@ export abstract class AppConfig {
   abstract readonly storage: StorageConfig | null;
   /** null when Turnstile isn't configured: the enquiry form works without the challenge. */
   abstract readonly turnstileSecretKey: string | null;
+  /** null when the db-backup cron isn't wired: backups show "Not configured" on Platform Health. */
+  abstract readonly backupHeartbeatToken: string | null;
   abstract readonly logLevel: (typeof LOG_LEVELS)[number];
 }
 
@@ -228,6 +250,7 @@ export function parseEnv(source: NodeJS.ProcessEnv): AppConfig {
           }
         : null,
     turnstileSecretKey: env.TURNSTILE_SECRET_KEY ?? null,
+    backupHeartbeatToken: env.BACKUP_HEARTBEAT_TOKEN ?? null,
     logLevel: env.LOG_LEVEL,
   };
 }
