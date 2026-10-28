@@ -1,6 +1,6 @@
 # ADR-0063: Nightly backups with a heartbeat, production-only checks, and audited manual deletion
 
-- **Status:** Accepted
+- **Status:** Accepted; amended by ADR-0064 (the API takes the nightly backup itself by default)
 - **Date:** 2026-10-28
 - **Source:** Step 6.2; §12.4, §16.0 (health), §17.2–§17.7, CLAUDE.md rules 4, 13, 16, 20
 

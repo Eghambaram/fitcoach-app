@@ -143,28 +143,26 @@ export class ExportsService {
    * finished export is left alone, and a retry overwrites the same object key.
    */
   async generate(exportId: string): Promise<Record<string, unknown>> {
-    const row = await this.systemDb.run("exports: read the export to build", async (tx) => {
-      const [found] = await tx.select().from(dataExports).where(eq(dataExports.id, exportId));
-      return found;
-    });
-    if (!row || row.status !== "pending") return { skipped: row ? row.status : "missing" };
-
     try {
-      const zip = await this.systemDb.run(
-        "exports: read one workspace's data for its own export",
-        async (tx) => {
-          const [workspace] = await tx
-            .select({ timezone: workspaces.timezone })
-            .from(workspaces)
-            .where(eq(workspaces.id, row.workspaceId));
-          if (!workspace) throw new Error("workspace not found");
-          return zipCsvs(await buildExportCsvs(tx, row.workspaceId, workspace.timezone));
-        },
-      );
-      const objectKey = this.storage.key(`exports/${row.workspaceId}/${row.id}.zip`);
-      await this.storage.put("private", objectKey, zip, "application/zip");
-      await this.systemDb.run("exports: mark the export ready", async (tx) => {
-        const marked = await tx
+      // One transaction holds the export row locked (SKIP LOCKED) from reading to "ready", so a
+      // queued run and a retry can never both build it: the second sees it busy or finished, and
+      // can't re-upload a file that expiry has already deleted.
+      return await this.systemDb.run("exports: build one workspace's export", async (tx) => {
+        const [row] = await tx
+          .select()
+          .from(dataExports)
+          .where(and(eq(dataExports.id, exportId), eq(dataExports.status, "pending")))
+          .for("update", { skipLocked: true });
+        if (!row) return { skipped: "not pending, or another run has it" };
+        const [workspace] = await tx
+          .select({ timezone: workspaces.timezone })
+          .from(workspaces)
+          .where(eq(workspaces.id, row.workspaceId));
+        if (!workspace) throw new Error("workspace not found");
+        const zip = await zipCsvs(await buildExportCsvs(tx, row.workspaceId, workspace.timezone));
+        const objectKey = this.storage.key(`exports/${row.workspaceId}/${row.id}.zip`);
+        await this.storage.put("private", objectKey, zip, "application/zip");
+        await tx
           .update(dataExports)
           .set({
             status: "ready",
@@ -173,10 +171,7 @@ export class ExportsService {
             completedAt: sql`now()`,
             expiresAt: sql`now() + make_interval(hours => ${EXPORT_AVAILABLE_HOURS})`,
           })
-          .where(and(eq(dataExports.id, row.id), eq(dataExports.status, "pending")))
-          .returning({ id: dataExports.id });
-        // A concurrent retry finished first: it recorded the event.
-        if (marked.length === 0) return;
+          .where(eq(dataExports.id, row.id));
         await trackEvent(tx, {
           event: "data_exported",
           actorKind: "system",
@@ -184,10 +179,10 @@ export class ExportsService {
           workspaceId: row.workspaceId,
           properties: { sizeBytes: zip.length },
         });
+        return { exportId: row.id, sizeBytes: zip.length };
       });
-      return { exportId: row.id, sizeBytes: zip.length };
     } catch (error) {
-      this.logger.error({ err: error, exportId: row.id }, "export failed");
+      this.logger.error({ err: error, exportId }, "export failed");
       await this.systemDb.run("exports: mark the export failed", (tx) =>
         tx
           .update(dataExports)
@@ -196,9 +191,9 @@ export class ExportsService {
             error: "The export could not be built.",
             completedAt: sql`now()`,
           })
-          .where(and(eq(dataExports.id, row.id), eq(dataExports.status, "pending"))),
+          .where(and(eq(dataExports.id, exportId), eq(dataExports.status, "pending"))),
       );
-      return { exportId: row.id, failed: true };
+      return { exportId, failed: true };
     }
   }
 

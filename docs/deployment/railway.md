@@ -165,14 +165,22 @@ If `railway ssh` isn't available: set the API variable `SIGNUP_MODE=open`, let t
 2. Confirm the email from your inbox, then log in.
 3. Settings → **Profile** → upload a photo. It appears in the app shell. Cloudflare → R2 → `fitcoach-staging-public` → `trainer-avatars/<workspace id>/<uuid>.webp` (plus `_thumb.webp`).
 
-### 9. db-backup service (nightly pg_dump)
+### 9. Backups
+
+By default the **API takes the nightly backup itself** (`NIGHTLY_BACKUP=in_api`, ADR-0064), so there's nothing to set up: at 02:00 IST it dumps the database to `fitcoach-staging-private/backups/daily/`. Check it on Platform → System Health → **Backups**, and use **Run backup now** there to take one immediately.
+
+Railway's own Postgres backups (Postgres → Backups) need the Pro plan; on Hobby, the R2 dumps are your backups. Restore: [restore.md](../runbooks/restore.md).
+
+#### Optional: the separate db-backup service (nightly pg_dump)
+
+Use it to keep the dump out of the API process (production does, ADR-0063). Then set `NIGHTLY_BACKUP=external` on the API, so only one of them runs.
 
 1. **+ Create** → **GitHub Repo** → `Eghambaram/fitcoach-app` again. Rename the service **`db-backup`**.
 2. Settings → **Source**: branch `main`, root directory empty. Config file: `/infra/db-backup/railway.json`. If Railway ignores it, set these directly:
    - **Deploy** → **Cron Schedule** `30 20 * * *` (UTC = 02:00 IST).
    - **Restart Policy** Never.
    - No health check, no public domain.
-3. **api** → Variables: add `BACKUP_HEARTBEAT_TOKEN=<generated hex>` (and `APP_ENCRYPTION_KEY` from step 6.1 if it's missing).
+3. **api** → Variables: add `BACKUP_HEARTBEAT_TOKEN=<generated hex>` and `NIGHTLY_BACKUP=external`.
 4. **db-backup** → Variables → Raw Editor: paste [`infra/railway/staging/db-backup.env.example`](../../infra/railway/staging/db-backup.env.example) and fill in the R2 values (the same staging token as the API).
 5. Deploy it once by hand (db-backup → **Deploy**). The deploy log ends with `backup succeeded`. R2 → `fitcoach-staging-private` → `backups/daily/` has today's dump. Platform → System Health → **Backups** is **OK**.
 6. Do a restore drill into a scratch database ([restore.md](../runbooks/restore.md#drill-restore-stagings-latest-dump-into-a-scratch-database-do-this-monthly)).
@@ -204,6 +212,20 @@ If `railway ssh` isn't available: set the API variable `SIGNUP_MODE=open`, let t
 | `BACKUP_HEARTBEAT_TOKEN`                            | api, db-backup | generated hex; db-backup references the API's value (`${{api.BACKUP_HEARTBEAT_TOKEN}}`)                                                 |
 | `DATABASE_URL` (db-backup)                          | db-backup      | `${{Postgres.DATABASE_URL}}` — admin URL, pg_dump reads past RLS                                                                        |
 | later                                               | —              | Razorpay and Google variables are v1.1 — leave unset                                                                                    |
+
+## Running the beta on staging (Hobby plan, no domain)
+
+The closed beta can run on this environment as it is, with the Railway domain:
+
+1. **Email to everyone.** Resend without a verified domain only delivers to your own Resend address. Send through Gmail instead:
+   - Turn on 2-Step Verification on the Gmail account, then create an **App password** (https://myaccount.google.com/apppasswords).
+   - On the api service, set `EMAIL_PROVIDER=smtp`, `SMTP_URL=smtps://<name>%40gmail.com:<app password>@smtp.gmail.com:465` and `EMAIL_FROM=FitCoach <<name>@gmail.com>`.
+   - Gmail allows about 500 emails a day. If Google says app passwords aren't available, use Brevo's free SMTP (300 a day) with the Gmail address as a verified sender.
+2. **No staging ribbon.** On web, set `NEXT_PUBLIC_APP_ENV=production` and redeploy web. Keep `APP_ENV=staging` on the api: production mode needs your own domain for photos.
+3. **Backups.** Nothing to do (step 9). Press **Run backup now** once and check Backups is OK.
+4. **Invite codes.** Platform → **Settings** → create one per trainer.
+
+Every merge to `main` reaches beta users about a minute after CI passes. Photos are served from `r2.dev` (rate-limited, fine for a few trainers). Moving to your own domain later means users sign in again; their data stays.
 
 ## Email on staging
 

@@ -184,6 +184,14 @@ export class PlatformController {
     return this.ops.health();
   }
 
+  @Post("backups/run")
+  @HttpCode(202)
+  @ApiOkResponse({ type: OkResponseDto })
+  async runBackup(): Promise<OkResponse> {
+    await this.ops.runBackup();
+    return { ok: true };
+  }
+
   @Get("audit-logs")
   @ApiOkResponse({ type: PlatformAuditListDto })
   audit(@Query() query: PlatformAuditQueryDto): Promise<PlatformAuditListResponse> {

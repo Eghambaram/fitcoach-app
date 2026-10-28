@@ -8,6 +8,7 @@ import { safeEqual } from "../../common/security/tokens";
 import { AppConfig } from "../../config/env";
 import { backupRuns } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
+import { StorageService } from "../../integrations/storage/storage.service";
 
 /** A nightly job: more than this since the last good dump means a night was missed. */
 const BACKUP_STALE_HOURS = 26;
@@ -25,6 +26,7 @@ export class BackupsService {
     private readonly config: AppConfig,
     private readonly systemDb: SystemDb,
     private readonly rateLimit: RateLimitService,
+    private readonly storage: StorageService,
   ) {}
 
   async record(
@@ -56,14 +58,24 @@ export class BackupsService {
     );
   }
 
-  /** Platform Health "Backups" (§16.0): OK only with a good dump in the last 26 hours. */
+  /**
+   * Platform Health "Backups" (§16.0): OK only with a good dump in the last 26 hours, whether the
+   * in-API job (ADR-0064) or the db-backup service (ADR-0063) took it.
+   */
   async health(): Promise<HealthItem> {
-    if (!this.config.backupHeartbeatToken) {
-      return {
-        status: "not_configured",
-        detail: "BACKUP_HEARTBEAT_TOKEN isn't set, so the nightly backup can't report in.",
-      };
-    }
+    const missing =
+      this.config.nightlyBackup === "off"
+        ? "Nightly backups are turned off (NIGHTLY_BACKUP=off)."
+        : this.config.nightlyBackup === "external"
+          ? this.config.backupHeartbeatToken
+            ? null
+            : "BACKUP_HEARTBEAT_TOKEN isn't set, so the db-backup service can't report in."
+          : !this.storage.configured
+            ? "Object storage isn't set, so there's nowhere to keep backups."
+            : this.config.databaseOwnerUrl
+              ? null
+              : "DATABASE_OWNER_URL isn't set on the API, so it can't run pg_dump.";
+    if (missing) return { status: "not_configured", detail: missing };
     try {
       const { latest, lastGood } = await this.systemDb.run(
         "backups: read the latest heartbeats",

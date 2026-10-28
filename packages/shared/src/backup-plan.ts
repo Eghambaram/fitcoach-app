@@ -1,5 +1,6 @@
 /**
- * Pure parts of the nightly backup (PROMPT §17.2): object keys and retention. Dates are calendar
+ * Pure parts of the nightly backup (PROMPT §17.2, ADR-0063/0064): object keys and retention, shared
+ * by the API's in-process backup job and the separate db-backup service. Dates are calendar
  * days in the backup time zone (IST by default), so the 02:00 IST run is named after that day.
  */
 

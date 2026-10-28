@@ -6,11 +6,11 @@ How FitCoach's database is backed up, and how to restore it: as a **drill** (int
 
 | Layer                     | Where                                              | When                          | Kept                   | Survives a wiped Railway volume |
 | ------------------------- | -------------------------------------------------- | ----------------------------- | ---------------------- | ------------------------------- |
-| Railway volume backups    | Railway → Postgres → Backups                       | daily + weekly (Railway)      | per Railway plan       | **no**                          |
+| Railway volume backups    | Railway → Postgres → Backups (Pro plan)            | daily + weekly (Railway)      | per Railway plan       | **no**                          |
 | Nightly `pg_dump` (`-Fc`) | R2 private bucket `backups/daily/YYYY-MM-DD.dump`  | 02:00 IST (`30 20 * * *` UTC) | 7 days                 | yes (off-platform)              |
 | Weekly copy (Sundays)     | R2 private bucket `backups/weekly/YYYY-MM-DD.dump` | Sundays                       | 28 days (lifecycle 35) | yes                             |
 
-- **Who runs the dump:** the `db-backup` Railway cron service (`infra/db-backup`).
+- **Who runs the dump:** the API's nightly job by default (`NIGHTLY_BACKUP=in_api`, ADR-0064), or the separate `db-backup` cron service (`infra/db-backup`, `NIGHTLY_BACKUP=external`). Both use the same keys and checks.
   - It checks each dump with `pg_restore --list` before uploading it.
   - It deletes copies past retention. The R2 lifecycle rules are a backstop.
   - It posts a heartbeat to the API.
@@ -99,7 +99,8 @@ Decide which copy to use:
 
 ## Run a backup now (any environment)
 
-- **Railway:** db-backup → **Deployments → Deploy** (or wait for the cron). The deploy log shows `dump started → dump ready → uploaded → retention applied → backup succeeded`.
+- **In-API backup (default):** Platform → System Health → **Run backup now**. Backups turns OK within about a minute; the api log shows `nightly backup succeeded`.
+- **db-backup service:** db-backup → **Deployments → Deploy** (or wait for the cron). The deploy log shows `dump started → dump ready → uploaded → retention applied → backup succeeded`.
 - **Locally:** `docker compose --profile full --profile backup run --rm db-backup` writes to the local RustFS bucket and reports to the local API.
 
 ## When the Backups check is Degraded

@@ -4,17 +4,17 @@ How to create FitCoach's **production** environment on Railway and Cloudflare (P
 
 ## What's different from staging
 
-| Area             | Staging                    | Production                                                                                        |
-| ---------------- | -------------------------- | ------------------------------------------------------------------------------------------------- |
-| Deploys from     | `main` (after CI)          | `production` branch, fast-forwarded by the **Promote to production** workflow (approval required) |
-| Web domain       | `*.up.railway.app`         | `app.<domain>` (custom domain)                                                                    |
-| Public media     | r2.dev URL                 | `media.<domain>` (R2 custom domain + Cloudflare cache); r2.dev is **refused**                     |
-| Email            | Resend test sender is fine | Resend with your verified domain; `console` is **refused**                                        |
-| Secrets          | own values                 | **new** values (never copy staging's)                                                             |
-| Backup heartbeat | optional                   | `BACKUP_HEARTBEAT_TOKEN` **required**                                                             |
-| OpenAPI docs     | served at `/v1/docs`       | not served                                                                                        |
-| App Sleeping     | allowed                    | **off** for web and api (pg-boss schedules live in the API)                                       |
-| Ribbon           | "Staging environment"      | none                                                                                              |
+| Area           | Staging                              | Production                                                                                        |
+| -------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Deploys from   | `main` (after CI)                    | `production` branch, fast-forwarded by the **Promote to production** workflow (approval required) |
+| Web domain     | `*.up.railway.app`                   | `app.<domain>` (custom domain)                                                                    |
+| Public media   | r2.dev URL                           | `media.<domain>` (R2 custom domain + Cloudflare cache); r2.dev is **refused**                     |
+| Email          | Resend test sender is fine           | Resend with your verified domain; `console` is **refused**                                        |
+| Secrets        | own values                           | **new** values (never copy staging's)                                                             |
+| Nightly backup | in the API (`NIGHTLY_BACKUP=in_api`) | the db-backup service (`NIGHTLY_BACKUP=external` + `BACKUP_HEARTBEAT_TOKEN`)                      |
+| OpenAPI docs   | served at `/v1/docs`                 | not served                                                                                        |
+| App Sleeping   | allowed                              | **off** for web and api (pg-boss schedules live in the API)                                       |
+| Ribbon         | "Staging environment"                | none                                                                                              |
 
 Production-only config checks (the API names the variable and exits): https `WEB_ORIGIN`; `IP_HASH_SALT` of at least 32 characters; no `console` email; R2 configured, with `STORAGE_PUBLIC_BASE_URL` not on `r2.dev`; `BACKUP_HEARTBEAT_TOKEN` set; and `APP_ENCRYPTION_KEY` not the local example key. Session cookies are `Secure` (the same as staging).
 

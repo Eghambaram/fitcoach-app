@@ -4,7 +4,13 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { createTestApp } from "../../test/create-test-app";
 import { createPool } from "../../test/db";
+import { generate } from "otplib";
+import { StorageService } from "../../integrations/storage/storage.service";
+import { asSystem, drizzleFor } from "../../test/fixtures";
+import { createHttpHelpers } from "../../test/http-helpers";
+import { grantPlatformOwner } from "../platform/platform-roles";
 import { BackupsService } from "./backups.service";
+import { NightlyBackupService } from "./nightly-backup.service";
 
 const TOKEN = "test-backup-heartbeat-token-0123456789";
 
@@ -129,5 +135,63 @@ describe("production configuration", () => {
     }
     // Outside production they are served.
     expect((await request(app.getHttpServer()).get("/v1/docs")).status).toBe(200);
+  });
+});
+
+describe("in-API nightly backup (ADR-0064)", () => {
+  it("records every run, success or failure, and keeps a good dump in the private bucket", async () => {
+    await owner.query("delete from backup_runs");
+    const result = await app.get(NightlyBackupService).backup();
+    const { rows } = await owner.query<{
+      status: string;
+      object_key: string | null;
+      error: string | null;
+    }>("select status, object_key, error from backup_runs");
+    expect(rows).toHaveLength(1);
+    const [run] = rows;
+    if (run?.status === "succeeded") {
+      // A machine with a matching pg_dump: the dump is in R2 under backups/daily/.
+      expect(run.object_key).toMatch(/^backups\/daily\/\d{4}-\d{2}-\d{2}\.dump$/);
+      const dump = await app.get(StorageService).getPrivate(run.object_key ?? "");
+      expect(dump.subarray(0, 5).toString()).toBe("PGDMP");
+      expect((await app.get(BackupsService).health()).status).toBe("ok");
+    } else {
+      // No (or an older) pg_dump here: the failure is recorded and shown, never hidden.
+      expect(run?.status).toBe("failed");
+      expect(run?.error).toBeTruthy();
+      expect(result).toHaveProperty("failed");
+      expect((await app.get(BackupsService).health()).status).toBe("degraded");
+    }
+  });
+
+  it("lets a platform owner queue a backup now, audited; nobody else", async () => {
+    const helpers = createHttpHelpers(
+      () => app,
+      () => system,
+    );
+    const account = await helpers.verifiedTrainer();
+    await asSystem(drizzleFor(system), (tx) => grantPlatformOwner(tx, account.email, "test"));
+    const http = helpers.client();
+    await http.post("/v1/platform/auth/login", {
+      email: account.email,
+      password: account.password,
+    });
+    const setup = (await http.get("/v1/platform/auth/mfa/setup")).body as { secret: string };
+    await http.post("/v1/platform/auth/mfa/enable", {
+      code: await generate({ secret: setup.secret }),
+    });
+
+    const health = await http.get("/v1/platform/health");
+    expect(health.body.canRunBackup).toBe(true);
+    expect((await http.post("/v1/platform/backups/run")).status).toBe(202);
+    const audit = await owner.query(
+      "select 1 from audit_logs where action = 'backup.run_requested' and actor_user_id = (select id from users where email = $1)",
+      [account.email],
+    );
+    expect(audit.rowCount).toBe(1);
+
+    const trainer = await helpers.signedInTrainer();
+    expect((await trainer.http.post("/v1/platform/backups/run")).status).toBe(403);
+    expect((await helpers.client().post("/v1/platform/backups/run")).status).toBe(401);
   });
 });

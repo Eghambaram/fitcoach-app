@@ -79,7 +79,7 @@ describe("parseEnv", () => {
     ).toEqual([expect.stringContaining("APP_ENCRYPTION_KEY: must not be the local")]);
   });
 
-  it("needs R2 on its custom domain and the backup heartbeat in production", () => {
+  it("needs R2 on its custom domain and a nightly backup in production", () => {
     const production = {
       ...valid,
       APP_ENV: "production",
@@ -91,7 +91,7 @@ describe("parseEnv", () => {
     expect(problemsFor(production)).toEqual(
       expect.arrayContaining([
         expect.stringContaining("STORAGE_ENDPOINT: object storage is required in production"),
-        expect.stringContaining("BACKUP_HEARTBEAT_TOKEN: is required in production"),
+        expect.stringContaining("DATABASE_OWNER_URL: is required with NIGHTLY_BACKUP=in_api"),
       ]),
     );
     const storage = {
@@ -102,7 +102,7 @@ describe("parseEnv", () => {
       STORAGE_PUBLIC_BUCKET: "fitcoach-prod-public",
       STORAGE_PUBLIC_BASE_URL: "https://pub-0123.r2.dev",
     };
-    const heartbeat = { BACKUP_HEARTBEAT_TOKEN: "0123456789abcdef0123456789abcdef" };
+    const heartbeat = { DATABASE_OWNER_URL: "postgres://postgres:pw@localhost:5432/fitcoach" };
     expect(problemsFor({ ...production, ...storage, ...heartbeat })).toEqual([
       expect.stringContaining("STORAGE_PUBLIC_BASE_URL: must be the media custom domain"),
     ]);
@@ -114,7 +114,20 @@ describe("parseEnv", () => {
     });
     expect(config.isProduction).toBe(true);
     expect(config.secureCookies).toBe(true);
-    expect(config.backupHeartbeatToken).toBe(heartbeat.BACKUP_HEARTBEAT_TOKEN);
+    expect(config.nightlyBackup).toBe("in_api");
+    expect(config.databaseOwnerUrl).toBe(heartbeat.DATABASE_OWNER_URL);
+    // With the separate db-backup service, its heartbeat token is required instead; off is refused.
+    const base = {
+      ...production,
+      ...storage,
+      STORAGE_PUBLIC_BASE_URL: "https://media.example.com",
+    };
+    expect(problemsFor({ ...base, NIGHTLY_BACKUP: "external" })).toEqual([
+      expect.stringContaining("BACKUP_HEARTBEAT_TOKEN: is required with NIGHTLY_BACKUP=external"),
+    ]);
+    expect(problemsFor({ ...base, NIGHTLY_BACKUP: "off" })).toEqual([
+      expect.stringContaining("NIGHTLY_BACKUP: can't be off in production"),
+    ]);
     // Staging may use r2.dev and run without the heartbeat.
     expect(
       problemsFor({
