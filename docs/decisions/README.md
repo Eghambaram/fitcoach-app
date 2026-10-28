@@ -63,3 +63,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0056](0056-client-app-screens.md)                     | Client app screens, client-facing views and client self-logging                             |
 | [0057](0057-check-ins.md)                              | Check-ins: one per local date, same-day edits, trainer review and per-client days           |
 | [0058](0058-progress-and-sharing.md)                   | Progress: measurements, custom types, per-metric sharing and the client view                |
+| [0059](0059-dashboard-summary.md)                      | Dashboard summary: one endpoint, fixed queries, shared metric definitions                   |

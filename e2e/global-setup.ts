@@ -13,8 +13,9 @@ export default function globalSetup(): void {
       "@fitcoach/api",
       "beta:invite",
       "create",
+      // Every spec signs up its own trainer on desktop and mobile; leave room as specs are added.
       "--uses",
-      "50",
+      "500",
       "--days",
       "1",
       "--label",

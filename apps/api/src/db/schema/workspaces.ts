@@ -92,6 +92,8 @@ export const trainerSettings = pgTable(
     checkInFrequency: text("check_in_frequency").notNull().default("daily"),
     noCheckInDays: integer("no_check_in_days").notNull().default(3),
     noMeasurementDays: integer("no_measurement_days").notNull().default(14),
+    /** The trainer closed the dashboard first-run checklist (§8.1). */
+    firstRunDismissedAt: timestamp("first_run_dismissed_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [
