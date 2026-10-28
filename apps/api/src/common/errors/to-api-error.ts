@@ -35,6 +35,7 @@ const GENERIC_MESSAGES: Record<ErrorCode, string> = {
     "This request was already sent with different details. Reload and try again.",
   WORKSPACE_READ_ONLY: "This workspace is read-only right now.",
   WORKSPACE_INACTIVE: "This workspace isn't active.",
+  MFA_REQUIRED: "Enter the code from your authenticator app to continue.",
   INTERNAL_ERROR: "Something went wrong on our side. Please try again.",
 };
 

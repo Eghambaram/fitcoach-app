@@ -33,7 +33,7 @@ Signup is invite-only while `SIGNUP_MODE=invite_code` (the default):
 pnpm beta:invite create --uses 5 --days 30 --label "Pune trainers"   # prints the code once
 pnpm beta:invite list
 pnpm beta:invite revoke <id>
-pnpm platform:grant you@example.com                                  # existing account → platform owner (login: step 6.1)
+pnpm platform:grant you@example.com                                  # existing account → platform owner (sign in at /platform/login + authenticator)
 ```
 
 All of these are audited (`audit_logs`). Try the flow in the browser: create a code, open http://localhost:3000/signup, then open the verification email in Mailpit (http://localhost:8025) and click Confirm. Password-reset emails land there too. The browser only ever talks to the web origin: `/api/*` is proxied to the API, so don't call http://localhost:4000 from browser code.

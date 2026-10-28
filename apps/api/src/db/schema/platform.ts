@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   check,
   index,
   integer,
@@ -29,6 +30,40 @@ export const platformRoles = pgTable(
     primaryKey({ columns: [t.userId, t.role] }),
     check("platform_roles_role", sql`${t.role} in ('platform_owner')`),
   ],
+);
+
+/**
+ * Platform owner TOTP (PROMPT §12.2, §16.0, ADR-0062). The secret is AES-256-GCM encrypted with
+ * APP_ENCRYPTION_KEY; `enabled_at` is set once the first code is confirmed. `last_time_step` blocks
+ * replaying a code. Only fitcoach_system touches this table.
+ */
+export const platformMfa = pgTable(
+  "platform_mfa",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    secretCiphertext: text("secret_ciphertext").notNull(),
+    enabledAt: timestamp("enabled_at", { withTimezone: true }),
+    lastTimeStep: bigint("last_time_step", { mode: "number" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [check("platform_mfa_ciphertext_length", sql`char_length(${t.secretCiphertext}) <= 500`)],
+);
+
+/** One-time recovery codes for platform owner MFA. Only the HMAC is stored. */
+export const platformRecoveryCodes = pgTable(
+  "platform_recovery_codes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    codeHash: text("code_hash").notNull().unique("platform_recovery_codes_code_hash_key"),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("platform_recovery_codes_user_id_idx").on(t.userId)],
 );
 
 /** Closed-beta signup codes (§1A.6, ADR-0029). Only the HMAC of the code is stored. */

@@ -12,6 +12,7 @@ export * from "./contracts/health";
 export * from "./contracts/lead-crm";
 export * from "./contracts/leads";
 export * from "./contracts/notifications";
+export * from "./contracts/platform";
 export * from "./contracts/onboarding";
 export * from "./contracts/packages";
 export * from "./contracts/programs";

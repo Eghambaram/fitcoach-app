@@ -31,6 +31,8 @@ export const ERROR_CODES = {
   IDEMPOTENCY_KEY_REUSED: "IDEMPOTENCY_KEY_REUSED",
   WORKSPACE_READ_ONLY: "WORKSPACE_READ_ONLY",
   WORKSPACE_INACTIVE: "WORKSPACE_INACTIVE",
+  /** A platform owner session needs its authenticator code first (AAL2, §12.2). */
+  MFA_REQUIRED: "MFA_REQUIRED",
   INTERNAL_ERROR: "INTERNAL_ERROR",
 } as const;
 

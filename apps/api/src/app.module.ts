@@ -2,7 +2,13 @@ import { Module } from "@nestjs/common";
 import { APP_FILTER, APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { ClsModule } from "nestjs-cls";
 import { ZodValidationPipe } from "nestjs-zod";
-import { ClientScopeGuard, RolesGuard, SessionGuard, WorkspaceGuard } from "./common/auth/guards";
+import {
+  ClientScopeGuard,
+  PlatformMfaGuard,
+  RolesGuard,
+  SessionGuard,
+  WorkspaceGuard,
+} from "./common/auth/guards";
 import { AllExceptionsFilter } from "./common/errors/all-exceptions.filter";
 import { LoggingModule } from "./common/logging/logging.module";
 import { CsrfGuard } from "./common/security/csrf.guard";
@@ -67,11 +73,11 @@ import { WorkoutsModule } from "./modules/workouts/workouts.module";
     ExportsModule,
   ],
   providers: [
-    // Guard order (PROMPT §4.3): CSRF → session → role → workspace status → client scope.
-    // PlatformMfaGuard (6.1) joins this chain later.
+    // Guard order (PROMPT §4.3): CSRF → session → role → platform MFA → workspace status → client scope.
     { provide: APP_GUARD, useClass: CsrfGuard },
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: PlatformMfaGuard },
     { provide: APP_GUARD, useClass: WorkspaceGuard },
     { provide: APP_GUARD, useClass: ClientScopeGuard },
     { provide: APP_PIPE, useClass: ZodValidationPipe },

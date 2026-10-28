@@ -6,7 +6,7 @@ import { ClsService } from "nestjs-cls";
 import { SessionsService } from "../../modules/auth/sessions.service";
 import { DomainError } from "../errors/domain-error";
 import type { Actor, AppClsStore } from "../request-context";
-import { ALLOW_INACTIVE_WORKSPACE, IS_PUBLIC, ROLES } from "./decorators";
+import { ALLOW_AAL1, ALLOW_INACTIVE_WORKSPACE, IS_PUBLIC, ROLES } from "./decorators";
 import { readSessionCookie } from "./session-cookie";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -44,6 +44,7 @@ export class SessionGuard implements CanActivate {
           clientId: session.clientId,
           sessionId: session.id,
           workspaceStatus: session.workspaceStatus,
+          aal: session.aal,
         });
       }
     }
@@ -156,5 +157,33 @@ export class ClientScopeGuard implements CanActivate {
       );
     }
     return true;
+  }
+}
+
+/**
+ * Platform owners need AAL2 — password and a TOTP code — for everything except the routes marked
+ * `@AllowAal1()` (PROMPT §12.2, §16.0). Fails closed: a new platform route needs no extra marking.
+ */
+@Injectable()
+export class PlatformMfaGuard implements CanActivate {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly cls: ClsService<AppClsStore>,
+  ) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const auth = this.cls.get("auth");
+    if (!auth || auth.actor !== "platform_owner" || auth.aal === 2) return true;
+    const allowed =
+      this.reflector.getAllAndOverride<boolean>(ALLOW_AAL1, [
+        context.getHandler(),
+        context.getClass(),
+      ]) === true;
+    if (allowed) return true;
+    throw new DomainError(
+      ERROR_CODES.MFA_REQUIRED,
+      403,
+      "Enter the code from your authenticator app to continue.",
+    );
   }
 }

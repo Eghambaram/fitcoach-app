@@ -30,3 +30,10 @@ export function generateBetaCode(): string {
 export function normalizeBetaCode(input: string): string {
   return input.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
+
+/** Platform owner recovery code like "7KQ2M-9XD4P" (~49 bits, single use, rate-limited). */
+export function generateRecoveryCode(): string {
+  const group = () =>
+    Array.from({ length: 5 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]).join("");
+  return `${group()}-${group()}`;
+}

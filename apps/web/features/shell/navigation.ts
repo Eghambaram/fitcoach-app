@@ -89,14 +89,14 @@ export const CLIENT_NAV: readonly NavItem[] = [
   { label: "Check-in", href: "/client/check-in", icon: ClipboardCheck, available: false },
 ];
 
-/** Platform owner nav — §16.0 MVP items only. Screens arrive in step 6.1. */
+/** Platform owner nav — §16.0 MVP items only. */
 export const PLATFORM_NAV: readonly NavItem[] = [
   { label: "Overview", href: "/platform", icon: LayoutDashboard, available: true },
-  { label: "Trainers", href: "/platform/trainers", icon: Users, available: false },
-  { label: "Feedback", href: "/platform/feedback", icon: MessageSquareText, available: false },
-  { label: "System Health", href: "/platform/health", icon: Activity, available: false },
-  { label: "Audit Logs", href: "/platform/audit-logs", icon: FileClock, available: false },
-  { label: "Settings", href: "/platform/settings", icon: ShieldCheck, available: false },
+  { label: "Trainers", href: "/platform/trainers", icon: Users, available: true },
+  { label: "Feedback", href: "/platform/feedback", icon: MessageSquareText, available: true },
+  { label: "System Health", href: "/platform/health", icon: Activity, available: true },
+  { label: "Audit Logs", href: "/platform/audit-logs", icon: FileClock, available: true },
+  { label: "Settings", href: "/platform/settings", icon: ShieldCheck, available: true },
 ];
 
 function navItem(items: readonly NavItem[], href: string): NavItem {

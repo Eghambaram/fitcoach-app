@@ -6,6 +6,24 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 6.1 platform owner (PROMPT §16.0, §12.2):
+  - **Sign-in:** `/platform/login` with a password, then an authenticator app (TOTP). The first sign-in sets it up and shows 10 one-time recovery codes. Sessions last 12 hours.
+    - Platform pages need the code (AAL2, `PlatformMfaGuard`).
+    - Codes can't be replayed.
+    - Secrets are encrypted with the new required `APP_ENCRYPTION_KEY`.
+  - **Overview:** real counts (trainers, active this week, pending, suspended, active clients, activation rate, invites accepted, feedback to review, failed jobs). Billing shows "Not configured". Recent signups with Approve.
+  - **Trainers:**
+    - search, status filter and sort;
+    - detail with the getting-started checklist, plan and usage counts (never client details);
+    - actions: approve, plan / client limit / trial end, suspend and reactivate with a reason (the trainer is signed out and notified), password reset email, sign out everywhere;
+    - all actions audited.
+  - **Feedback inbox** (new / triaged / closed), **system health** (database, jobs, backups, email, R2, storage budget — OK / Degraded / Unknown), **audit log** (filters, paging) and **beta invite codes** in Settings.
+  - **Contact email:** `NEXT_PUBLIC_BETA_CONTACT_EMAIL` is set to getfitcoach.app@gmail.com in `.env.example` and the compose stack.
+  - **Database:** `platform_mfa`, `platform_recovery_codes` (system only), new notification types. ADR-0062.
+  - **Tests:**
+    - **RLS:** MFA tables locked to the system role.
+    - **API:** MFA enrolment, verification, replay and recovery codes; tampering by trainers, clients and anonymous callers; role revocation; every admin action and its audit entry.
+    - **e2e:** first sign-in with TOTP, trainer management, invites, feedback, health and axe, on desktop and mobile.
 - Step 5.3 beta readiness (PROMPT §1A.5, §6, §8.12, §10.2, §12, §14, §16.0):
   - **Send feedback** from the app menu (desktop sidebar and More on mobile), with the screen it was sent from. Works while suspended. `POST /v1/feedback`.
   - **Data export** in Settings → Export your data:

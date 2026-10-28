@@ -12,6 +12,9 @@ export type EmailProviderName = (typeof EMAIL_PROVIDERS)[number];
 const APP_ROLE = "fitcoach_app";
 const SYSTEM_ROLE = "fitcoach_system";
 
+/** The value in .env.example; refused in staging and production. */
+const LOCAL_ENCRYPTION_KEY = "bG9jYWwtZGV2LWVuY3J5cHRpb24ta2V5LW5vdC1zZWM=";
+
 const postgresUrl = z
   .string()
   .url()
@@ -28,6 +31,13 @@ const envSchema = z
     IP_HASH_SALT: z.string().min(16),
     /** Keys the HMAC of session, auth and invite tokens (a DB leak alone can't be replayed). */
     SESSION_SECRET: z.string().min(32),
+    /** AES-256-GCM key for platform owner TOTP secrets (ADR-0062): 32 random bytes, base64. */
+    APP_ENCRYPTION_KEY: z
+      .string()
+      .refine(
+        (value) => Buffer.from(value, "base64").length === 32,
+        "must be 32 random bytes, base64-encoded",
+      ),
     SIGNUP_MODE: z.enum(SIGNUP_MODES).default("invite_code"),
     BETA_DEFAULT_CLIENT_LIMIT: z.coerce.number().int().min(1).max(10_000).default(50),
     EMAIL_PROVIDER: z.enum(EMAIL_PROVIDERS).default("smtp"),
@@ -88,6 +98,12 @@ const envSchema = z
     if (deployed && env.IP_HASH_SALT.length < 32) {
       problem("IP_HASH_SALT", "must be at least 32 random characters outside local development");
     }
+    if (deployed && env.APP_ENCRYPTION_KEY === LOCAL_ENCRYPTION_KEY) {
+      problem(
+        "APP_ENCRYPTION_KEY",
+        "must not be the local development key outside local development",
+      );
+    }
     if (env.APP_ENV === "production" && env.EMAIL_PROVIDER === "console") {
       problem("EMAIL_PROVIDER", "console is not allowed in production (D13)");
     }
@@ -136,6 +152,8 @@ export abstract class AppConfig {
   abstract readonly dbPoolMax: number;
   abstract readonly ipHashSalt: string;
   abstract readonly sessionSecret: string;
+  /** 32-byte AES-256-GCM key (APP_ENCRYPTION_KEY) for platform owner TOTP secrets. */
+  abstract readonly encryptionKey: Buffer;
   /** `Secure` session cookies everywhere except local development and tests (PROMPT §12.2). */
   abstract readonly secureCookies: boolean;
   abstract readonly signupMode: SignupMode;
@@ -179,6 +197,7 @@ export function parseEnv(source: NodeJS.ProcessEnv): AppConfig {
     dbPoolMax: env.DB_POOL_MAX,
     ipHashSalt: env.IP_HASH_SALT,
     sessionSecret: env.SESSION_SECRET,
+    encryptionKey: Buffer.from(env.APP_ENCRYPTION_KEY, "base64"),
     secureCookies: env.APP_ENV === "staging" || env.APP_ENV === "production",
     signupMode: env.SIGNUP_MODE,
     betaDefaultClientLimit: env.BETA_DEFAULT_CLIENT_LIMIT,

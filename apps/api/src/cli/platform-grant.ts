@@ -1,6 +1,6 @@
 /**
  * `pnpm platform:grant <email>` — makes an existing account a platform owner (PROMPT §12.2). Audited.
- * The platform login with mandatory TOTP MFA arrives in step 6.1.
+ * The owner then signs in at /platform/login and sets up an authenticator app (mandatory TOTP).
  */
 import { grantPlatformOwner } from "../modules/platform/platform-roles";
 import { fail, withSystemDb } from "./cli-db";
@@ -17,7 +17,7 @@ async function main(): Promise<void> {
   }
   console.log(
     result.status === "granted"
-      ? "Granted platform_owner. The platform login and MFA setup arrive in step 6.1."
+      ? "Granted platform_owner. Sign in at /platform/login and set up your authenticator app."
       : "That account is already a platform owner.",
   );
 }
