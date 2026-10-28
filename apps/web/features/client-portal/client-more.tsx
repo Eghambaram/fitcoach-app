@@ -1,13 +1,14 @@
 "use client";
 
 import type { ClientMeResponse } from "@fitcoach/shared";
-import { ChevronRight, CircleHelp, Dumbbell, LogOut, UserRound } from "lucide-react";
+import { CalendarDays, ChevronRight, CircleHelp, Dumbbell, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { ContactTrainerButtons, TrainerAvatar } from "./client-display";
 import { useClientSignOut } from "./client-shell";
 
 const LINKS = [
+  { href: "/client/schedule", label: "Schedule", icon: CalendarDays },
   { href: "/client/profile", label: "Profile & settings", icon: UserRound },
   { href: "/client/workouts", label: "My workouts", icon: Dumbbell },
 ] as const;

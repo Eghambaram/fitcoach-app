@@ -41,7 +41,7 @@ export const TRAINER_NAV: readonly NavItem[] = [
   { label: "Programs", href: "/app/programs", icon: ListChecks, available: true },
   { label: "Workouts", href: "/app/workouts", icon: Dumbbell, available: false },
   { label: "Check-ins", href: "/app/check-ins", icon: ClipboardCheck, available: true },
-  { label: "Progress", href: "/app/progress", icon: TrendingUp, available: false },
+  { label: "Progress", href: "/app/progress", icon: TrendingUp, available: true },
   { label: "Settings", href: "/app/settings", icon: Settings, available: true },
 ];
 

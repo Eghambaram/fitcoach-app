@@ -39,6 +39,7 @@ import {
 } from "../../db/schema";
 import { FilesService } from "../files/files.service";
 import { CheckInsService } from "../check-ins/check-ins.service";
+import { ProgressService } from "../progress/progress.service";
 import { WorkoutsService } from "../workouts/workouts.service";
 import { readFeatures } from "./portal-access.service";
 
@@ -78,6 +79,7 @@ export class ClientPortalService {
     private readonly files: FilesService,
     private readonly workouts: WorkoutsService,
     private readonly checkIns: CheckInsService,
+    private readonly progress: ProgressService,
   ) {}
 
   scope(): Scope {
@@ -307,6 +309,7 @@ export class ClientPortalService {
       package: await this.activePackage(scope),
       streakWeeks: await this.streak(scope, monday, today),
       checkInDue: (await this.checkIns.clientState(scope)).due,
+      sharedMetrics: await this.progress.sharedTiles(),
       programName: program?.name ?? null,
     };
   }

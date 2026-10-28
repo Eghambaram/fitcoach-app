@@ -1668,6 +1668,134 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/measurement-types": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgressController_types"];
+    put?: never;
+    post: operations["ProgressController_createType"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/progress": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgressController_overview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/progress": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ProgressController_clientProgress"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/measurements": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ProgressController_add"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/measurements/{id}/void": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ProgressController_void"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/clients/{id}/progress-sharing": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations["ProgressController_sharing"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/progress": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ClientProgressController_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/client/measurements": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ClientProgressController_add"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/exercises": {
     parameters: {
       query?: never;
@@ -3781,6 +3909,14 @@ export interface components {
       } | null;
       streakWeeks: number;
       checkInDue: boolean;
+      sharedMetrics: {
+        name: string;
+        /** @enum {string} */
+        unitKind: "mass" | "length" | "percent" | "count";
+        latest: number;
+        change: number | null;
+        since: string | null;
+      }[];
       programName: string | null;
     };
     PortalWorkoutsResponseDto: {
@@ -4339,6 +4475,192 @@ export interface components {
       soreness: "none" | "mild" | "moderate" | "high";
       notes?: string;
       workoutFeedback?: string;
+    };
+    MeasurementTypesDto: {
+      types: {
+        /** Format: uuid */
+        id: string;
+        key: string;
+        name: string;
+        /** @enum {string} */
+        unitKind: "mass" | "length" | "percent" | "count";
+        custom: boolean;
+      }[];
+    };
+    CreateTypeDto: {
+      name: string;
+      /** @enum {string} */
+      unitKind: "mass" | "length" | "percent" | "count";
+    };
+    MeasurementTypeDto: {
+      /** Format: uuid */
+      id: string;
+      key: string;
+      name: string;
+      /** @enum {string} */
+      unitKind: "mass" | "length" | "percent" | "count";
+      custom: boolean;
+    };
+    OverviewDto: {
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+      clients: {
+        /** Format: uuid */
+        id: string;
+        fullName: string;
+        lastMeasuredOn: string;
+        changes: {
+          name: string;
+          /** @enum {string} */
+          unitKind: "mass" | "length" | "percent" | "count";
+          latest: number;
+          change: number | null;
+          since: string | null;
+        }[];
+      }[];
+    };
+    ClientProgressDto: {
+      today: string;
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+      selfLogging: boolean;
+      metrics: {
+        type: {
+          /** Format: uuid */
+          id: string;
+          key: string;
+          name: string;
+          /** @enum {string} */
+          unitKind: "mass" | "length" | "percent" | "count";
+          custom: boolean;
+        };
+        shared: boolean;
+        points: {
+          /** Format: uuid */
+          id: string;
+          measuredOn: string;
+          value: number;
+          /** @enum {string} */
+          source: "trainer" | "client";
+          note: string | null;
+          /** Format: date-time */
+          recordedAt: string;
+        }[];
+        voided: {
+          /** Format: uuid */
+          id: string;
+          measuredOn: string;
+          value: number;
+          /** @enum {string} */
+          source: "trainer" | "client";
+          note: string | null;
+          /** Format: date-time */
+          recordedAt: string;
+          /** Format: date-time */
+          voidedAt: string;
+          voidReason: string;
+        }[];
+        first: {
+          measuredOn: string;
+          value: number;
+        } | null;
+        latest: {
+          measuredOn: string;
+          value: number;
+        } | null;
+        change: number | null;
+        percentChange: number | null;
+      }[];
+      types: {
+        /** Format: uuid */
+        id: string;
+        key: string;
+        name: string;
+        /** @enum {string} */
+        unitKind: "mass" | "length" | "percent" | "count";
+        custom: boolean;
+      }[];
+    };
+    AddMeasurementDto: {
+      /** Format: uuid */
+      typeId: string;
+      value: number;
+      /** @enum {string} */
+      unit: "kg" | "lb" | "cm" | "in" | "%" | "count";
+      measuredOn: string;
+      note?: string;
+    };
+    VoidDto: {
+      reason: string;
+    };
+    SharingDto: {
+      typeIds: string[];
+      selfLogging: boolean;
+    };
+    PortalProgressDto: {
+      today: string;
+      units: {
+        /** @enum {string} */
+        weightUnit: "kg" | "lb";
+        /** @enum {string} */
+        lengthUnit: "cm" | "in";
+      };
+      canLog: boolean;
+      metrics: {
+        type: {
+          /** Format: uuid */
+          id: string;
+          key: string;
+          name: string;
+          /** @enum {string} */
+          unitKind: "mass" | "length" | "percent" | "count";
+          custom: boolean;
+        };
+        shared: boolean;
+        points: {
+          /** Format: uuid */
+          id: string;
+          measuredOn: string;
+          value: number;
+          /** @enum {string} */
+          source: "trainer" | "client";
+          note: string | null;
+          /** Format: date-time */
+          recordedAt: string;
+        }[];
+        voided: {
+          /** Format: uuid */
+          id: string;
+          measuredOn: string;
+          value: number;
+          /** @enum {string} */
+          source: "trainer" | "client";
+          note: string | null;
+          /** Format: date-time */
+          recordedAt: string;
+          /** Format: date-time */
+          voidedAt: string;
+          voidReason: string;
+        }[];
+        first: {
+          measuredOn: string;
+          value: number;
+        } | null;
+        latest: {
+          measuredOn: string;
+          value: number;
+        } | null;
+        change: number | null;
+        percentChange: number | null;
+      }[];
     };
     ExerciseListResponseDto: {
       exercises: {
@@ -7303,6 +7625,205 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ClientCheckInResponseDto"];
+        };
+      };
+    };
+  };
+  ProgressController_types: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MeasurementTypesDto"];
+        };
+      };
+    };
+  };
+  ProgressController_createType: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateTypeDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MeasurementTypeDto"];
+        };
+      };
+    };
+  };
+  ProgressController_overview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OverviewDto"];
+        };
+      };
+    };
+  };
+  ProgressController_clientProgress: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientProgressDto"];
+        };
+      };
+    };
+  };
+  ProgressController_add: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AddMeasurementDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientProgressDto"];
+        };
+      };
+    };
+  };
+  ProgressController_void: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["VoidDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientProgressDto"];
+        };
+      };
+    };
+  };
+  ProgressController_sharing: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SharingDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ClientProgressDto"];
+        };
+      };
+    };
+  };
+  ClientProgressController_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PortalProgressDto"];
+        };
+      };
+    };
+  };
+  ClientProgressController_add: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AddMeasurementDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PortalProgressDto"];
         };
       };
     };

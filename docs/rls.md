@@ -231,6 +231,18 @@ Migration 0035.
 
 Proven by `check-ins.db.test.ts`.
 
+### Progress and sharing (step 4.4)
+
+Migration 0037, expanding 0016.
+
+| Table               | fitcoach_app                            | Policy                                                                                                           | Notes                                                                                                  |
+| ------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `measurement_types` | + INSERT; UPDATE of `name`, `is_active` | trainer: own workspace's custom types; client: global + their workspace's                                        | Global types stay read-only. Custom types never cross workspaces (trigger on measurements and shares). |
+| `progress_shares`   | SELECT, INSERT, DELETE                  | trainer: own workspace, insert signed; client: SELECT own                                                        | One row per shared metric; default none. A trigger keeps the type in the workspace.                    |
+| `measurements`      | + client SELECT and INSERT              | client: own rows of shared metrics only; insert `source = 'client'`, signed, live, with progress self-logging on | Still append-only: no UPDATE of values, no DELETE; only the trainer voids.                             |
+
+Proven by `progress.db.test.ts`.
+
 ## Proven by tests
 
 - Every `public` table has ENABLE + FORCE RLS (`rls-coverage.db.test.ts`).
@@ -252,3 +264,4 @@ Proven by `check-ins.db.test.ts`.
 - Client portal: a trainer creates and revokes links only for their own clients, signed as themselves; links can't be extended, reopened or deleted (not even by fitcoach_system); a client context sees only its own client row, workspace and trainer, and nothing trainer-only (leads, notes, invites, packages, payments, appointments, workouts, settings, templates); a forged client id or a context without the client actor sees nothing; a client session must name a client of its own workspace (`client-portal.db.test.ts`). Over HTTP: clients get 403 on every trainer route and trainers on client routes; another trainer gets 404 for a client's portal actions; a link works once, older links stop working when a new one is made, and turning access off signs the client out (`client-portal.api.test.ts`).
 - Client app: a client sees only their own workouts, program, goals and their workspace's custom exercises; appointments and packages only through the views, which have no notes or price columns and show nothing to trainers, other workspaces or empty contexts; workout writes need self-logging on and touch only the lifecycle and the client's feedback; preferences change only through the narrow function (`client-app.db.test.ts`). Over HTTP: home, workouts, schedule and profile carry no prices, notes or trainer notes; logging is refused until the trainer turns it on; trainer-only workout actions are refused; another client's workout answers 404 and another trainer can't change this client's features (`client-app.api.test.ts`).
 - Check-ins: a client sends one check-in per local date, only for themselves, only for today and only with check-ins on; they can't write the review or a reply; each same-day edit keeps the previous answers in a revision nobody can forge, change or delete; a trainer reviews only as themselves and can't change the answers; yesterday's check-in is read-only; other workspaces, other clients and empty contexts see nothing (`check-ins.db.test.ts`). Over HTTP: send, edit, review and reply round trip; per-client days and on/off decide what is due and allowed; another trainer gets 404 and clients get 403 on trainer routes (`check-ins.api.test.ts`).
+- Progress: a client reads only measurements of shared metrics and their own shares; they can't share more, void or edit values; they add values only with self-logging on, only for shared metrics and only as themselves; custom types, shares and measurements never cross workspaces; global types stay read-only; empty contexts see nothing (`progress.db.test.ts`). Over HTTP: unit conversion, plausibility and void-then-add; custom types; sharing weight only shows weight and never waist or trainer notes; self-logging gate; the overview shows only the trainer's own clients; another trainer gets 404 and clients get 403 on trainer routes (`progress.api.test.ts`).

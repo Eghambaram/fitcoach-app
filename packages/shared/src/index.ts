@@ -12,6 +12,7 @@ export * from "./contracts/leads";
 export * from "./contracts/onboarding";
 export * from "./contracts/packages";
 export * from "./contracts/programs";
+export * from "./contracts/progress";
 export * from "./contracts/public-page";
 export * from "./contracts/scheduling";
 export * from "./contracts/settings";

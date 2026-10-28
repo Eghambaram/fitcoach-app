@@ -477,3 +477,36 @@ export const clientInvites = pgTable(
     check("client_invites_closed_once", sql`${t.consumedAt} is null or ${t.revokedAt} is null`),
   ],
 );
+
+/**
+ * Which metrics a client sees in their app (PROMPT §8.8): one row per shared measurement type.
+ * Default nothing shared; unsharing removes the row.
+ */
+export const progressShares = pgTable(
+  "progress_shares",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull(),
+    typeId: uuid("type_id")
+      .notNull()
+      .references(() => measurementTypes.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "progress_shares_client_fk",
+      columns: [t.workspaceId, t.clientId],
+      foreignColumns: [clients.workspaceId, clients.id],
+    }).onDelete("cascade"),
+    unique("progress_shares_client_type_key").on(t.clientId, t.typeId),
+    index("progress_shares_workspace_client_idx").on(t.workspaceId, t.clientId),
+    index("progress_shares_type_id_idx").on(t.typeId),
+    index("progress_shares_created_by_user_id_idx").on(t.createdByUserId),
+  ],
+);

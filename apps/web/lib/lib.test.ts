@@ -71,6 +71,7 @@ describe("navigation (PROMPT §6)", () => {
       "/app/calendar",
       "/app/programs",
       "/app/check-ins",
+      "/app/progress",
       "/app/settings",
     ]);
   });

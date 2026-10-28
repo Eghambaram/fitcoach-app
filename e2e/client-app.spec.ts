@@ -148,7 +148,8 @@ test("a client sees their own workouts, schedule and sessions left, and logs a w
   expect((await new AxeBuilder({ page: client.page }).analyze()).violations).toEqual([]);
 
   // Schedule: the session, never the trainer's note.
-  await client.page.getByRole("link", { name: "Schedule" }).first().click();
+  await client.page.getByRole("link", { name: "More" }).first().click();
+  await client.page.getByRole("link", { name: "Schedule" }).click();
   await expect(client.page.getByRole("heading", { name: "My schedule" })).toBeVisible();
   await expect(client.page.getByText(/Studio 2/)).toBeVisible();
   await expect(client.page.getByText(/knee history/)).toHaveCount(0);

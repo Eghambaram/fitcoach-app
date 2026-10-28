@@ -1,10 +1,11 @@
 import type { ClientHomeResponse, ClientMeResponse } from "@fitcoach/shared";
-import { CalendarDays, ClipboardCheck, Dumbbell, Flame, Ticket } from "lucide-react";
+import { CalendarDays, ClipboardCheck, Dumbbell, Flame, LineChart, Ticket } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { dayLabel, timeLabel } from "../calendar/dates";
+import { formatChange, formatValue } from "../progress/format";
 import {
   ContactTrainerButtons,
   packageLine,
@@ -39,7 +40,15 @@ function Tile({
 }
 
 /** Client home (PROMPT §9, client board 2): this week, today's workout, sessions left, next session. */
-export function ClientHome({ me, home }: { me: ClientMeResponse; home: ClientHomeResponse }) {
+export function ClientHome({
+  me,
+  home,
+  units,
+}: {
+  me: ClientMeResponse;
+  home: ClientHomeResponse;
+  units: { weightUnit: "kg" | "lb"; lengthUnit: "cm" | "in" };
+}) {
   const canLog = me.features.workoutSelfLogging;
   const today = home.todayWorkout;
   return (
@@ -147,6 +156,19 @@ export function ClientHome({ me, home }: { me: ClientMeResponse; home: ClientHom
           value={`${home.streakWeeks} week${home.streakWeeks === 1 ? "" : "s"}`}
           detail="Weeks with every planned workout done"
         />
+        {home.sharedMetrics.map((metric) => (
+          <Tile
+            key={metric.name}
+            icon={LineChart}
+            label={metric.name}
+            value={formatValue(metric.latest, metric.unitKind, units)}
+            detail={
+              metric.change !== null && metric.since
+                ? `${formatChange(metric.change, metric.unitKind, units)} since ${dayLabel(metric.since)}`
+                : "Shared by your trainer"
+            }
+          />
+        ))}
       </div>
 
       <Card className="flex flex-col gap-2 p-5">
