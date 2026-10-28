@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   check,
   index,
   integer,
@@ -120,5 +121,37 @@ export const jobRuns = pgTable(
     check("job_runs_name_length", sql`char_length(${t.name}) between 1 and 80`),
     check("job_runs_error_length", sql`${t.error} is null or char_length(${t.error}) <= 1000`),
     check("job_runs_summary_object", sql`jsonb_typeof(${t.summary}) = 'object'`),
+  ],
+);
+
+/**
+ * Heartbeats from the nightly `db-backup` cron (PROMPT §17.2, §16.0 health, ADR-0063): one row per
+ * run, success or failure, posted to the API with BACKUP_HEARTBEAT_TOKEN. System-only.
+ */
+export const backupRuns = pgTable(
+  "backup_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    status: text("status").notNull(),
+    objectKey: text("object_key"),
+    sizeBytes: bigint("size_bytes", { mode: "number" }),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }).notNull(),
+    error: text("error"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("backup_runs_finished_at_idx").on(t.finishedAt),
+    check("backup_runs_status", sql`${t.status} in ('succeeded', 'failed')`),
+    check(
+      "backup_runs_succeeded",
+      sql`${t.status} <> 'succeeded' or (${t.objectKey} is not null and ${t.sizeBytes} > 0)`,
+    ),
+    check(
+      "backup_runs_object_key",
+      sql`${t.objectKey} is null or ${t.objectKey} ~ '^([a-z0-9-]+/)?backups/(daily|weekly)/'`,
+    ),
+    check("backup_runs_error_length", sql`${t.error} is null or char_length(${t.error}) <= 1000`),
+    check("backup_runs_order", sql`${t.finishedAt} >= ${t.startedAt}`),
   ],
 );

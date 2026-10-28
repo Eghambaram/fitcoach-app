@@ -24,6 +24,7 @@ import { ProgressModule } from "./modules/progress/progress.module";
 import { CheckInsModule } from "./modules/check-ins/check-ins.module";
 import { ClientPortalModule } from "./modules/client-portal/client-portal.module";
 import { ClientsModule } from "./modules/clients/clients.module";
+import { BackupsModule } from "./modules/backups/backups.module";
 import { ExportsModule } from "./modules/exports/exports.module";
 import { FeedbackModule } from "./modules/feedback/feedback.module";
 import { ExercisesModule } from "./modules/exercises/exercises.module";
@@ -71,6 +72,7 @@ import { WorkoutsModule } from "./modules/workouts/workouts.module";
     PublicPageModule,
     FeedbackModule,
     ExportsModule,
+    BackupsModule,
   ],
   providers: [
     // Guard order (PROMPT §4.3): CSRF → session → role → platform MFA → workspace status → client scope.

@@ -1,6 +1,6 @@
 # Railway deployment — staging
 
-How FitCoach runs on Railway (PROMPT §17.1–§17.6) and how to set up the **staging** environment step by step. Production follows the same shape in step 6.2. File storage is Cloudflare R2: set it up first with [r2.md](r2.md), because the API needs the R2 values.
+How FitCoach runs on Railway (PROMPT §17.1–§17.6) and how to set up the **staging** environment step by step. Production has the same shape: see [production.md](production.md). File storage is Cloudflare R2: set it up first with [r2.md](r2.md), because the API needs the R2 values.
 
 ## What runs where
 
@@ -8,7 +8,8 @@ How FitCoach runs on Railway (PROMPT §17.1–§17.6) and how to set up the **st
 Railway project "fitcoach" → environment "staging"
 ├── web       Next.js standalone (apps/web/Dockerfile) — the only public domain
 ├── api       NestJS (apps/api/Dockerfile) — private network only; migrations run before each deploy
-└── Postgres  Railway PostgreSQL (volume, backups enabled)
+├── Postgres  Railway PostgreSQL (volume, backups enabled)
+└── db-backup cron (infra/db-backup/Dockerfile): nightly pg_dump → R2 private bucket, heartbeat to api
 
 Cloudflare R2 (outside Railway): fitcoach-staging-private, fitcoach-staging-public
 ```
@@ -18,7 +19,7 @@ Cloudflare R2 (outside Railway): fitcoach-staging-private, fitcoach-staging-publ
 - Each service builds from the **repo root** with its own Dockerfile and config file (`apps/api/railway.json`, `apps/web/railway.json`). `watchPatterns` mean a web-only change doesn't redeploy the API.
 - The API container **migrates on start** (`node dist/db/migrate.js`, then the server). This creates the database roles, applies SQL migrations and installs the pg-boss schema, under an advisory lock and idempotently. If it fails, the container exits, the health check never passes, and the previous deploy keeps serving (ADR-0043).
 - Deploy health checks: API `GET /v1/health` (no DB), web `GET /healthz`. Full readiness (DB + jobs + R2) is `GET /api/v1/health/ready` on the web domain.
-- The nightly `pg_dump` service (`db-backup`) arrives in step 6.2.
+- `db-backup` runs at 02:00 IST: `pg_dump -Fc` → checked with `pg_restore --list` → R2 `backups/daily/` (and `backups/weekly/` on Sundays) → retention → heartbeat to the API. Platform → System Health shows the result. Restoring: [restore.md](../runbooks/restore.md).
 
 ## Before you start
 
@@ -164,30 +165,45 @@ If `railway ssh` isn't available: set the API variable `SIGNUP_MODE=open`, let t
 2. Confirm the email from your inbox, then log in.
 3. Settings → **Profile** → upload a photo. It appears in the app shell. Cloudflare → R2 → `fitcoach-staging-public` → `trainer-avatars/<workspace id>/<uuid>.webp` (plus `_thumb.webp`).
 
+### 9. db-backup service (nightly pg_dump)
+
+1. **+ Create** → **GitHub Repo** → `Eghambaram/fitcoach-app` again. Rename the service **`db-backup`**.
+2. Settings → **Source**: branch `main`, root directory empty. Config file: `/infra/db-backup/railway.json`. If Railway ignores it, set these directly:
+   - **Deploy** → **Cron Schedule** `30 20 * * *` (UTC = 02:00 IST).
+   - **Restart Policy** Never.
+   - No health check, no public domain.
+3. **api** → Variables: add `BACKUP_HEARTBEAT_TOKEN=<generated hex>` (and `APP_ENCRYPTION_KEY` from step 6.1 if it's missing).
+4. **db-backup** → Variables → Raw Editor: paste [`infra/railway/staging/db-backup.env.example`](../../infra/railway/staging/db-backup.env.example) and fill in the R2 values (the same staging token as the API).
+5. Deploy it once by hand (db-backup → **Deploy**). The deploy log ends with `backup succeeded`. R2 → `fitcoach-staging-private` → `backups/daily/` has today's dump. Platform → System Health → **Backups** is **OK**.
+6. Do a restore drill into a scratch database ([restore.md](../runbooks/restore.md#drill-restore-stagings-latest-dump-into-a-scratch-database-do-this-monthly)).
+
 ## Variables reference (PROMPT §17.3)
 
-| Variable                                            | Service | Staging value                                                                                                                                  |
-| --------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `APP_ENV`                                           | api     | `staging` (Secure cookies, https `WEB_ORIGIN` and a 32+ character `IP_HASH_SALT` are enforced)                                                 |
-| `PORT`                                              | api     | `4000` — set explicitly so `${{api.PORT}}` resolves for web                                                                                    |
-| `WEB_ORIGIN`                                        | api     | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` — exact origin for CSRF checks and email links                                                        |
-| `DATABASE_OWNER_URL`                                | api     | `${{Postgres.DATABASE_URL}}` — admin URL, used only by the start-up migration                                                                  |
-| `DB_APP_PASSWORD` / `DB_SYSTEM_PASSWORD`            | api     | generated hex; the migration sets these as the role passwords on every deploy                                                                  |
-| `DATABASE_URL`                                      | api     | `postgresql://fitcoach_app:${{DB_APP_PASSWORD}}@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` (RLS-enforced role)        |
-| `DATABASE_SYSTEM_URL`                               | api     | same with `fitcoach_system` and `${{DB_SYSTEM_PASSWORD}}` (jobs, auth lookups, CLIs)                                                           |
-| `DB_POOL_MAX`                                       | api     | `10` per replica; keep replicas × pools well under Postgres `max_connections`                                                                  |
-| `SESSION_SECRET` / `IP_HASH_SALT`                   | api     | generated hex (32 bytes each)                                                                                                                  |
-| `SIGNUP_MODE` / `BETA_DEFAULT_CLIENT_LIMIT`         | api     | `invite_code` / `50`                                                                                                                           |
-| `EMAIL_PROVIDER` + `RESEND_API_KEY` or `SMTP_URL`   | api     | see [Email on staging](#email-on-staging); `console` is allowed on staging but you won't receive links                                         |
-| `EMAIL_FROM`                                        | api     | `FitCoach Staging <onboarding@resend.dev>` (or an address on your verified domain)                                                             |
-| `STORAGE_*`                                         | api     | from [r2.md](r2.md); `STORAGE_REGION=auto`, `STORAGE_KEY_PREFIX` empty (`pr-<n>/` only for PR environments)                                    |
-| `STORAGE_BUDGET_BYTES` / `STORAGE_HARD_LIMIT_BYTES` | api     | `8589934592` / `9663676416` — shared with production, because the R2 free tier is per account                                                  |
-| `LOG_LEVEL`                                         | api     | `info`                                                                                                                                         |
-| `NEXT_PUBLIC_SITE_URL`                              | web     | `https://${{RAILWAY_PUBLIC_DOMAIN}}` (build time)                                                                                              |
-| `NEXT_PUBLIC_APP_ENV`                               | web     | `staging` (build time; shows the staging ribbon)                                                                                               |
-| `API_INTERNAL_URL`                                  | web     | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}`                                                                                         |
-| `HOSTNAME` / `PORT`                                 | web     | `::` / `3000`                                                                                                                                  |
-| later                                               | —       | `APP_ENCRYPTION_KEY` (platform MFA, step 6.1), `BACKUP_HEARTBEAT_TOKEN` (db-backup, 6.2); Razorpay and Google variables are v1.1 — leave unset |
+| Variable                                            | Service        | Staging value                                                                                                                           |
+| --------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                           | api            | `staging` (Secure cookies, https `WEB_ORIGIN` and a 32+ character `IP_HASH_SALT` are enforced)                                          |
+| `PORT`                                              | api            | `4000` — set explicitly so `${{api.PORT}}` resolves for web                                                                             |
+| `WEB_ORIGIN`                                        | api            | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` — exact origin for CSRF checks and email links                                                 |
+| `DATABASE_OWNER_URL`                                | api            | `${{Postgres.DATABASE_URL}}` — admin URL, used only by the start-up migration                                                           |
+| `DB_APP_PASSWORD` / `DB_SYSTEM_PASSWORD`            | api            | generated hex; the migration sets these as the role passwords on every deploy                                                           |
+| `DATABASE_URL`                                      | api            | `postgresql://fitcoach_app:${{DB_APP_PASSWORD}}@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` (RLS-enforced role) |
+| `DATABASE_SYSTEM_URL`                               | api            | same with `fitcoach_system` and `${{DB_SYSTEM_PASSWORD}}` (jobs, auth lookups, CLIs)                                                    |
+| `DB_POOL_MAX`                                       | api            | `10` per replica; keep replicas × pools well under Postgres `max_connections`                                                           |
+| `SESSION_SECRET` / `IP_HASH_SALT`                   | api            | generated hex (32 bytes each)                                                                                                           |
+| `SIGNUP_MODE` / `BETA_DEFAULT_CLIENT_LIMIT`         | api            | `invite_code` / `50`                                                                                                                    |
+| `EMAIL_PROVIDER` + `RESEND_API_KEY` or `SMTP_URL`   | api            | see [Email on staging](#email-on-staging); `console` is allowed on staging but you won't receive links                                  |
+| `EMAIL_FROM`                                        | api            | `FitCoach Staging <onboarding@resend.dev>` (or an address on your verified domain)                                                      |
+| `STORAGE_*`                                         | api            | from [r2.md](r2.md); `STORAGE_REGION=auto`, `STORAGE_KEY_PREFIX` empty (`pr-<n>/` only for PR environments)                             |
+| `STORAGE_BUDGET_BYTES` / `STORAGE_HARD_LIMIT_BYTES` | api            | `8589934592` / `9663676416` — shared with production, because the R2 free tier is per account                                           |
+| `LOG_LEVEL`                                         | api            | `info`                                                                                                                                  |
+| `NEXT_PUBLIC_SITE_URL`                              | web            | `https://${{RAILWAY_PUBLIC_DOMAIN}}` (build time)                                                                                       |
+| `NEXT_PUBLIC_APP_ENV`                               | web            | `staging` (build time; shows the staging ribbon)                                                                                        |
+| `API_INTERNAL_URL`                                  | web            | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}`                                                                                  |
+| `HOSTNAME` / `PORT`                                 | web            | `::` / `3000`                                                                                                                           |
+| `APP_ENCRYPTION_KEY`                                | api            | 32 random bytes, base64 — platform owner TOTP secrets (ADR-0062)                                                                        |
+| `BACKUP_HEARTBEAT_TOKEN`                            | api, db-backup | generated hex; db-backup references the API's value (`${{api.BACKUP_HEARTBEAT_TOKEN}}`)                                                 |
+| `DATABASE_URL` (db-backup)                          | db-backup      | `${{Postgres.DATABASE_URL}}` — admin URL, pg_dump reads past RLS                                                                        |
+| later                                               | —              | Razorpay and Google variables are v1.1 — leave unset                                                                                    |
 
 ## Email on staging
 
@@ -200,7 +216,7 @@ Signup and password reset send real emails, so staging needs a working provider:
 
 1. **Pull request:** GitHub Actions `CI` runs format, typecheck, lint, unit, DB/RLS and API integration tests (Testcontainers) and the build, then builds both Docker images and runs Playwright against them (`docker compose --profile full`).
 2. **Merge to `main`:** once CI is green, Railway builds and deploys staging ("Wait for CI"). The new API container migrates before it serves. Then `Staging smoke` runs against the live URL.
-3. **Production** (step 6.2) will track a `production` branch fast-forwarded from `main` after staging smoke passes.
+3. **Production** tracks the `production` branch, fast-forwarded from `main` by the **Promote to production** workflow after Staging smoke passes ([production.md](production.md#release-flow-prompt-174)).
 
 Migrations must stay backward-compatible with the running release (expand → migrate → contract), so redeploying the previous version is always a safe rollback.
 

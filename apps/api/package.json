@@ -22,7 +22,9 @@
     "db:seed": "tsx src/db/seed.ts",
     "beta:invite": "tsx src/cli/beta-invite.ts",
     "platform:grant": "tsx src/cli/platform-grant.ts",
-    "storage:init": "tsx src/cli/storage-init.ts"
+    "storage:init": "tsx src/cli/storage-init.ts",
+    "data:delete": "tsx src/cli/data-delete.ts",
+    "restore:check": "tsx src/cli/restore-check.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1153.0",

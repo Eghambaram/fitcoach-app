@@ -49,3 +49,25 @@ export function fail(message: string): never {
   console.error(message);
   process.exit(1);
 }
+
+const ownerEnvSchema = z.object({ DATABASE_OWNER_URL: z.string().url() });
+
+/**
+ * Runs `fn` as the database owner, in one transaction — only for audited operator actions that the
+ * app roles are deliberately not allowed to do (data deletion, PROMPT §12.4). Throw to roll back.
+ */
+export async function withOwnerDb<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
+  loadLocalEnv();
+  const parsed = ownerEnvSchema.safeParse(process.env);
+  if (!parsed.success) throw new Error("DATABASE_OWNER_URL is not set (see .env.example)");
+  const pool = new Pool({
+    connectionString: parsed.data.DATABASE_OWNER_URL,
+    max: 1,
+    application_name: "fitcoach-cli-owner",
+  });
+  try {
+    return await drizzle({ client: pool, schema }).transaction((tx) => fn(tx));
+  } finally {
+    await pool.end();
+  }
+}

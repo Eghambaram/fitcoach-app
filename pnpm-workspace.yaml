@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "infra/db-backup"
 
 # Install scripts: pnpm blocks all by default. `true` = needed, `false` = deliberately skipped.
 allowBuilds:

@@ -6,6 +6,27 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 6.2 backups and production (PROMPT §17.2–§17.7, §12.4):
+  - **Nightly backup:**
+    - **What:** `infra/db-backup` (Railway cron, 02:00 IST) runs `pg_dump -Fc`, checks it with `pg_restore --list`, and uploads it to the private R2 bucket (`backups/daily/`, plus `backups/weekly/` on Sundays).
+    - **Retention:** dailies are kept 7 days, weeklies 28.
+    - **Heartbeat:** each run reports to the API, failures included.
+    - **Health:** Platform → System Health → Backups shows OK / Degraded / Unknown.
+    - **Locally:** `docker compose --profile full --profile backup run --rm db-backup`.
+  - **Production-only checks:** the API refuses to start without R2, with an `r2.dev` public URL, or without `BACKUP_HEARTBEAT_TOKEN` (in addition to https, no console email, Secure cookies, no OpenAPI docs).
+  - **Release flow:**
+    - **Promote to production** workflow: approval-gated; fast-forwards `production` to a `main` commit with a green Staging smoke.
+    - **Production smoke** workflow.
+  - **Runbooks:**
+    - `docs/runbooks/restore.md`: drill and real restore, plus `pnpm restore:check`, which compares a restored database's files with R2.
+    - `docs/runbooks/data-deletion.md`: `pnpm data:delete`, audited, a dry run without `--confirm`.
+    - `docs/deployment/production.md`: the production setup checklist, with variable files in `infra/railway/production/`.
+  - **Database:** `backup_runs` (system-only, append-only). ADR-0063.
+  - **Tests:**
+    - **Heartbeat:** token, validation, health transitions, append-only.
+    - **Production:** config rules; docs not served in production.
+    - **Data deletion:** exactly one client, converted leads, cross-workspace refusal, audit without names.
+    - **Backup plan:** keys, retention, error scrubbing.
 - Step 6.1 platform owner (PROMPT §16.0, §12.2):
   - **Sign-in:** `/platform/login` with a password, then an authenticator app (TOTP). The first sign-in sets it up and shows 10 one-time recovery codes. Sessions last 12 hours.
     - Platform pages need the code (AAL2, `PlatformMfaGuard`).

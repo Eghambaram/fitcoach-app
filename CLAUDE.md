@@ -55,6 +55,8 @@ pnpm workspaces + Turborepo · **web:** Next.js ≥16 App Router, React 19, Tail
 | E2E | `pnpm test:e2e` (`--project=mobile` for phone viewport) |
 | Production-parity stack | `docker compose --profile full up --build` |
 | Grant platform owner | `pnpm platform:grant <email>` |
+| Delete a client/lead on request (audited, dry run without `--confirm`) | `pnpm data:delete client <workspaceId> <clientId> --reason "…"` |
+| Check a restored database | `pnpm restore:check <database-url>` |
 | All gates | `pnpm verify` |
 
 After any API contract change: `pnpm api:client`, commit the generated client. After any migration: run `pnpm test:db`.

@@ -5,6 +5,7 @@ export const IS_PUBLIC = "fitcoach:isPublic";
 export const ROLES = "fitcoach:roles";
 export const ALLOW_INACTIVE_WORKSPACE = "fitcoach:allowInactiveWorkspace";
 export const ALLOW_AAL1 = "fitcoach:allowAal1";
+export const SKIP_CSRF = "fitcoach:skipCsrf";
 
 /**
  * No session required (CLAUDE.md rule 2). Every public endpoint must also be rate-limited in its
@@ -26,3 +27,10 @@ export const AllowInactiveWorkspace = () => SetMetadata(ALLOW_INACTIVE_WORKSPACE
  * and verify endpoints, `me` and logout. Everything else needs AAL2 (PlatformMfaGuard, §12.2).
  */
 export const AllowAal1 = () => SetMetadata(ALLOW_AAL1, true);
+
+/**
+ * For machine-to-machine endpoints that authenticate with a bearer token, never a cookie (e.g. the
+ * db-backup heartbeat): CSRF is a browser-cookie attack, so the Origin check doesn't apply.
+ * Never use it on a route that reads the session cookie.
+ */
+export const SkipCsrf = () => SetMetadata(SKIP_CSRF, true);

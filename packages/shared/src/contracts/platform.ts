@@ -319,3 +319,29 @@ export const platformAuditListResponseSchema = z.object({
   nextCursor: z.string().max(80).nullable(),
 });
 export type PlatformAuditListResponse = z.infer<typeof platformAuditListResponseSchema>;
+
+// ---------------------------------------------------------------------------------------------
+// Backup heartbeat (step 6.2, PROMPT §17.2): the nightly db-backup cron reports each run.
+// ---------------------------------------------------------------------------------------------
+
+export const backupHeartbeatSchema = z
+  .object({
+    status: z.enum(["succeeded", "failed"]),
+    /** e.g. `backups/daily/2026-10-28.dump` (with the environment's key prefix, if any). */
+    objectKey: z
+      .string()
+      .regex(/^([a-z0-9-]+\/)?backups\/(daily|weekly)\/[A-Za-z0-9._-]+$/, "A backups/ object key")
+      .max(200)
+      .optional(),
+    sizeBytes: z.number().int().positive().optional(),
+    startedAt: z.string().datetime(),
+    finishedAt: z.string().datetime(),
+    /** Short, secret-free reason for a failure. */
+    error: z.string().max(1000).optional(),
+  })
+  .refine(
+    (value) =>
+      value.status === "failed" || (value.objectKey !== undefined && value.sizeBytes !== undefined),
+    { path: ["objectKey"], message: "A successful backup has an object key and a size" },
+  );
+export type BackupHeartbeat = z.infer<typeof backupHeartbeatSchema>;

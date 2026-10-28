@@ -79,6 +79,53 @@ describe("parseEnv", () => {
     ).toEqual([expect.stringContaining("APP_ENCRYPTION_KEY: must not be the local")]);
   });
 
+  it("needs R2 on its custom domain and the backup heartbeat in production", () => {
+    const production = {
+      ...valid,
+      APP_ENV: "production",
+      WEB_ORIGIN: "https://app.example.com",
+      IP_HASH_SALT: "0123456789abcdef0123456789abcdef",
+      EMAIL_PROVIDER: "resend",
+      RESEND_API_KEY: "re_0123456789",
+    };
+    expect(problemsFor(production)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("STORAGE_ENDPOINT: object storage is required in production"),
+        expect.stringContaining("BACKUP_HEARTBEAT_TOKEN: is required in production"),
+      ]),
+    );
+    const storage = {
+      STORAGE_ENDPOINT: "https://account.r2.cloudflarestorage.com",
+      STORAGE_ACCESS_KEY_ID: "key",
+      STORAGE_SECRET_ACCESS_KEY: "secret",
+      STORAGE_PRIVATE_BUCKET: "fitcoach-prod-private",
+      STORAGE_PUBLIC_BUCKET: "fitcoach-prod-public",
+      STORAGE_PUBLIC_BASE_URL: "https://pub-0123.r2.dev",
+    };
+    const heartbeat = { BACKUP_HEARTBEAT_TOKEN: "0123456789abcdef0123456789abcdef" };
+    expect(problemsFor({ ...production, ...storage, ...heartbeat })).toEqual([
+      expect.stringContaining("STORAGE_PUBLIC_BASE_URL: must be the media custom domain"),
+    ]);
+    const config = parseEnv({
+      ...production,
+      ...storage,
+      ...heartbeat,
+      STORAGE_PUBLIC_BASE_URL: "https://media.example.com",
+    });
+    expect(config.isProduction).toBe(true);
+    expect(config.secureCookies).toBe(true);
+    expect(config.backupHeartbeatToken).toBe(heartbeat.BACKUP_HEARTBEAT_TOKEN);
+    // Staging may use r2.dev and run without the heartbeat.
+    expect(
+      problemsFor({
+        ...production,
+        ...storage,
+        APP_ENV: "staging",
+        WEB_ORIGIN: "https://staging.example.com",
+      }),
+    ).toEqual([]);
+  });
+
   it("requires the settings of the chosen email provider and forbids console email in production", () => {
     expect(problemsFor({ ...valid, EMAIL_PROVIDER: "smtp" })).toEqual([
       expect.stringContaining("SMTP_URL: is required"),
