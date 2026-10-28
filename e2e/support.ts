@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { createHmac } from "node:crypto";
 import { type APIRequestContext, expect } from "@playwright/test";
 
 export const API = "http://localhost:4000";
@@ -73,4 +75,31 @@ export async function createVerifiedTrainer(api: APIRequestContext, request: API
     (await api.post(`${API}/v1/auth/verify-email`, { headers: ip, data: { token } })).status(),
   ).toBe(200);
   return { email, password, slug: `e2e-${id}` };
+}
+
+/**
+ * RFC 6238 TOTP (SHA-1, 6 digits, 30 s) — what an authenticator app shows for a base32 secret.
+ * `offset` moves whole periods, so a test can use a code newer than one already accepted.
+ */
+export function totp(secret: string, offset = 0): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let bits = "";
+  for (const char of secret.replace(/=+$/, "").toUpperCase()) {
+    bits += alphabet.indexOf(char).toString(2).padStart(5, "0");
+  }
+  const key = Buffer.from((bits.match(/.{8}/g) ?? []).map((byte) => Number.parseInt(byte, 2)));
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30_000) + offset));
+  const digest = createHmac("sha1", key).update(counter).digest();
+  const start = (digest[digest.length - 1] ?? 0) & 0x0f;
+  const value = (digest.readUInt32BE(start) & 0x7fffffff) % 1_000_000;
+  return String(value).padStart(6, "0");
+}
+
+/** `pnpm platform:grant <email>` — the real, audited CLI an operator runs. */
+export function grantPlatformOwner(email: string): void {
+  execFileSync("pnpm", ["--silent", "--filter", "@fitcoach/api", "platform:grant", email], {
+    encoding: "utf8",
+    shell: process.platform === "win32",
+  });
 }

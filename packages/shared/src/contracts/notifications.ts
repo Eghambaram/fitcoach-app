@@ -16,6 +16,10 @@ export const NOTIFICATION_TYPES = [
   "session_booked",
   "session_changed",
   "session_cancelled",
+  // Platform owner actions on the trainer's account (step 6.1).
+  "account_approved",
+  "workspace_suspended",
+  "workspace_reactivated",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

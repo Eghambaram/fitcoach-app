@@ -103,6 +103,7 @@ services:
       # Same secrets as .env, so host CLIs (`pnpm beta:invite`) issue codes this API accepts.
       SESSION_SECRET: ${SESSION_SECRET:-local-dev-session-secret-not-secret-0123456789}
       IP_HASH_SALT: ${IP_HASH_SALT:-local-dev-ip-hash-salt-not-secret}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-bG9jYWwtZGV2LWVuY3J5cHRpb24ta2V5LW5vdC1zZWM=}
       SIGNUP_MODE: invite_code
       EMAIL_PROVIDER: smtp
       SMTP_URL: smtp://mailpit:1025
@@ -142,6 +143,7 @@ services:
       args:
         NEXT_PUBLIC_SITE_URL: http://localhost:3000
         NEXT_PUBLIC_APP_ENV: test
+        NEXT_PUBLIC_BETA_CONTACT_EMAIL: getfitcoach.app@gmail.com
     image: fitcoach-web:local
     restart: unless-stopped
     environment:

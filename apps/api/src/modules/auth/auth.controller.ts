@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Req, Res } from "
 import { ApiAcceptedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import type { AcceptedResponse, MeResponse, OkResponse, SessionsResponse } from "@fitcoach/shared";
 import type { Request, Response } from "express";
-import { AllowInactiveWorkspace, Public, Roles } from "../../common/auth/decorators";
+import { AllowAal1, AllowInactiveWorkspace, Public, Roles } from "../../common/auth/decorators";
 import { clearSessionCookie, setSessionCookie } from "../../common/auth/session-cookie";
 import { requestMeta } from "../../common/security/request-meta";
 import { AppConfig } from "../../config/env";
@@ -83,6 +83,7 @@ export class AuthController {
   }
 
   @Public()
+  @AllowAal1()
   @Post("logout")
   @HttpCode(200)
   @ApiOkResponse({ type: OkResponseDto })
@@ -121,6 +122,7 @@ export class AuthController {
 
   @Roles("trainer", "client", "platform_owner")
   @AllowInactiveWorkspace()
+  @AllowAal1()
   @Get("me")
   @ApiOkResponse({ type: MeResponseDto })
   me(): Promise<MeResponse> {

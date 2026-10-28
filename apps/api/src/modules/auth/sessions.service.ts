@@ -5,7 +5,7 @@ import type { Actor } from "../../common/request-context";
 import { generateToken, hashToken } from "../../common/security/tokens";
 import { AppConfig } from "../../config/env";
 import type { Tx } from "../../db/database";
-import { clients, sessions, users, workspaces } from "../../db/schema";
+import { clients, platformRoles, sessions, users, workspaces } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -43,6 +43,7 @@ export interface ResolvedSession {
   /** Set for client sessions only: the client they act as. */
   clientId: string | null;
   workspaceStatus: WorkspaceStatus | null;
+  aal: 1 | 2;
   expiresAt: Date;
 }
 
@@ -105,6 +106,9 @@ export class SessionsService {
           workspaceStatus: workspaces.status,
           expiresAt: sessions.expiresAt,
           lastSeenAt: sessions.lastSeenAt,
+          aal: sessions.aal,
+          // A platform session ends the moment its role is revoked.
+          platformRole: platformRoles.role,
         })
         .from(sessions)
         .innerJoin(users, eq(users.id, sessions.userId))
@@ -112,6 +116,14 @@ export class SessionsService {
         .leftJoin(
           clients,
           and(eq(clients.workspaceId, sessions.workspaceId), eq(clients.id, sessions.clientId)),
+        )
+        .leftJoin(
+          platformRoles,
+          and(
+            eq(platformRoles.userId, sessions.userId),
+            eq(platformRoles.role, "platform_owner"),
+            isNull(platformRoles.revokedAt),
+          ),
         )
         .where(
           and(
@@ -133,6 +145,7 @@ export class SessionsService {
       ) {
         return null;
       }
+      if (actor === "platform_owner" && row.platformRole === null) return null;
       let expiresAt = row.expiresAt;
       const sliding = actor !== "platform_owner";
       if (sliding && Date.now() - row.lastSeenAt.getTime() > SLIDE_INTERVAL_MS) {
@@ -150,9 +163,21 @@ export class SessionsService {
         workspaceId: row.workspaceId,
         clientId: row.clientId,
         workspaceStatus: (row.workspaceStatus as WorkspaceStatus | null) ?? null,
+        aal: row.aal === 2 ? 2 : 1,
         expiresAt,
       };
     });
+  }
+
+  /**
+   * Raises a platform owner session to AAL2 after its TOTP or recovery code (§12.2). The absolute
+   * 12-hour expiry is unchanged. Call inside a SystemDb transaction.
+   */
+  async elevate(tx: Tx, sessionId: string): Promise<void> {
+    await tx
+      .update(sessions)
+      .set({ aal: 2 })
+      .where(and(eq(sessions.id, sessionId), eq(sessions.actor, "platform_owner")));
   }
 
   /** Revokes every live session of a user — password reset/change, archive, suspension (CLAUDE.md rule 9). */

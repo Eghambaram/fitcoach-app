@@ -12,6 +12,7 @@ Object.assign(process.env, {
   DB_POOL_MAX: "4",
   IP_HASH_SALT: "test-ip-hash-salt-0123456789",
   SESSION_SECRET: "test-session-secret-0123456789abcdef",
+  APP_ENCRYPTION_KEY: "dGVzdC1lbmNyeXB0aW9uLWtleS0wMTIzNDU2Nzg5YWI=",
   SIGNUP_MODE: "invite_code",
   EMAIL_PROVIDER: "console",
   EMAIL_FROM: "FitCoach <noreply@fitcoach.test>",

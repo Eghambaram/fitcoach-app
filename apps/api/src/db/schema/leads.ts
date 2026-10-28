@@ -432,7 +432,7 @@ export const notifications = pgTable(
     index("notifications_workspace_id_idx").on(t.workspaceId),
     check(
       "notifications_type",
-      sql`${t.type} in ('new_lead', 'follow_up_due', 'trial_soon', 'attendance_needed', 'package_expiring', 'package_low', 'payment_due', 'check_in_submitted', 'invite_accepted', 'program_assigned', 'session_booked', 'session_changed', 'session_cancelled')`,
+      sql`${t.type} in ('new_lead', 'follow_up_due', 'trial_soon', 'attendance_needed', 'package_expiring', 'package_low', 'payment_due', 'check_in_submitted', 'invite_accepted', 'program_assigned', 'session_booked', 'session_changed', 'session_cancelled', 'account_approved', 'workspace_suspended', 'workspace_reactivated')`,
     ),
     check(
       "notifications_dedupe_key_length",

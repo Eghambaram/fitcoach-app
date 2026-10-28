@@ -108,3 +108,21 @@ export function clientCodeMessage(to: string, code: string): EmailMessage {
     html: layout("Your sign-in code", paragraphs),
   };
 }
+
+/** The platform owner approved a trainer who signed up while approval was required (§16.0). */
+export function accountApprovedMessage(
+  to: string,
+  displayName: string,
+  loginUrl: string,
+): EmailMessage {
+  const paragraphs = [
+    `Hi ${displayName},`,
+    "Your FitCoach account has been approved. You can sign in and set up your workspace now.",
+  ];
+  return {
+    to,
+    subject: "Your FitCoach account is ready",
+    text: `${paragraphs.join("\n\n")}\n\n${loginUrl}\n`,
+    html: layout("Your account is ready", paragraphs, { label: "Sign in", url: loginUrl }),
+  };
+}

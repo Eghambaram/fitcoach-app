@@ -64,6 +64,7 @@ jobs:
       APP_ENV: test
       SESSION_SECRET: ci-session-secret-0123456789abcdef0123
       IP_HASH_SALT: ci-ip-hash-salt-0123456789abcdef
+      APP_ENCRYPTION_KEY: Y2ktZW5jcnlwdGlvbi1rZXktMDEyMzQ1Njc4OWFiY2Q=
       DB_APP_PASSWORD: ci-app-password
       DB_SYSTEM_PASSWORD: ci-system-password
       DATABASE_SYSTEM_URL: postgres://fitcoach_system:ci-system-password@localhost:5432/fitcoach

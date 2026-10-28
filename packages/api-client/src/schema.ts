@@ -228,6 +228,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/platform/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformAuthController_login"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/auth/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformAuthController_status"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/auth/mfa/setup": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformAuthController_setup"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/auth/mfa/enable": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformAuthController_enable"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/auth/mfa/verify": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformAuthController_verify"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/platform/access": {
     parameters: {
       query?: never;
@@ -236,6 +316,246 @@ export interface paths {
       cookie?: never;
     };
     get: operations["PlatformController_access"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/overview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformController_overview"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/trainers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformController_listTrainers"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/trainers/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformController_trainer"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/trainers/{id}/approve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformController_approve"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/trainers/{id}/plan": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["PlatformController_plan"];
+    trace?: never;
+  };
+  "/v1/platform/trainers/{id}/suspend": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformController_suspend"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/trainers/{id}/reactivate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformController_reactivate"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/trainers/{id}/password-reset": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformController_passwordReset"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/trainers/{id}/revoke-sessions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformController_revokeSessions"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/beta-invites": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformController_invites"];
+    put?: never;
+    post: operations["PlatformController_createInvite"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/beta-invites/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations["PlatformController_revokeInvite"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/feedback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformController_feedback"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/feedback/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations["PlatformController_updateFeedback"];
+    trace?: never;
+  };
+  "/v1/platform/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformController_health"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/platform/audit-logs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["PlatformController_audit"];
     put?: never;
     post?: never;
     delete?: never;
@@ -2139,6 +2459,256 @@ export interface components {
           latencyMs?: number;
         };
       };
+    };
+    PlatformLoginRequestDto: {
+      /** Format: email */
+      email: string;
+      password: string;
+    };
+    PlatformLoginResponseDto: {
+      /** @enum {string} */
+      next: "mfa_setup" | "mfa_verify";
+    };
+    PlatformAuthStatusDto: {
+      aal: 1 | 2;
+      mfaEnabled: boolean;
+    };
+    PlatformMfaSetupResponseDto: {
+      secret: string;
+      otpauthUri: string;
+      qrSvg: string;
+    };
+    PlatformMfaEnableRequestDto: {
+      code: string;
+    };
+    PlatformMfaEnableResponseDto: {
+      recoveryCodes: string[];
+    };
+    PlatformMfaVerifyRequestDto: {
+      code?: string;
+      recoveryCode?: string;
+    };
+    PlatformOverviewDto: {
+      trainers: {
+        total: number;
+        activeThisWeek: number;
+        suspended: number;
+        pendingApproval: number;
+      };
+      activeClients: number;
+      activation: {
+        eligible: number;
+        activated: number;
+        rate: number | null;
+      };
+      invitesAccepted: number;
+      feedbackOpen: number;
+      failedJobs24h: number;
+      recentSignups: {
+        /** Format: uuid */
+        workspaceId: string;
+        businessName: string;
+        ownerName: string;
+        /** @enum {string} */
+        status: "pending_approval" | "trialing" | "active" | "past_due" | "suspended" | "cancelled";
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+    };
+    PlatformTrainerListDto: {
+      items: {
+        /** Format: uuid */
+        workspaceId: string;
+        businessName: string;
+        slug: string;
+        ownerName: string;
+        ownerEmail: string | null;
+        /** @enum {string} */
+        status: "pending_approval" | "trialing" | "active" | "past_due" | "suspended" | "cancelled";
+        city: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        lastActiveAt: string | null;
+        activeClients: number;
+      }[];
+      limit: number;
+    };
+    PlatformTrainerDetailDto: {
+      /** Format: uuid */
+      workspaceId: string;
+      businessName: string;
+      slug: string;
+      ownerName: string;
+      ownerEmail: string | null;
+      /** @enum {string} */
+      status: "pending_approval" | "trialing" | "active" | "past_due" | "suspended" | "cancelled";
+      city: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      lastActiveAt: string | null;
+      activeClients: number;
+      emailVerified: boolean;
+      timezone: string;
+      checklist: {
+        publicPagePublished: boolean;
+        hasLeadOrClient: boolean;
+        programAssigned: boolean;
+        clientInvited: boolean;
+      };
+      plan: {
+        planId: string;
+        planName: string;
+        maxActiveClients: number;
+        /** Format: date-time */
+        trialEndsAt: string | null;
+      } | null;
+      usage: {
+        leads: number;
+        clients: number;
+        appointments: number;
+        workouts: number;
+      };
+      activeSessions: number;
+      plans: {
+        id: string;
+        name: string;
+      }[];
+    };
+    PlatformPlanUpdateDto: {
+      planId: string;
+      maxActiveClients: number;
+      trialEndsOn: string | null;
+    };
+    PlatformReasonDto: {
+      reason: string;
+    };
+    PlatformBetaInviteListDto: {
+      items: {
+        /** Format: uuid */
+        id: string;
+        label: string | null;
+        uses: number;
+        maxUses: number;
+        /** Format: date-time */
+        expiresAt: string;
+        /** Format: date-time */
+        revokedAt: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** @enum {string} */
+        status: "active" | "used_up" | "expired" | "revoked";
+      }[];
+    };
+    PlatformCreateInviteDto: {
+      label?: string;
+      maxUses: number;
+      expiresInDays: number;
+    };
+    PlatformCreateInviteResponseDto: {
+      code: string;
+      invite: {
+        /** Format: uuid */
+        id: string;
+        label: string | null;
+        uses: number;
+        maxUses: number;
+        /** Format: date-time */
+        expiresAt: string;
+        /** Format: date-time */
+        revokedAt: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** @enum {string} */
+        status: "active" | "used_up" | "expired" | "revoked";
+      };
+    };
+    PlatformFeedbackListDto: {
+      items: {
+        /** Format: uuid */
+        id: string;
+        /** Format: uuid */
+        workspaceId: string;
+        businessName: string;
+        trainerName: string | null;
+        page: string | null;
+        message: string;
+        /** @enum {string} */
+        status: "open" | "triaged" | "closed";
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      counts: {
+        open: number;
+        triaged: number;
+        closed: number;
+      };
+    };
+    PlatformFeedbackUpdateDto: {
+      /** @enum {string} */
+      status: "open" | "triaged" | "closed";
+    };
+    PlatformHealthDto: {
+      /** Format: date-time */
+      checkedAt: string;
+      database: {
+        /** @enum {string} */
+        status: "ok" | "degraded" | "unknown" | "not_configured";
+        detail: string;
+      };
+      jobs: {
+        /** @enum {string} */
+        status: "ok" | "degraded" | "unknown" | "not_configured";
+        detail: string;
+      };
+      backups: {
+        /** @enum {string} */
+        status: "ok" | "degraded" | "unknown" | "not_configured";
+        detail: string;
+      };
+      email: {
+        /** @enum {string} */
+        status: "ok" | "degraded" | "unknown" | "not_configured";
+        detail: string;
+      };
+      storage: {
+        /** @enum {string} */
+        status: "ok" | "degraded" | "unknown" | "not_configured";
+        detail: string;
+      };
+      storageBudget: {
+        /** @enum {string} */
+        status: "ok" | "degraded" | "unknown" | "not_configured";
+        detail: string;
+        usedBytes: number | null;
+        budgetBytes: number | null;
+        hardLimitBytes: number | null;
+      };
+      failedJobs: {
+        name: string;
+        /** Format: date-time */
+        startedAt: string;
+        error: string | null;
+      }[];
+    };
+    PlatformAuditListDto: {
+      items: {
+        /** Format: uuid */
+        id: string;
+        /** Format: date-time */
+        occurredAt: string;
+        actorKind: string;
+        actorName: string | null;
+        /** Format: uuid */
+        workspaceId: string | null;
+        businessName: string | null;
+        action: string;
+        targetType: string | null;
+        targetId: string | null;
+        reason: string | null;
+      }[];
+      nextCursor: string | null;
     };
     WorkspaceSettingsResponseDto: {
       locale: {
@@ -4929,7 +5499,10 @@ export interface components {
           | "program_assigned"
           | "session_booked"
           | "session_changed"
-          | "session_cancelled";
+          | "session_cancelled"
+          | "account_approved"
+          | "workspace_suspended"
+          | "workspace_reactivated";
         title: string;
         body: string | null;
         link: string | null;
@@ -5529,6 +6102,113 @@ export interface operations {
       };
     };
   };
+  PlatformAuthController_login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformLoginRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformLoginResponseDto"];
+        };
+      };
+    };
+  };
+  PlatformAuthController_status: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformAuthStatusDto"];
+        };
+      };
+    };
+  };
+  PlatformAuthController_setup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformMfaSetupResponseDto"];
+        };
+      };
+    };
+  };
+  PlatformAuthController_enable: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformMfaEnableRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformMfaEnableResponseDto"];
+        };
+      };
+    };
+  };
+  PlatformAuthController_verify: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformMfaVerifyRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
   PlatformController_access: {
     parameters: {
       query?: never;
@@ -5544,6 +6224,360 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  PlatformController_overview: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformOverviewDto"];
+        };
+      };
+    };
+  };
+  PlatformController_listTrainers: {
+    parameters: {
+      query?: {
+        q?: string;
+        status?:
+          "pending_approval" | "trialing" | "active" | "past_due" | "suspended" | "cancelled";
+        sort?: "newest" | "oldest" | "last_active";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformTrainerListDto"];
+        };
+      };
+    };
+  };
+  PlatformController_trainer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformTrainerDetailDto"];
+        };
+      };
+    };
+  };
+  PlatformController_approve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformTrainerDetailDto"];
+        };
+      };
+    };
+  };
+  PlatformController_plan: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformPlanUpdateDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformTrainerDetailDto"];
+        };
+      };
+    };
+  };
+  PlatformController_suspend: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformReasonDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformTrainerDetailDto"];
+        };
+      };
+    };
+  };
+  PlatformController_reactivate: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformReasonDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformTrainerDetailDto"];
+        };
+      };
+    };
+  };
+  PlatformController_passwordReset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  PlatformController_revokeSessions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformTrainerDetailDto"];
+        };
+      };
+    };
+  };
+  PlatformController_invites: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformBetaInviteListDto"];
+        };
+      };
+    };
+  };
+  PlatformController_createInvite: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformCreateInviteDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformCreateInviteResponseDto"];
+        };
+      };
+    };
+  };
+  PlatformController_revokeInvite: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformBetaInviteListDto"];
+        };
+      };
+    };
+  };
+  PlatformController_feedback: {
+    parameters: {
+      query?: {
+        status?: "open" | "triaged" | "closed";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformFeedbackListDto"];
+        };
+      };
+    };
+  };
+  PlatformController_updateFeedback: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlatformFeedbackUpdateDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  PlatformController_health: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformHealthDto"];
+        };
+      };
+    };
+  };
+  PlatformController_audit: {
+    parameters: {
+      query?: {
+        action?: string;
+        actorKind?: "trainer" | "client" | "platform_owner" | "system" | "cli";
+        workspaceId?: string;
+        before?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlatformAuditListDto"];
         };
       };
     };

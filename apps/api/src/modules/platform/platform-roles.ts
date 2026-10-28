@@ -9,7 +9,7 @@ export type GrantResult =
 /**
  * Grants platform_owner to an existing account (PROMPT §12.2, §16.0). Only reachable through the
  * `pnpm platform:grant <email>` CLI, which runs as fitcoach_system. Audited.
- * MFA enrolment and the /platform login arrive in step 6.1.
+ * The owner enrols an authenticator on their first /platform/login (ADR-0062).
  */
 export async function grantPlatformOwner(
   tx: Tx,

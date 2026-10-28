@@ -40,6 +40,11 @@ export class EmailService {
     else this.provider = new ConsoleEmailProvider(systemDb);
   }
 
+  /** For the platform health page: "console" means emails only land in the local outbox. */
+  get providerName(): EmailProvider["name"] {
+    return this.provider.name;
+  }
+
   async send(message: EmailMessage, context: EmailContext): Promise<boolean> {
     let status: "sent" | "failed" = "sent";
     let providerMessageId: string | undefined;

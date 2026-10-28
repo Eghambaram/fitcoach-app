@@ -14,6 +14,8 @@ export interface AuthContext {
   clientId: string | null;
   sessionId: string;
   workspaceStatus: WorkspaceStatus | null;
+  /** Authenticator assurance level: 2 only for platform owners after their TOTP code. */
+  aal: 1 | 2;
 }
 
 /** Per-request state held in AsyncLocalStorage via nestjs-cls. */
