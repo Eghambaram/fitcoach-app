@@ -103,6 +103,7 @@ describe("check-ins", () => {
 
     // A same-day edit (or a double submit) updates the one check-in and sends it back for review.
     const edited = await phone.put("/v1/client/check-in", { ...ANSWERS, energy: 4 });
+    expect(edited.status, JSON.stringify(edited.body)).toBe(200);
     expect(edited.body.todays).toMatchObject({ id, energy: 4, edited: true, reviewedAt: null });
     expect((await trainer.http.get("/v1/check-ins?status=unreviewed")).body.counts).toEqual({
       unreviewed: 1,

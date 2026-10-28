@@ -274,6 +274,20 @@
       "when": 1793159067720,
       "tag": "0038_dashboard",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793161103888,
+      "tag": "0039_notifications_jobs",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793161107217,
+      "tag": "0040_notifications_jobs_rls",
+      "breakpoints": true
     }
   ]
 }

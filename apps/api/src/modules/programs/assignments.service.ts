@@ -19,6 +19,7 @@ import type { Tx } from "../../db/database";
 import { clientProgramAssignments, clients, workoutSessions, workspaces } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 import { JobsService } from "../jobs/jobs.service";
+import { notify } from "../notifications/notify";
 import { ProgramsService, type Trainer } from "./programs.service";
 
 type AssignmentRow = typeof clientProgramAssignments.$inferSelect;
@@ -182,7 +183,12 @@ export class AssignmentsService {
     }
 
     const [client] = await this.db.tx
-      .select({ id: clients.id, status: clients.status, fullName: clients.fullName })
+      .select({
+        id: clients.id,
+        status: clients.status,
+        fullName: clients.fullName,
+        userId: clients.userId,
+      })
       .from(clients)
       .where(and(eq(clients.id, input.clientId), eq(clients.workspaceId, trainer.workspaceId)))
       .for("update");
@@ -238,6 +244,18 @@ export class AssignmentsService {
       .returning();
     if (!created) throw new Error("assignment insert returned no row");
     const planned = await planSessions(this.db.tx, sql`a.id = ${created.id}`);
+    if (client.userId) {
+      await notify(this.db.tx, {
+        workspaceId: trainer.workspaceId,
+        recipientUserId: client.userId,
+        type: "program_assigned",
+        title: `New program: ${program.name}`,
+        body: `Starts ${input.startsOn}`,
+        link: "/client/workouts",
+        data: { assignmentId: created.id },
+        dedupeKey: `program_assigned:${created.id}`,
+      });
+    }
     return {
       assignment: this.toAssignment(created),
       sessionsPlanned: planned,

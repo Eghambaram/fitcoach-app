@@ -34,6 +34,7 @@ import { clientCodeMessage } from "../../integrations/email/templates";
 import { recordAudit } from "../audit/audit.service";
 import { type NewSession, SessionsService } from "../auth/sessions.service";
 import { FilesService } from "../files/files.service";
+import { notify } from "../notifications/notify";
 
 const MINUTE = 60;
 const PORTAL_STATUSES = ["active", "paused"];
@@ -181,6 +182,21 @@ export class ClientAuthService {
             isNull(clientInvites.revokedAt),
           ),
         );
+      const [workspace] = await tx
+        .select({ ownerUserId: workspaces.ownerUserId })
+        .from(workspaces)
+        .where(eq(workspaces.id, client.workspaceId));
+      if (workspace) {
+        await notify(tx, {
+          workspaceId: client.workspaceId,
+          recipientUserId: workspace.ownerUserId,
+          type: "invite_accepted",
+          title: `${client.fullName} joined the client app`,
+          link: `/app/clients/${client.id}`,
+          data: { clientId: client.id },
+          dedupeKey: `invite_accepted:${invite.id}`,
+        });
+      }
       await recordAudit(tx, {
         actorKind: "client",
         actorUserId: userId,

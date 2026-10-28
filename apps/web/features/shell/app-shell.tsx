@@ -12,6 +12,7 @@ import { Drawer } from "@/components/shared/overlays";
 import { Button } from "@/components/ui/button";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "../notifications/notification-bell";
 import {
   isActive,
   MORE_ICON,
@@ -244,8 +245,16 @@ export function AppShell({
 
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:hidden">
         <Logo />
-        <Avatar name={userName} imageUrl={avatarUrl} className="size-8" />
+        <div className="flex items-center gap-1">
+          {area === "trainer" ? <NotificationBell /> : null}
+          <Avatar name={userName} imageUrl={avatarUrl} className="size-8" />
+        </div>
       </header>
+      {area === "trainer" ? (
+        <div className="sticky top-0 z-30 hidden h-14 items-center justify-end border-b border-border bg-background/95 px-8 backdrop-blur md:flex">
+          <NotificationBell />
+        </div>
+      ) : null}
 
       {banner}
 

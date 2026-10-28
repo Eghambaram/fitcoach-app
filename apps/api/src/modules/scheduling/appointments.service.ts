@@ -38,6 +38,7 @@ import {
   trainerSettings,
   workspaces,
 } from "../../db/schema";
+import { notify } from "../notifications/notify";
 import { PackagesService } from "../packages/packages.service";
 import { trackEvent } from "../product-events/track";
 import { SessionDeductionService } from "./session-deduction.service";
@@ -488,7 +489,53 @@ export class AppointmentsService {
         workspaceId: trainer.workspaceId,
       });
     }
+    await this.notifyClient(trainer, created.id, "session_booked");
     return this.get(created.id);
+  }
+
+  /**
+   * In-app notice to the client about their session (§8.10), when they use the client app. Keyed by
+   * the change, so a retried request doesn't notify twice.
+   */
+  private async notifyClient(
+    trainer: Trainer,
+    id: string,
+    type: "session_booked" | "session_changed" | "session_cancelled",
+  ): Promise<void> {
+    const timezone = await this.timezone(trainer);
+    const [row] = await this.db.tx
+      .select({
+        userId: clients.userId,
+        startsAt: appointments.startsAt,
+        when: sql<string>`to_char(${appointments.startsAt} at time zone ${timezone}, 'Dy FMDD Mon, FMHH12:MI am')`,
+      })
+      .from(appointments)
+      .innerJoin(
+        clients,
+        and(
+          eq(clients.workspaceId, appointments.workspaceId),
+          eq(clients.id, appointments.clientId),
+        ),
+      )
+      .where(and(eq(appointments.id, id), eq(appointments.workspaceId, trainer.workspaceId)));
+    if (!row?.userId) return;
+    const title = {
+      session_booked: `Session booked: ${row.when}`,
+      session_changed: `Session moved to ${row.when}`,
+      session_cancelled: `Session cancelled: ${row.when}`,
+    }[type];
+    await notify(this.db.tx, {
+      workspaceId: trainer.workspaceId,
+      recipientUserId: row.userId,
+      type,
+      title,
+      link: "/client/schedule",
+      data: { appointmentId: id },
+      dedupeKey:
+        type === "session_changed"
+          ? `session_changed:${id}:${row.startsAt.toISOString()}`
+          : `${type}:${id}`,
+    });
   }
 
   /** The series' dates: weekdays from the start, until the end date or the count, at most 52. */
@@ -622,6 +669,22 @@ export class AppointmentsService {
         actorUserId: trainer.userId,
       })),
     );
+    const [first] = planned;
+    const [owner] = await this.db.tx
+      .select({ userId: clients.userId })
+      .from(clients)
+      .where(and(eq(clients.id, input.clientId), eq(clients.workspaceId, trainer.workspaceId)));
+    if (owner?.userId && first && created.length > 0) {
+      await notify(this.db.tx, {
+        workspaceId: trainer.workspaceId,
+        recipientUserId: owner.userId,
+        type: "session_booked",
+        title: `${created.length} session${created.length === 1 ? "" : "s"} booked from ${first.date}`,
+        link: "/client/schedule",
+        data: { seriesId: series.id },
+        dedupeKey: `session_series:${series.id}`,
+      });
+    }
     return { seriesId: series.id, created: created.length, skipped: dates.length - planned.length };
   }
 
@@ -732,6 +795,7 @@ export class AppointmentsService {
           ),
         );
     }
+    await this.notifyClient(trainer, id, "session_changed");
     return this.get(id);
   }
 
@@ -798,6 +862,7 @@ export class AppointmentsService {
           ),
         );
     }
+    await this.notifyClient(trainer, id, "session_cancelled");
     return this.get(id);
   }
 

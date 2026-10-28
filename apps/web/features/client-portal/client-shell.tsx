@@ -11,6 +11,7 @@ import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { browserApi, unwrap } from "@/lib/api/browser";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "../notifications/notification-bell";
 
 /**
  * Client navigation (PROMPT §6, §9): Home · Workouts · Progress · Check-in · More (Schedule,
@@ -65,16 +66,19 @@ export function ClientShell({ me, children }: { me: ClientMeResponse; children: 
             </Link>
           ))}
         </nav>
-        <Button
-          variant="ghost"
-          loading={signOut.isPending}
-          onClick={() => signOut.mutate()}
-          aria-label="Sign out"
-          className="hidden sm:inline-flex"
-        >
-          <LogOut aria-hidden="true" />
-          Sign out
-        </Button>
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <Button
+            variant="ghost"
+            loading={signOut.isPending}
+            onClick={() => signOut.mutate()}
+            aria-label="Sign out"
+            className="hidden sm:inline-flex"
+          >
+            <LogOut aria-hidden="true" />
+            Sign out
+          </Button>
+        </div>
       </header>
       {me.workspace.readOnly ? (
         <div

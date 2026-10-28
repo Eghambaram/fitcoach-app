@@ -6,6 +6,20 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 5.2 notifications and background jobs (PROMPT §8.10, §13):
+  - **The bell** for trainers (top bar) and clients (app header): unread count, the latest notifications, open to jump there, Mark all read.
+  - **Notifications:**
+    - **To trainers:** follow-up due, trial in 2 h, sessions needing attendance, package expiring or low on sessions, payment due, check-in submitted, client joined the app (plus new leads).
+    - **To clients:** new program, session booked, moved or cancelled.
+    - Each is created once: dedupe keys hold across retries and restarts.
+  - **Jobs:** follow-ups and trials every 5 min, unmarked sessions hourly, packages daily at 07:00 workspace time (also closes expired packages), hourly purges (spent tokens and OTPs, rate-limit buckets, idempotency keys, old sessions, old job runs), and a weekly storage-ledger check. Every run's outcome is recorded in `job_runs`.
+  - **Auth emails** retry up to 3 times with backoff; each attempt is recorded.
+  - **API:** `GET /v1/notifications`, `POST /v1/notifications/:id/read`, `POST /v1/notifications/read-all`.
+  - **Database:** `notifications.dedupe_key` and new types, `job_runs`, client and request-path notification policies. ADR-0060.
+  - **Tests:**
+    - **RLS:** dedupe, who may notify whom, client-only reads, job runs locked down.
+    - **API:** exactly-once across runs and a restarted API, outcomes recorded, purges, action notices, mark read, tampering.
+    - **e2e:** the bell for trainer and client, on desktop and mobile.
 - Step 5.1 dashboard and first-run checklist (PROMPT §8.1):
   - **`/app/dashboard`:**
     - Greeting in your time zone.

@@ -66,7 +66,7 @@ const STATUS_CODES: Record<number, ErrorCode> = {
 };
 
 /** Drizzle wraps driver errors; walk the `cause` chain to find the Postgres one. */
-function findPgCode(error: unknown): string | undefined {
+export function findPgCode(error: unknown): string | undefined {
   let current: unknown = error;
   for (let depth = 0; depth < 5 && current; depth++) {
     if (typeof current === "object" && current !== null) {

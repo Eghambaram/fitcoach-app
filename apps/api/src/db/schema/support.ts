@@ -98,3 +98,27 @@ export const auditLogs = pgTable(
     ),
   ],
 );
+
+/**
+ * Outcome of each background job run (PROMPT §13), for the Platform Health page (step 6.1).
+ * System-only; kept 30 days.
+ */
+export const jobRuns = pgTable(
+  "job_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    status: text("status").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }).notNull().defaultNow(),
+    summary: jsonb("summary").notNull().default({}),
+    error: text("error"),
+  },
+  (t) => [
+    index("job_runs_name_started_at_idx").on(t.name, t.startedAt),
+    check("job_runs_status", sql`${t.status} in ('succeeded', 'failed')`),
+    check("job_runs_name_length", sql`char_length(${t.name}) between 1 and 80`),
+    check("job_runs_error_length", sql`${t.error} is null or char_length(${t.error}) <= 1000`),
+    check("job_runs_summary_object", sql`jsonb_typeof(${t.summary}) = 'object'`),
+  ],
+);
