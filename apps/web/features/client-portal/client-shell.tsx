@@ -2,7 +2,7 @@
 
 import type { ClientMeResponse } from "@fitcoach/shared";
 import { useMutation } from "@tanstack/react-query";
-import { CalendarDays, ClipboardCheck, Dumbbell, House, LogOut, Menu } from "lucide-react";
+import { ClipboardCheck, Dumbbell, House, LineChart, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -13,14 +13,15 @@ import { browserApi, unwrap } from "@/lib/api/browser";
 import { cn } from "@/lib/utils";
 
 /**
- * Client navigation (PROMPT §9). Check-in shows only when the trainer has check-ins on for this
- * client; Progress joins with step 4.4. Only screens that work are listed (CLAUDE.md rule 22).
+ * Client navigation (PROMPT §6, §9): Home · Workouts · Progress · Check-in · More (Schedule,
+ * contact trainer, profile, help and sign out live under More). Check-in shows only when the
+ * trainer has check-ins on for this client.
  */
 const NAV = [
   { href: "/client/home", label: "Home", icon: House },
   { href: "/client/workouts", label: "Workouts", icon: Dumbbell },
+  { href: "/client/progress", label: "Progress", icon: LineChart },
   { href: "/client/check-in", label: "Check-in", icon: ClipboardCheck, feature: "checkIns" },
-  { href: "/client/schedule", label: "Schedule", icon: CalendarDays },
   { href: "/client/more", label: "More", icon: Menu },
 ] as const;
 

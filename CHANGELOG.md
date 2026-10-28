@@ -6,6 +6,30 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 4.4 measurements, charts and sharing (PROMPT §8.8, without photos):
+  - **Client profile → Progress:**
+    - Add values in kg/lb or cm/in. They're stored in kg/cm and checked for plausible ranges.
+    - Tabs per metric, the latest value with the change since the first, and charts with 1M/3M/6M/1Y/All.
+    - The value list with **Correct** (void with a reason, kept as history).
+    - **New measurement type** for custom metrics.
+    - **Shared with the client** (per metric, nothing by default) and "Let them add their own values".
+  - **`/app/progress`** (now in the navigation): each client's recent changes over the last 90 days, never averaged across clients.
+  - **Client app:**
+    - **Progress** in the nav: shared metrics only, with charts, and **Add** when self-logging is on.
+    - Home tiles for shared metrics (weight change first).
+    - The nav is now Home · Workouts · Progress · Check-in · More, with Schedule under More.
+  - **API:**
+    - **Trainer:** `GET|POST /v1/measurement-types`, `GET /v1/progress`, `GET /v1/clients/:id/progress`, `POST /v1/clients/:id/measurements`, `POST /v1/measurements/:id/void`, `PUT /v1/clients/:id/progress-sharing`.
+    - **Client:** `GET /v1/client/progress`, `POST /v1/client/measurements`.
+    - **Changes to existing responses:** the client home gains `sharedMetrics`.
+  - **Database:**
+    - `progress_shares`, and custom measurement types per workspace.
+    - Client policies so a client sees only shared metrics and adds values only when allowed.
+    - ADR-0058.
+  - **Tests:**
+    - **RLS:** shared-only reads, self-logging gate, append-only, cross-workspace types and shares, empty context.
+    - **API:** conversion, ranges, void-then-add, custom types, sharing, client view and home tiles, overview, tampering.
+    - **e2e:** add weights over dates, share weight only, the client sees weight but not waist, on desktop and mobile.
 - Step 4.3 check-ins (PROMPT §8.7):
   - **Client `/client/check-in`** (in the client nav when check-ins are on):
     - The form: how you feel (Great to Poor, with icons and labels), energy and sleep sliders (1–10), soreness (none to high), notes and workout feedback. It takes under a minute.

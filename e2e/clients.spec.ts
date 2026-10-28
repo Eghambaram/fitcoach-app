@@ -101,5 +101,5 @@ test("clients sit in the right tabs, and archiving and restoring keeps their his
   await page.getByRole("tab", { name: "Notes" }).click();
   await expect(page.getByText("Prefers free weights")).toBeVisible();
   await page.getByRole("tab", { name: "Progress" }).click();
-  await expect(page.getByText("72.5 kg")).toBeVisible();
+  await expect(page.getByText("72.5 kg").first()).toBeVisible();
 });

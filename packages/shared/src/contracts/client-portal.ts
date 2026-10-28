@@ -6,6 +6,7 @@ import { FITNESS_GOALS } from "./leads";
 import { PREFERRED_CONTACTS } from "./onboarding";
 import { clientPortalPackageSchema } from "./packages";
 import { WORKOUT_SESSION_STATUSES } from "./programs";
+import { sharedMetricTileSchema } from "./progress";
 import { APPOINTMENT_KINDS, APPOINTMENT_STATUSES } from "./scheduling";
 import { workoutDetailSchema } from "./workouts";
 
@@ -187,6 +188,8 @@ export const clientHomeResponseSchema = z.object({
   streakWeeks: z.number().int(),
   /** Today is a check-in day and nothing is sent yet (§8.7). */
   checkInDue: z.boolean(),
+  /** Shared metrics only (e.g. weight change), at most two. */
+  sharedMetrics: z.array(sharedMetricTileSchema),
   programName: z.string().max(80).nullable(),
 });
 export type ClientHomeResponse = z.infer<typeof clientHomeResponseSchema>;

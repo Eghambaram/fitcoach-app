@@ -4342,6 +4342,287 @@
         ]
       }
     },
+    "/v1/measurement-types": {
+      "get": {
+        "operationId": "ProgressController_types",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementTypesDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ]
+      },
+      "post": {
+        "operationId": "ProgressController_createType",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTypeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementTypeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ]
+      }
+    },
+    "/v1/progress": {
+      "get": {
+        "operationId": "ProgressController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ]
+      }
+    },
+    "/v1/clients/{id}/progress": {
+      "get": {
+        "operationId": "ProgressController_clientProgress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ]
+      }
+    },
+    "/v1/clients/{id}/measurements": {
+      "post": {
+        "operationId": "ProgressController_add",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMeasurementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ]
+      }
+    },
+    "/v1/measurements/{id}/void": {
+      "post": {
+        "operationId": "ProgressController_void",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ]
+      }
+    },
+    "/v1/clients/{id}/progress-sharing": {
+      "put": {
+        "operationId": "ProgressController_sharing",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "progress"
+        ]
+      }
+    },
+    "/v1/client/progress": {
+      "get": {
+        "operationId": "ClientProgressController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
+    "/v1/client/measurements": {
+      "post": {
+        "operationId": "ClientProgressController_add",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMeasurementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "client"
+        ]
+      }
+    },
     "/v1/exercises": {
       "get": {
         "operationId": "ExercisesController_list",
@@ -12366,6 +12647,46 @@
           "checkInDue": {
             "type": "boolean"
           },
+          "sharedMetrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "unitKind": {
+                  "type": "string",
+                  "enum": [
+                    "mass",
+                    "length",
+                    "percent",
+                    "count"
+                  ]
+                },
+                "latest": {
+                  "type": "number"
+                },
+                "change": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "since": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "name",
+                "unitKind",
+                "latest",
+                "change",
+                "since"
+              ]
+            }
+          },
           "programName": {
             "type": "string",
             "maxLength": 80,
@@ -12380,6 +12701,7 @@
           "package",
           "streakWeeks",
           "checkInDue",
+          "sharedMetrics",
           "programName"
         ]
       },
@@ -14701,6 +15023,812 @@
           "energy",
           "sleep",
           "soreness"
+        ]
+      },
+      "MeasurementTypesDto": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "key": {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "unitKind": {
+                  "type": "string",
+                  "enum": [
+                    "mass",
+                    "length",
+                    "percent",
+                    "count"
+                  ]
+                },
+                "custom": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "key",
+                "name",
+                "unitKind",
+                "custom"
+              ]
+            }
+          }
+        },
+        "required": [
+          "types"
+        ]
+      },
+      "CreateTypeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "unitKind": {
+            "type": "string",
+            "enum": [
+              "mass",
+              "length",
+              "percent",
+              "count"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "unitKind"
+        ]
+      },
+      "MeasurementTypeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "unitKind": {
+            "type": "string",
+            "enum": [
+              "mass",
+              "length",
+              "percent",
+              "count"
+            ]
+          },
+          "custom": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "unitKind",
+          "custom"
+        ]
+      },
+      "OverviewDto": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit"
+            ]
+          },
+          "clients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "fullName": {
+                  "type": "string"
+                },
+                "lastMeasuredOn": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                "changes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "maxLength": 60
+                      },
+                      "unitKind": {
+                        "type": "string",
+                        "enum": [
+                          "mass",
+                          "length",
+                          "percent",
+                          "count"
+                        ]
+                      },
+                      "latest": {
+                        "type": "number"
+                      },
+                      "change": {
+                        "type": "number",
+                        "nullable": true
+                      },
+                      "since": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "unitKind",
+                      "latest",
+                      "change",
+                      "since"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "fullName",
+                "lastMeasuredOn",
+                "changes"
+              ]
+            }
+          }
+        },
+        "required": [
+          "units",
+          "clients"
+        ]
+      },
+      "ClientProgressDto": {
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "units": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit"
+            ]
+          },
+          "selfLogging": {
+            "type": "boolean"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "key": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "name": {
+                      "type": "string",
+                      "maxLength": 60
+                    },
+                    "unitKind": {
+                      "type": "string",
+                      "enum": [
+                        "mass",
+                        "length",
+                        "percent",
+                        "count"
+                      ]
+                    },
+                    "custom": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "key",
+                    "name",
+                    "unitKind",
+                    "custom"
+                  ]
+                },
+                "shared": {
+                  "type": "boolean"
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "measuredOn": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "value": {
+                        "type": "number"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "trainer",
+                          "client"
+                        ]
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                      },
+                      "recordedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "measuredOn",
+                      "value",
+                      "source",
+                      "note",
+                      "recordedAt"
+                    ]
+                  }
+                },
+                "voided": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "measuredOn": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "value": {
+                        "type": "number"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "trainer",
+                          "client"
+                        ]
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                      },
+                      "recordedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "voidedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "voidReason": {
+                        "type": "string",
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "measuredOn",
+                      "value",
+                      "source",
+                      "note",
+                      "recordedAt",
+                      "voidedAt",
+                      "voidReason"
+                    ]
+                  }
+                },
+                "first": {
+                  "type": "object",
+                  "properties": {
+                    "measuredOn": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "value": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "measuredOn",
+                    "value"
+                  ],
+                  "nullable": true
+                },
+                "latest": {
+                  "type": "object",
+                  "properties": {
+                    "measuredOn": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "value": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "measuredOn",
+                    "value"
+                  ],
+                  "nullable": true
+                },
+                "change": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "percentChange": {
+                  "type": "number",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "type",
+                "shared",
+                "points",
+                "voided",
+                "first",
+                "latest",
+                "change",
+                "percentChange"
+              ]
+            }
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "key": {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "unitKind": {
+                  "type": "string",
+                  "enum": [
+                    "mass",
+                    "length",
+                    "percent",
+                    "count"
+                  ]
+                },
+                "custom": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "key",
+                "name",
+                "unitKind",
+                "custom"
+              ]
+            }
+          }
+        },
+        "required": [
+          "today",
+          "units",
+          "selfLogging",
+          "metrics",
+          "types"
+        ]
+      },
+      "AddMeasurementDto": {
+        "type": "object",
+        "properties": {
+          "typeId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "value": {
+            "type": "number",
+            "exclusiveMinimum": true,
+            "maximum": 100000,
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "kg",
+              "lb",
+              "cm",
+              "in",
+              "%",
+              "count"
+            ]
+          },
+          "measuredOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "typeId",
+          "value",
+          "unit",
+          "measuredOn"
+        ]
+      },
+      "VoidDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "SharingDto": {
+        "type": "object",
+        "properties": {
+          "typeIds": {
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "selfLogging": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "typeIds",
+          "selfLogging"
+        ]
+      },
+      "PortalProgressDto": {
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "units": {
+            "type": "object",
+            "properties": {
+              "weightUnit": {
+                "type": "string",
+                "enum": [
+                  "kg",
+                  "lb"
+                ]
+              },
+              "lengthUnit": {
+                "type": "string",
+                "enum": [
+                  "cm",
+                  "in"
+                ]
+              }
+            },
+            "required": [
+              "weightUnit",
+              "lengthUnit"
+            ]
+          },
+          "canLog": {
+            "type": "boolean"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "key": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "name": {
+                      "type": "string",
+                      "maxLength": 60
+                    },
+                    "unitKind": {
+                      "type": "string",
+                      "enum": [
+                        "mass",
+                        "length",
+                        "percent",
+                        "count"
+                      ]
+                    },
+                    "custom": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "key",
+                    "name",
+                    "unitKind",
+                    "custom"
+                  ]
+                },
+                "shared": {
+                  "type": "boolean"
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "measuredOn": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "value": {
+                        "type": "number"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "trainer",
+                          "client"
+                        ]
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                      },
+                      "recordedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "measuredOn",
+                      "value",
+                      "source",
+                      "note",
+                      "recordedAt"
+                    ]
+                  }
+                },
+                "voided": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "measuredOn": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "value": {
+                        "type": "number"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "trainer",
+                          "client"
+                        ]
+                      },
+                      "note": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                      },
+                      "recordedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "voidedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      "voidReason": {
+                        "type": "string",
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "measuredOn",
+                      "value",
+                      "source",
+                      "note",
+                      "recordedAt",
+                      "voidedAt",
+                      "voidReason"
+                    ]
+                  }
+                },
+                "first": {
+                  "type": "object",
+                  "properties": {
+                    "measuredOn": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "value": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "measuredOn",
+                    "value"
+                  ],
+                  "nullable": true
+                },
+                "latest": {
+                  "type": "object",
+                  "properties": {
+                    "measuredOn": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "value": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "measuredOn",
+                    "value"
+                  ],
+                  "nullable": true
+                },
+                "change": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "percentChange": {
+                  "type": "number",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "type",
+                "shared",
+                "points",
+                "voided",
+                "first",
+                "latest",
+                "change",
+                "percentChange"
+              ]
+            }
+          }
+        },
+        "required": [
+          "today",
+          "units",
+          "canLog",
+          "metrics"
         ]
       },
       "ExerciseListResponseDto": {

@@ -18,7 +18,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Archive,
   CalendarPlus,
-  LineChart,
   MessageCircle,
   PauseCircle,
   Phone,
@@ -26,7 +25,6 @@ import {
   RotateCcw,
   Target,
   Wallet,
-  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -48,6 +46,7 @@ import { formatDateTime } from "../leads/lead-display";
 import { RecordPaymentForm } from "../packages/package-forms";
 import { clientPackagesKey, PackageCard, PackagesTab } from "../packages/packages-tab";
 import { ClientCheckInsTab } from "../check-ins/client-check-ins-tab";
+import { ClientProgressTab } from "../progress/client-progress-tab";
 import { WorkoutsTab } from "../programs/workouts-tab";
 import { Avatar } from "../shell/app-shell";
 import { ClientStatusPill } from "./client-display";
@@ -132,23 +131,6 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
     <Card className="flex flex-col gap-1 p-4">
       <span className="text-2xl font-semibold">{value}</span>
       <span className="text-sm text-muted-foreground">{label}</span>
-    </Card>
-  );
-}
-
-/** Tabs whose feature ships later: say what will be here, never show sample data (§7.3). */
-function Later({
-  icon,
-  title,
-  description,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}) {
-  return (
-    <Card>
-      <EmptyState icon={icon} title={title} description={description} />
     </Card>
   );
 }
@@ -641,48 +623,8 @@ export function ClientDetailScreen({ initial }: { initial: ClientDetail }) {
         <Tabs.Content value="check-ins">
           <ClientCheckInsTab clientId={client.id} archived={archived} />
         </Tabs.Content>
-        <Tabs.Content value="progress" className="flex flex-col gap-3">
-          {client.measurements.length === 0 ? (
-            <Later
-              icon={LineChart}
-              title="No measurements yet"
-              description="Baseline measurements from onboarding show here. Charts and adding new measurements are coming soon."
-            />
-          ) : (
-            <Card className="p-5">
-              <h2 className="mb-3 font-semibold">Latest measurements</h2>
-              <table className="w-full text-sm">
-                <caption className="sr-only">Latest measurements</caption>
-                <thead>
-                  <tr className="text-left text-muted-foreground">
-                    <th scope="col" className="py-1 font-medium">
-                      Measurement
-                    </th>
-                    <th scope="col" className="py-1 font-medium">
-                      Latest
-                    </th>
-                    <th scope="col" className="py-1 font-medium">
-                      Measured
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {client.measurements.map((measurement) => (
-                    <tr key={measurement.key}>
-                      <td className="py-2">{measurement.name}</td>
-                      <td className="py-2 font-semibold">
-                        {measurementLabel(measurement, client.units)}
-                      </td>
-                      <td className="py-2">{dayLabel(measurement.measuredOn)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Charts and new measurements are coming soon.
-              </p>
-            </Card>
-          )}
+        <Tabs.Content value="progress">
+          <ClientProgressTab clientId={client.id} archived={archived} />
         </Tabs.Content>
         <Tabs.Content value="notes">
           <Notes client={client} onChanged={setClient} />

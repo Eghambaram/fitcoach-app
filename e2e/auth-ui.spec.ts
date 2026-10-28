@@ -140,6 +140,7 @@ test("the trainer shell shows only MVP navigation, unbuilt screens as 'coming so
       "Calendar",
       "Programs",
       "Check-ins",
+      "Progress",
       "Settings",
     ]);
   }

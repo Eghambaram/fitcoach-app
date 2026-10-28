@@ -61,12 +61,12 @@ describe("client onboarding tables (step 2.5)", () => {
         "chest",
         "hips",
       ]);
-      expect(await sqlStateIn(client, "update measurement_types set name = 'x'")).toBe("42501");
+      // The global types stay read-only (custom types of one's own workspace arrive in step 4.4).
+      expect((await client.query("update measurement_types set name = 'x'")).rowCount).toBe(0);
       expect(
         await sqlStateIn(
           client,
-          "insert into measurement_types (workspace_id, key, name, unit_kind) values ($1, 'grip', 'Grip', 'mass')",
-          [b.workspaceId],
+          "insert into measurement_types (workspace_id, key, name, unit_kind) values (null, 'grip', 'Grip', 'mass')",
         ),
       ).toBe("42501");
     });
