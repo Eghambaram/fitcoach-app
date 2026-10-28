@@ -23,6 +23,13 @@ export interface RecurringJob {
   handler: () => Promise<unknown>;
 }
 
+export interface QueuedJob<T extends object> {
+  /** Queue name, e.g. "exports.generate". */
+  name: string;
+  /** Must be idempotent, like recurring handlers: pg-boss retries a failed or interrupted job. */
+  handler: (data: T) => Promise<unknown>;
+}
+
 /**
  * pg-boss in the API process (PROMPT D10, §13), connected as fitcoach_system. The schema is installed
  * by `migrate.js`, never at boot (`migrate: false`). Modules register their jobs during module init;
@@ -33,6 +40,7 @@ export interface RecurringJob {
 export class JobsService implements OnApplicationBootstrap, OnApplicationShutdown {
   private readonly boss: PgBoss;
   private readonly recurring: RecurringJob[] = [];
+  private readonly queues: { name: string; handler: (data: unknown) => Promise<unknown> }[] = [];
   private started = false;
 
   constructor(
@@ -58,6 +66,21 @@ export class JobsService implements OnApplicationBootstrap, OnApplicationShutdow
     this.recurring.push(job);
   }
 
+  /** A queue of one-off jobs sent with `send()`. Register like recurring jobs, before bootstrap. */
+  registerQueue<T extends object>(job: QueuedJob<T>): void {
+    if (this.started) throw new Error(`queue ${job.name} registered after jobs started`);
+    this.queues.push({ name: job.name, handler: (data) => job.handler(data as T) });
+  }
+
+  /**
+   * Queues one job (retried twice, a minute apart). From a request, call it through
+   * `DbContext.afterCommit` so the job never runs before the rows it reads are committed.
+   */
+  async send(name: string, data: object): Promise<void> {
+    if (!this.queues.some((queue) => queue.name === name)) throw new Error(`unknown queue ${name}`);
+    await this.boss.send(name, data, { retryLimit: 2, retryDelay: 60 });
+  }
+
   async onApplicationBootstrap(): Promise<void> {
     await this.boss.start();
     this.started = true;
@@ -66,10 +89,18 @@ export class JobsService implements OnApplicationBootstrap, OnApplicationShutdow
       await this.boss.schedule(job.name, job.cron, null, { tz: "UTC" });
       await this.boss.work(job.name, () => this.run(job));
     }
+    for (const queue of this.queues) {
+      await this.boss.createQueue(queue.name);
+      await this.boss.work<object>(queue.name, async (batch) => {
+        for (const item of batch) {
+          await this.run({ name: queue.name, handler: () => queue.handler(item.data) });
+        }
+      });
+    }
   }
 
   /** Runs a job and records the outcome; a failure is rethrown so pg-boss retries it. */
-  async run(job: RecurringJob): Promise<void> {
+  async run(job: Omit<RecurringJob, "cron"> & { cron?: string }): Promise<void> {
     const startedAt = new Date();
     try {
       const result = await job.handler();

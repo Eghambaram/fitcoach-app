@@ -25,4 +25,6 @@ export interface AppClsStore extends ClsStore {
    * DbContext.tx is the only reader and narrows it.
    */
   tx?: unknown;
+  /** Callbacks DbContext.afterCommit queued; run once the request transaction has committed. */
+  afterCommit?: (() => Promise<void>)[];
 }

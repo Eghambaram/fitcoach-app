@@ -48,6 +48,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { ClsService } from "nestjs-cls";
+import { BYTE_ORDER_MARK, csvCell } from "../../common/csv";
 import { DomainError } from "../../common/errors/domain-error";
 import type { AppClsStore, AuthContext } from "../../common/request-context";
 import { DbContext } from "../../db/db-context";
@@ -104,9 +105,6 @@ const DETAIL_FIELDS = [
   "referrer",
   "campaign",
 ] as const;
-
-/** Lets Excel open UTF-8 (₹, Hindi, accents) correctly. */
-const BYTE_ORDER_MARK = String.fromCharCode(0xfeff);
 
 const iso = (value: Date) => value.toISOString();
 const isoOrNull = (value: Date | null) => (value ? value.toISOString() : null);
@@ -210,13 +208,6 @@ function decodeCursor(cursor: string): [string, string] {
     // fall through
   }
   throw badCursor();
-}
-
-/** CSV cell: quoted, and text that a spreadsheet would run as a formula is neutralised. */
-function csvCell(value: string | null, { freeText = true } = {}): string {
-  let text = value ?? "";
-  if (freeText && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
-  return `"${text.replace(/"/g, '""')}"`;
 }
 
 /**

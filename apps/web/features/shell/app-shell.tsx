@@ -19,8 +19,10 @@ import {
   type NavItem,
   PLATFORM_NAV,
   TRAINER_BOTTOM_NAV,
+  TRAINER_HELP_NAV,
   TRAINER_MORE_NAV,
   TRAINER_NAV,
+  withFrom,
 } from "./navigation";
 
 /**
@@ -28,11 +30,26 @@ import {
  * components, which can't be serialised from a Server Component into this Client Component.
  */
 const AREAS = {
-  trainer: { nav: TRAINER_NAV, bottomNav: TRAINER_BOTTOM_NAV, moreNav: TRAINER_MORE_NAV },
-  platform: { nav: PLATFORM_NAV, bottomNav: PLATFORM_NAV.slice(0, 4), moreNav: undefined },
+  trainer: {
+    nav: TRAINER_NAV,
+    bottomNav: TRAINER_BOTTOM_NAV,
+    moreNav: TRAINER_MORE_NAV,
+    helpNav: TRAINER_HELP_NAV,
+  },
+  platform: {
+    nav: PLATFORM_NAV,
+    bottomNav: PLATFORM_NAV.slice(0, 4),
+    moreNav: undefined,
+    helpNav: undefined,
+  },
 } as const satisfies Record<
   string,
-  { nav: readonly NavItem[]; bottomNav: readonly NavItem[]; moreNav?: readonly NavItem[] }
+  {
+    nav: readonly NavItem[];
+    bottomNav: readonly NavItem[];
+    moreNav?: readonly NavItem[];
+    helpNav?: readonly NavItem[];
+  }
 >;
 
 export type ShellArea = keyof typeof AREAS;
@@ -110,7 +127,7 @@ function SidebarLink({ item, pathname }: { item: NavItem; pathname: string }) {
   }
   return (
     <Link
-      href={item.href}
+      href={withFrom(item.href, pathname)}
       aria-current={active ? "page" : undefined}
       className={cn(
         classes,
@@ -195,7 +212,7 @@ export function AppShell({
   banner,
   children,
 }: AppShellProps) {
-  const { nav, bottomNav, moreNav } = AREAS[area];
+  const { nav, bottomNav, moreNav, helpNav } = AREAS[area];
   const pathname = usePathname();
   const signOut = useSignOut();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -223,6 +240,13 @@ export function AppShell({
           {nav.map((item) => (
             <SidebarLink key={item.href} item={item} pathname={pathname} />
           ))}
+          {helpNav ? (
+            <div className="mt-auto flex flex-col gap-1 border-t border-white/10 pt-3">
+              {helpNav.map((item) => (
+                <SidebarLink key={item.href} item={item} pathname={pathname} />
+              ))}
+            </div>
+          ) : null}
         </nav>
         <div className="mt-4 flex items-center gap-3 rounded-card bg-sidebar-hover p-3">
           <Avatar name={userName} imageUrl={avatarUrl} />
@@ -292,7 +316,7 @@ export function AppShell({
                 <li key={item.href}>
                   {item.available ? (
                     <Link
-                      href={item.href}
+                      href={withFrom(item.href, pathname)}
                       onClick={() => setMoreOpen(false)}
                       className="flex h-12 items-center gap-3 rounded-control px-3 text-sm font-medium hover:bg-muted"
                     >

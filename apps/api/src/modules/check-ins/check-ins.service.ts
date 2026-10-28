@@ -33,6 +33,7 @@ import {
 import { WhatsAppLinkBuilder } from "../../integrations/whatsapp/whatsapp-link-builder";
 import { readFeatures } from "../client-portal/portal-access.service";
 import { notify } from "../notifications/notify";
+import { trackEvent } from "../product-events/track";
 
 type CheckInRow = typeof checkIns.$inferSelect;
 type Trainer = { userId: string; workspaceId: string };
@@ -233,6 +234,12 @@ export class CheckInsService {
         dedupeKey: `check_in:${saved.id}`,
       });
     }
+    await trackEvent(this.db.tx, {
+      event: "check_in_submitted",
+      actorKind: "client",
+      userId: scope.userId,
+      workspaceId: scope.workspaceId,
+    });
     return this.forClient();
   }
 

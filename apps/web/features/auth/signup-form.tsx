@@ -1,5 +1,6 @@
 "use client";
 
+import { PrivacyLink, TermsLink } from "@/components/shared/legal-links";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   COACHING_MODES,
@@ -267,7 +268,7 @@ export function SignupForm({ inviteRequired }: { inviteRequired: boolean }) {
                 aria-invalid={errors.acceptTerms ? true : undefined}
               />
               <span>
-                I accept the FitCoach terms of use and privacy policy, and confirm I'll get my
+                I accept the FitCoach <TermsLink /> and <PrivacyLink />, and confirm I'll get my
                 clients' consent before adding their details.
               </span>
             </label>

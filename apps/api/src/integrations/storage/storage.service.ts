@@ -103,6 +103,16 @@ export class StorageService implements OnModuleDestroy {
     );
   }
 
+  /** A private object's bytes, for small files the API serves itself after an auth check (exports). */
+  async getPrivate(key: string): Promise<Buffer> {
+    const { client } = this.require();
+    const result = await client.send(
+      new GetObjectCommand({ Bucket: this.bucketName("private"), Key: key }),
+    );
+    if (!result.Body) throw new Error("empty object body");
+    return Buffer.from(await result.Body.transformToByteArray());
+  }
+
   /** URL for a public-bucket object, served from `media.<domain>` via Cloudflare's CDN in production. */
   publicUrl(key: string): string {
     return `${this.require().storage.publicBaseUrl}/${key.split("/").map(encodeURIComponent).join("/")}`;

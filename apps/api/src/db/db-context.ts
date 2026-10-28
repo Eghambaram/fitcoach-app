@@ -8,6 +8,7 @@ import {
 import { Reflector } from "@nestjs/core";
 import { sql } from "drizzle-orm";
 import { ClsService } from "nestjs-cls";
+import { PinoLogger } from "nestjs-pino";
 import { from, lastValueFrom, type Observable } from "rxjs";
 import type { AppClsStore } from "../common/request-context";
 import { AppDatabase, type Tx } from "./database";
@@ -29,7 +30,10 @@ export class DbContextInterceptor implements NestInterceptor {
     private readonly database: AppDatabase,
     private readonly cls: ClsService<AppClsStore>,
     private readonly reflector: Reflector,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(DbContextInterceptor.name);
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const skip = this.reflector.getAllAndOverride<boolean>(SKIP_DB_CONTEXT, [
@@ -39,23 +43,35 @@ export class DbContextInterceptor implements NestInterceptor {
     if (skip) return next.handle();
 
     const auth = this.cls.get("auth");
-    return from(
-      this.database.db.transaction(async (tx) => {
-        await tx.execute(sql`
+    return from(this.inTransaction(auth, next));
+  }
+
+  private async inTransaction(auth: AppClsStore["auth"], next: CallHandler): Promise<unknown> {
+    this.cls.set("afterCommit", []);
+    const result = await this.database.db.transaction(async (tx) => {
+      await tx.execute(sql`
           select
             set_config('app.user_id', ${auth?.userId ?? ""}, true),
             set_config('app.workspace_id', ${auth?.workspaceId ?? ""}, true),
             set_config('app.client_id', ${auth?.clientId ?? ""}, true),
             set_config('app.actor', ${auth?.actor ?? ""}, true)
         `);
-        this.cls.set("tx", tx);
-        try {
-          return await lastValueFrom(next.handle(), { defaultValue: undefined });
-        } finally {
-          this.cls.set("tx", undefined);
-        }
-      }),
-    );
+      this.cls.set("tx", tx);
+      try {
+        return await lastValueFrom(next.handle(), { defaultValue: undefined });
+      } finally {
+        this.cls.set("tx", undefined);
+      }
+    });
+    const callbacks = this.cls.get("afterCommit") ?? [];
+    this.cls.set("afterCommit", undefined);
+    for (const callback of callbacks) {
+      // The change is committed: a failed follow-up (e.g. queueing a job) is logged, not returned.
+      await callback().catch((error: unknown) =>
+        this.logger.error({ err: error }, "after-commit callback failed"),
+      );
+    }
+    return result;
   }
 }
 
@@ -73,5 +89,12 @@ export class DbContext {
       );
     }
     return tx;
+  }
+
+  /** Runs `callback` after the request transaction commits (never if it rolls back). */
+  afterCommit(callback: () => Promise<void>): void {
+    const callbacks = this.cls.isActive() ? this.cls.get("afterCommit") : undefined;
+    if (!callbacks) throw new Error("No request transaction to run after");
+    callbacks.push(callback);
   }
 }

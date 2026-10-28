@@ -75,6 +75,12 @@ describe("SignupForm", () => {
     await userEvent.type(await screen.findByLabelText(/^Business name/), "Asha Fitness");
     await userEvent.click(screen.getByLabelText(/In-person/));
     await userEvent.type(screen.getByLabelText(/^Beta invite code/), "FIT-ABCD-EFGH");
+    // The terms and privacy policy are a click away, in a new tab so the form stays filled in.
+    expect(screen.getByRole("link", { name: "terms of use" })).toHaveAttribute("href", "/terms");
+    expect(screen.getByRole("link", { name: "privacy policy" })).toHaveAttribute(
+      "target",
+      "_blank",
+    );
     await userEvent.click(screen.getByLabelText(/I accept the FitCoach terms/));
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
 

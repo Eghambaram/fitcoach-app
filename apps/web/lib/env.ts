@@ -11,6 +11,8 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_APP_ENV: z
     .enum(["development", "test", "staging", "production"])
     .default("development"),
+  /** Build-time: where "Request beta access" emails go (ADR-0061). Empty when the build arg is unset. */
+  NEXT_PUBLIC_BETA_CONTACT_EMAIL: z.union([z.literal(""), z.string().email()]).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

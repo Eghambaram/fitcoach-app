@@ -905,6 +905,15 @@ export class AppointmentsService {
         },
       );
     }
+    if (to === "completed") {
+      await trackEvent(this.db.tx, {
+        event: "session_attended",
+        actorKind: "trainer",
+        userId: trainer.userId,
+        workspaceId: trainer.workspaceId,
+        properties: { kind: appointment.kind },
+      });
+    }
     return this.get(id);
   }
 

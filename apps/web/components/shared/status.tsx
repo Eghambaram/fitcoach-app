@@ -127,7 +127,8 @@ export function NotConfiguredNotice({ name, description }: { name: string; descr
       <PlugZap className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       <p>
         <span className="font-semibold">{name}: Not configured.</span>{" "}
-        <span className="text-muted-foreground">
+        {/* Neutral, not muted: muted text on the muted background is below 4.5:1 (axe). */}
+        <span className="text-neutral">
           {description ?? "This feature is off until it's set up."}
         </span>
       </p>

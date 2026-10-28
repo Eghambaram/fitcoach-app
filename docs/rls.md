@@ -254,6 +254,15 @@ Migration 0040, expanding 0008.
 
 Proven by `notifications.db.test.ts`.
 
+### Beta readiness (step 5.3, ADR-0061)
+
+| Table          | fitcoach_app   | Policy                                                                                            | Notes                                                                                                       |
+| -------------- | -------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `feedback`     | INSERT only    | trainer: own workspace, signed as themselves, status `open`                                       | No SELECT, so trainers can't read feedback back. fitcoach_system triages (6.1) and can't delete.            |
+| `data_exports` | SELECT, INSERT | trainer: read own workspace's; insert only `pending`, signed as themselves, without an object key | The job (fitcoach_system) fills in status, key and expiry. Nobody deletes. Allowed while suspended (§16.0). |
+
+Proven by `beta.db.test.ts`.
+
 ## Proven by tests
 
 - Every `public` table has ENABLE + FORCE RLS (`rls-coverage.db.test.ts`).
@@ -277,3 +286,4 @@ Proven by `notifications.db.test.ts`.
 - Check-ins: a client sends one check-in per local date, only for themselves, only for today and only with check-ins on; they can't write the review or a reply; each same-day edit keeps the previous answers in a revision nobody can forge, change or delete; a trainer reviews only as themselves and can't change the answers; yesterday's check-in is read-only; other workspaces, other clients and empty contexts see nothing (`check-ins.db.test.ts`). Over HTTP: send, edit, review and reply round trip; per-client days and on/off decide what is due and allowed; another trainer gets 404 and clients get 403 on trainer routes (`check-ins.api.test.ts`).
 - Progress: a client reads only measurements of shared metrics and their own shares; they can't share more, void or edit values; they add values only with self-logging on, only for shared metrics and only as themselves; custom types, shares and measurements never cross workspaces; global types stay read-only; empty contexts see nothing (`progress.db.test.ts`). Over HTTP: unit conversion, plausibility and void-then-add; custom types; sharing weight only shows weight and never waist or trainer notes; self-logging gate; the overview shows only the trainer's own clients; another trainer gets 404 and clients get 403 on trainer routes (`progress.api.test.ts`).
 - Notifications: one per recipient and dedupe key; a trainer notifies only their own app clients and only about programs and sessions; a client reads only their own notices and notifies only their trainer, only about a check-in; other trainers see nothing; job runs are invisible to the app role and immutable for the system role (`notifications.db.test.ts`). Over HTTP: an overdue follow-up and an expiring package notify exactly once across repeated runs and a restarted API; job outcomes are recorded; purges run; clients get program and session notices and trainers get invite and check-in notices; mark read / all read; another user's notification answers 404 (`notifications.api.test.ts`).
+- Feedback and exports: a trainer sends feedback only as themselves into their own workspace and can't read, change or delete it; clients and empty contexts can't send it; a trainer asks for exports only as `pending` without an object key, sees only their workspace's, and can't change or delete them; a `ready` export needs its key and expiry (`beta.db.test.ts`). Over HTTP: another trainer can neither list nor download an export, even with its id; clients get 403; one pending export at a time; expired exports refuse downloads and their object is deleted; export and feedback work while suspended (`exports.api.test.ts`).

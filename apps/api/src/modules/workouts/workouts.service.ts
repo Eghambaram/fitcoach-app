@@ -23,6 +23,7 @@ import { DomainError } from "../../common/errors/domain-error";
 import { IdempotencyService } from "../../common/idempotency/idempotency.service";
 import type { AppClsStore } from "../../common/request-context";
 import { DbContext } from "../../db/db-context";
+import { trackEvent } from "../product-events/track";
 import {
   appointments,
   clientProgramAssignments,
@@ -692,6 +693,13 @@ export class WorkoutsService {
           : { trainerFeedback: input.feedback || null }),
       })
       .where(this.sessionWhere(scope, id));
+    await trackEvent(this.db.tx, {
+      event: "workout_completed",
+      actorKind: scope.actor,
+      userId: scope.userId,
+      workspaceId: scope.workspaceId,
+      properties: { completedSets: done.count },
+    });
     return this.detail(scope, id);
   }
 

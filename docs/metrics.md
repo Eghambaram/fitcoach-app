@@ -40,3 +40,18 @@ Nothing is sent by FitCoach: the reminders open WhatsApp, and the trainer presse
 - **Attendance** = attended ÷ (attended + no-show) appointments in a period. Not shown on the MVP dashboard yet.
 - **Streak (client app)** = consecutive weeks, counted back from last week (plus this week once it's done), in which every planned workout was completed (ADR-0056).
 - **Check-in due (client app)** = check-ins on, today is one of the client's check-in days, and none sent today (ADR-0057).
+
+## Beta success metrics (product events)
+
+The §1A.5 beta metrics are computed from `product_events` (ADR-0030, ADR-0061). The event names are in `packages/shared/src/product-events.ts`. Each event is written in the same transaction as the action it records, and carries ids, counts and enums only — no names, contact details, free text or health data. The platform owner computes these in step 6.1.
+
+| Metric                | Definition (§1A.5)                                                                              | Events                                                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Activation            | Within 7 days of signup: public page published **and** ≥ 3 clients **and** ≥ 1 program assigned | `trainer_signed_up` (start), `public_page_published`, `client_onboarded` + `lead_converted` (clients), `program_assigned` |
+| Weekly active trainer | ≥ 3 sessions or workouts logged in a calendar week (workspace time zone)                        | `session_attended` (attendance marked completed) + `workout_completed` (trainer or client logged)                         |
+| Lead capture used     | ≥ 1 public-page enquiry in the first 30 days                                                    | `lead_captured`                                                                                                           |
+| Client engagement     | Invited clients submitting ≥ 2 check-ins a week                                                 | `client_invited`, `client_invite_accepted`, `check_in_submitted` (same-day edits count once per client and day)           |
+| Retention             | Trainer weekly-active at day 30                                                                 | as weekly active trainer, in the week containing signup + 30 days                                                         |
+| Willingness to pay    | Beta trainers who'd pay ₹499+/month                                                             | none — measured by interview                                                                                              |
+
+Supporting events: `email_verified` (signup funnel), `trial_booked` (lead → trial funnel), `package_sold` and `payment_recorded` (packages used), `feedback_sent` and `data_exported` (beta operations).

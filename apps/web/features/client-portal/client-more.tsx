@@ -4,6 +4,7 @@ import type { ClientMeResponse } from "@fitcoach/shared";
 import { CalendarDays, ChevronRight, CircleHelp, Dumbbell, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { InstallCard } from "../pwa/install-card";
 import { ContactTrainerButtons, TrainerAvatar } from "./client-display";
 import { useClientSignOut } from "./client-shell";
 
@@ -30,6 +31,7 @@ export function ClientMore({ me }: { me: ClientMeResponse }) {
         </div>
         <ContactTrainerButtons phone={me.trainer.phoneE164} name={me.trainer.displayName} />
       </Card>
+      <InstallCard />
       <ul className="divide-y divide-border rounded-card border border-border bg-card">
         {LINKS.map(({ href, label, icon: Icon }) => (
           <li key={href}>
@@ -64,6 +66,21 @@ export function ClientMore({ me }: { me: ClientMeResponse }) {
           Questions about your workouts, sessions or package? Contact {me.trainer.displayName}{" "}
           above. Signed out? Use the link your trainer sent you, or sign in with a code sent to your
           email.
+        </p>
+        <p className="text-muted-foreground">
+          <Link
+            href="/privacy"
+            className="font-semibold text-foreground underline underline-offset-2"
+          >
+            Privacy policy
+          </Link>{" "}
+          ·{" "}
+          <Link
+            href="/terms"
+            className="font-semibold text-foreground underline underline-offset-2"
+          >
+            Terms of use
+          </Link>
         </p>
       </Card>
     </div>

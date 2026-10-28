@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   ChevronRight,
   ClipboardCheck,
+  FileArchive,
   Globe2,
   MessageSquareText,
   Package,
@@ -13,11 +14,12 @@ import {
 import Link from "next/link";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card } from "@/components/ui/card";
+import { InstallCard } from "@/features/pwa/install-card";
 import { serverApi } from "@/lib/api/server";
 
 export const metadata: Metadata = { title: "Settings" };
 
-/** Settings sections (PROMPT §8.12). Data export and help arrive in step 5.3. */
+/** Settings sections (PROMPT §8.12). */
 const SECTIONS = [
   {
     href: "/app/settings/profile",
@@ -61,6 +63,12 @@ const SECTIONS = [
     description: "Change your password and see where you're signed in.",
     icon: ShieldCheck,
   },
+  {
+    href: "/app/settings/export",
+    title: "Export your data",
+    description: "Download leads, clients, sessions, packages and payments as CSV files.",
+    icon: FileArchive,
+  },
 ] as const;
 
 export default async function SettingsPage() {
@@ -84,6 +92,7 @@ export default async function SettingsPage() {
           </div>
         </Card>
       ) : null}
+      <InstallCard />
       <ul className="flex flex-col gap-3">
         {SECTIONS.map(({ href, title, description, icon: Icon }) => (
           <li key={href}>
