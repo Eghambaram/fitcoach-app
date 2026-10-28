@@ -12,6 +12,6 @@ export interface SendResult {
 
 /** Email boundary (PROMPT D13, §11): SMTP (Mailpit locally), Resend, or console (non-production). */
 export interface EmailProvider {
-  readonly name: "smtp" | "resend" | "console";
+  readonly name: "smtp" | "resend" | "brevo" | "console";
   send(message: EmailMessage, from: string): Promise<SendResult>;
 }

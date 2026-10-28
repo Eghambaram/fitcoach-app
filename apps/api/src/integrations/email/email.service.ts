@@ -4,7 +4,12 @@ import { AppConfig } from "../../config/env";
 import { notificationDeliveries } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 import type { EmailMessage, EmailProvider } from "./email-provider";
-import { ConsoleEmailProvider, ResendEmailProvider, SmtpEmailProvider } from "./providers";
+import {
+  BrevoEmailProvider,
+  ConsoleEmailProvider,
+  ResendEmailProvider,
+  SmtpEmailProvider,
+} from "./providers";
 
 /** Waits before the 2nd and 3rd attempt of a background send. */
 export const EMAIL_RETRY_DELAYS_MS = [2_000, 15_000];
@@ -33,10 +38,12 @@ export class EmailService {
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(EmailService.name);
-    const { provider, smtpUrl, resendApiKey } = config.email;
+    const { provider, smtpUrl, resendApiKey, brevoApiKey } = config.email;
     if (provider === "smtp" && smtpUrl) this.provider = new SmtpEmailProvider(smtpUrl);
     else if (provider === "resend" && resendApiKey)
       this.provider = new ResendEmailProvider(resendApiKey);
+    else if (provider === "brevo" && brevoApiKey)
+      this.provider = new BrevoEmailProvider(brevoApiKey);
     else this.provider = new ConsoleEmailProvider(systemDb);
   }
 
