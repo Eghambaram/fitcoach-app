@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ResendEmailProvider } from "./providers";
+import { BrevoEmailProvider, parseAddress, ResendEmailProvider } from "./providers";
 import { accountExistsMessage, resetPasswordMessage, verifyEmailMessage } from "./templates";
 
 describe("ResendEmailProvider", () => {
@@ -57,5 +57,48 @@ describe("auth email templates", () => {
     ]);
 
     expect(subjects.size).toBe(3);
+  });
+});
+
+describe("BrevoEmailProvider", () => {
+  it("posts to Brevo's HTTPS API with the sender split into name and address", async () => {
+    const fetchMock = vi.fn<typeof fetch>(
+      async () => new Response(JSON.stringify({ messageId: "<abc@smtp-relay>" }), { status: 201 }),
+    );
+    const provider = new BrevoEmailProvider("xkeysib-test-key", fetchMock);
+
+    const result = await provider.send(
+      { to: "asha@example.com", subject: "Hi", text: "Hello", html: "<p>Hello</p>" },
+      "FitCoach <getfitcoach.app@gmail.com>",
+    );
+
+    expect(result.providerMessageId).toBe("<abc@smtp-relay>");
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe("https://api.brevo.com/v3/smtp/email");
+    expect(new Headers(init?.headers).get("api-key")).toBe("xkeysib-test-key");
+    expect(JSON.parse(String(init?.body))).toEqual({
+      sender: { name: "FitCoach", email: "getfitcoach.app@gmail.com" },
+      to: [{ email: "asha@example.com" }],
+      subject: "Hi",
+      textContent: "Hello",
+      htmlContent: "<p>Hello</p>",
+    });
+  });
+
+  it("fails with the status only, never the response body", async () => {
+    const fetchMock = vi.fn<typeof fetch>(
+      async () => new Response("unauthorized sender asha@example.com", { status: 401 }),
+    );
+    const provider = new BrevoEmailProvider("xkeysib-test-key", fetchMock);
+    await expect(
+      provider.send({ to: "asha@example.com", subject: "s", text: "t", html: "h" }, "a@b.co"),
+    ).rejects.toThrow(/^Brevo responded 401$/);
+  });
+
+  it("parses sender addresses", () => {
+    expect(parseAddress("FitCoach <a@b.co>")).toEqual({ name: "FitCoach", email: "a@b.co" });
+    expect(parseAddress('"Fit Coach" <a@b.co>')).toEqual({ name: "Fit Coach", email: "a@b.co" });
+    expect(parseAddress("a@b.co")).toEqual({ email: "a@b.co" });
+    expect(parseAddress("<a@b.co>")).toEqual({ email: "a@b.co" });
   });
 });

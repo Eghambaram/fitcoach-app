@@ -187,40 +187,42 @@ Use it to keep the dump out of the API process (production does, ADR-0063). Then
 
 ## Variables reference (PROMPT §17.3)
 
-| Variable                                            | Service        | Staging value                                                                                                                           |
-| --------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `APP_ENV`                                           | api            | `staging` (Secure cookies, https `WEB_ORIGIN` and a 32+ character `IP_HASH_SALT` are enforced)                                          |
-| `PORT`                                              | api            | `4000` — set explicitly so `${{api.PORT}}` resolves for web                                                                             |
-| `WEB_ORIGIN`                                        | api            | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` — exact origin for CSRF checks and email links                                                 |
-| `DATABASE_OWNER_URL`                                | api            | `${{Postgres.DATABASE_URL}}` — admin URL, used only by the start-up migration                                                           |
-| `DB_APP_PASSWORD` / `DB_SYSTEM_PASSWORD`            | api            | generated hex; the migration sets these as the role passwords on every deploy                                                           |
-| `DATABASE_URL`                                      | api            | `postgresql://fitcoach_app:${{DB_APP_PASSWORD}}@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` (RLS-enforced role) |
-| `DATABASE_SYSTEM_URL`                               | api            | same with `fitcoach_system` and `${{DB_SYSTEM_PASSWORD}}` (jobs, auth lookups, CLIs)                                                    |
-| `DB_POOL_MAX`                                       | api            | `10` per replica; keep replicas × pools well under Postgres `max_connections`                                                           |
-| `SESSION_SECRET` / `IP_HASH_SALT`                   | api            | generated hex (32 bytes each)                                                                                                           |
-| `SIGNUP_MODE` / `BETA_DEFAULT_CLIENT_LIMIT`         | api            | `invite_code` / `50`                                                                                                                    |
-| `EMAIL_PROVIDER` + `RESEND_API_KEY` or `SMTP_URL`   | api            | see [Email on staging](#email-on-staging); `console` is allowed on staging but you won't receive links                                  |
-| `EMAIL_FROM`                                        | api            | `FitCoach Staging <onboarding@resend.dev>` (or an address on your verified domain)                                                      |
-| `STORAGE_*`                                         | api            | from [r2.md](r2.md); `STORAGE_REGION=auto`, `STORAGE_KEY_PREFIX` empty (`pr-<n>/` only for PR environments)                             |
-| `STORAGE_BUDGET_BYTES` / `STORAGE_HARD_LIMIT_BYTES` | api            | `8589934592` / `9663676416` — shared with production, because the R2 free tier is per account                                           |
-| `LOG_LEVEL`                                         | api            | `info`                                                                                                                                  |
-| `NEXT_PUBLIC_SITE_URL`                              | web            | `https://${{RAILWAY_PUBLIC_DOMAIN}}` (build time)                                                                                       |
-| `NEXT_PUBLIC_APP_ENV`                               | web            | `staging` (build time; shows the staging ribbon)                                                                                        |
-| `API_INTERNAL_URL`                                  | web            | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}`                                                                                  |
-| `HOSTNAME` / `PORT`                                 | web            | `::` / `3000`                                                                                                                           |
-| `APP_ENCRYPTION_KEY`                                | api            | 32 random bytes, base64 — platform owner TOTP secrets (ADR-0062)                                                                        |
-| `BACKUP_HEARTBEAT_TOKEN`                            | api, db-backup | generated hex; db-backup references the API's value (`${{api.BACKUP_HEARTBEAT_TOKEN}}`)                                                 |
-| `DATABASE_URL` (db-backup)                          | db-backup      | `${{Postgres.DATABASE_URL}}` — admin URL, pg_dump reads past RLS                                                                        |
-| later                                               | —              | Razorpay and Google variables are v1.1 — leave unset                                                                                    |
+| Variable                                                           | Service        | Staging value                                                                                                                           |
+| ------------------------------------------------------------------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                                          | api            | `staging` (Secure cookies, https `WEB_ORIGIN` and a 32+ character `IP_HASH_SALT` are enforced)                                          |
+| `PORT`                                                             | api            | `4000` — set explicitly so `${{api.PORT}}` resolves for web                                                                             |
+| `WEB_ORIGIN`                                                       | api            | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` — exact origin for CSRF checks and email links                                                 |
+| `DATABASE_OWNER_URL`                                               | api            | `${{Postgres.DATABASE_URL}}` — admin URL, used only by the start-up migration                                                           |
+| `DB_APP_PASSWORD` / `DB_SYSTEM_PASSWORD`                           | api            | generated hex; the migration sets these as the role passwords on every deploy                                                           |
+| `DATABASE_URL`                                                     | api            | `postgresql://fitcoach_app:${{DB_APP_PASSWORD}}@${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` (RLS-enforced role) |
+| `DATABASE_SYSTEM_URL`                                              | api            | same with `fitcoach_system` and `${{DB_SYSTEM_PASSWORD}}` (jobs, auth lookups, CLIs)                                                    |
+| `DB_POOL_MAX`                                                      | api            | `10` per replica; keep replicas × pools well under Postgres `max_connections`                                                           |
+| `SESSION_SECRET` / `IP_HASH_SALT`                                  | api            | generated hex (32 bytes each)                                                                                                           |
+| `SIGNUP_MODE` / `BETA_DEFAULT_CLIENT_LIMIT`                        | api            | `invite_code` / `50`                                                                                                                    |
+| `EMAIL_PROVIDER` + `RESEND_API_KEY`, `BREVO_API_KEY` or `SMTP_URL` | api            | see [Email on staging](#email-on-staging); `console` is allowed on staging but you won't receive links                                  |
+| `EMAIL_FROM`                                                       | api            | `FitCoach Staging <onboarding@resend.dev>` (or an address on your verified domain)                                                      |
+| `STORAGE_*`                                                        | api            | from [r2.md](r2.md); `STORAGE_REGION=auto`, `STORAGE_KEY_PREFIX` empty (`pr-<n>/` only for PR environments)                             |
+| `STORAGE_BUDGET_BYTES` / `STORAGE_HARD_LIMIT_BYTES`                | api            | `8589934592` / `9663676416` — shared with production, because the R2 free tier is per account                                           |
+| `LOG_LEVEL`                                                        | api            | `info`                                                                                                                                  |
+| `NEXT_PUBLIC_SITE_URL`                                             | web            | `https://${{RAILWAY_PUBLIC_DOMAIN}}` (build time)                                                                                       |
+| `NEXT_PUBLIC_APP_ENV`                                              | web            | `staging` (build time; shows the staging ribbon)                                                                                        |
+| `API_INTERNAL_URL`                                                 | web            | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}`                                                                                  |
+| `HOSTNAME` / `PORT`                                                | web            | `::` / `3000`                                                                                                                           |
+| `APP_ENCRYPTION_KEY`                                               | api            | 32 random bytes, base64 — platform owner TOTP secrets (ADR-0062)                                                                        |
+| `BACKUP_HEARTBEAT_TOKEN`                                           | api, db-backup | generated hex; db-backup references the API's value (`${{api.BACKUP_HEARTBEAT_TOKEN}}`)                                                 |
+| `DATABASE_URL` (db-backup)                                         | db-backup      | `${{Postgres.DATABASE_URL}}` — admin URL, pg_dump reads past RLS                                                                        |
+| later                                                              | —              | Razorpay and Google variables are v1.1 — leave unset                                                                                    |
 
 ## Running the beta on staging (Hobby plan, no domain)
 
 The closed beta can run on this environment as it is, with the Railway domain:
 
-1. **Email to everyone.** Resend without a verified domain only delivers to your own Resend address. Send through Gmail instead:
-   - Turn on 2-Step Verification on the Gmail account, then create an **App password** (https://myaccount.google.com/apppasswords).
-   - On the api service, set `EMAIL_PROVIDER=smtp`, `SMTP_URL=smtps://<name>%40gmail.com:<app password>@smtp.gmail.com:465` and `EMAIL_FROM=FitCoach <<name>@gmail.com>`.
-   - Gmail allows about 500 emails a day. If Google says app passwords aren't available, use Brevo's free SMTP (300 a day) with the Gmail address as a verified sender.
+1. **Email to everyone.** Railway's Hobby plan blocks SMTP (`Connection timeout` in the api logs), and Resend without a verified domain only delivers to your own address. Use **Brevo**'s HTTPS API instead (free, 300 emails a day, no domain needed; ADR-0065):
+   - Sign up at brevo.com with the FitCoach Gmail address.
+   - **Senders, Domains & Dedicated IPs → Senders → Add a sender**: name `FitCoach`, that Gmail address. Confirm the link Brevo emails you.
+   - **SMTP & API → API Keys → Generate a new API key** (name it `fitcoach-staging`).
+   - On the api service, set `EMAIL_PROVIDER=brevo`, `BREVO_API_KEY=<the key>` and `EMAIL_FROM=FitCoach <<the Gmail address>>`. You can delete `SMTP_URL` and `RESEND_API_KEY`.
+   - Test it with **Forgot your password?** for an address other than your own, and check spam.
 2. **No staging ribbon.** On web, set `NEXT_PUBLIC_APP_ENV=production` and redeploy web. Keep `APP_ENV=staging` on the api: production mode needs your own domain for photos.
 3. **Backups.** Nothing to do (step 9). Press **Run backup now** once and check Backups is OK.
 4. **Invite codes.** Platform → **Settings** → create one per trainer.
@@ -232,7 +234,8 @@ Every merge to `main` reaches beta users about a minute after CI passes. Photos 
 Signup and password reset send real emails, so staging needs a working provider:
 
 - **Resend (recommended).** Create an account at resend.com → API Keys → create a key with "Sending access". Until you verify a domain, Resend only sends from `onboarding@resend.dev` **to your own Resend account email**. That's enough to test signup yourself. To let other testers sign up on staging, verify a domain (Resend → Domains) and set `EMAIL_FROM` to an address on it.
-- **Any SMTP provider.** `EMAIL_PROVIDER=smtp` and `SMTP_URL=smtps://<user>:<password>@<host>:465` (URL-encode special characters in the password).
+- **Brevo (no domain, Hobby plan).** `EMAIL_PROVIDER=brevo` + `BREVO_API_KEY`; see [Running the beta on staging](#running-the-beta-on-staging-hobby-plan-no-domain).
+- **Any SMTP provider (Railway Pro only — Hobby blocks SMTP).** `EMAIL_PROVIDER=smtp` and `SMTP_URL=smtps://<user>:<password>@<host>:465` (URL-encode special characters in the password).
 
 ## Deploy flow (PROMPT §17.4)
 

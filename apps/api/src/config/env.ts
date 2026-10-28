@@ -8,7 +8,7 @@ export const NIGHTLY_BACKUP_MODES = ["in_api", "external", "off"] as const;
 export type NightlyBackupMode = (typeof NIGHTLY_BACKUP_MODES)[number];
 
 const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace", "silent"] as const;
-const EMAIL_PROVIDERS = ["smtp", "resend", "console"] as const;
+const EMAIL_PROVIDERS = ["smtp", "resend", "brevo", "console"] as const;
 export type EmailProviderName = (typeof EMAIL_PROVIDERS)[number];
 
 /** Request traffic must use the non-owner roles (PROMPT §4.5); the owner URL is only for migrations. */
@@ -47,6 +47,8 @@ const envSchema = z
     EMAIL_FROM: z.string().min(3),
     SMTP_URL: z.string().url().optional(),
     RESEND_API_KEY: z.string().min(10).optional(),
+    /** Brevo HTTPS API key — for hosts that block SMTP (Railway Hobby, ADR-0065). */
+    BREVO_API_KEY: z.string().min(10).optional(),
     /** Cloudflare Turnstile on the public enquiry form (§8.2). Optional: honeypot, time-to-submit and rate limits always apply. */
     TURNSTILE_SECRET_KEY: z.string().min(10).optional(),
     // Object storage (PROMPT §17.3, §17.7): Cloudflare R2 deployed, RustFS locally. All or nothing —
@@ -101,6 +103,9 @@ const envSchema = z
     }
     if (env.EMAIL_PROVIDER === "resend" && !env.RESEND_API_KEY) {
       problem("RESEND_API_KEY", "is required when EMAIL_PROVIDER=resend");
+    }
+    if (env.EMAIL_PROVIDER === "brevo" && !env.BREVO_API_KEY) {
+      problem("BREVO_API_KEY", "is required when EMAIL_PROVIDER=brevo");
     }
 
     const deployed = env.APP_ENV === "staging" || env.APP_ENV === "production";
@@ -202,6 +207,7 @@ export abstract class AppConfig {
     readonly from: string;
     readonly smtpUrl?: string;
     readonly resendApiKey?: string;
+    readonly brevoApiKey?: string;
   };
   /** null when STORAGE_* isn't set: uploads answer "not configured" (CLAUDE.md rule 20). */
   abstract readonly storage: StorageConfig | null;
@@ -250,6 +256,7 @@ export function parseEnv(source: NodeJS.ProcessEnv): AppConfig {
       from: env.EMAIL_FROM,
       smtpUrl: env.SMTP_URL,
       resendApiKey: env.RESEND_API_KEY,
+      brevoApiKey: env.BREVO_API_KEY,
     },
     storage:
       env.STORAGE_ENDPOINT &&

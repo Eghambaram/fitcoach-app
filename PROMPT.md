@@ -771,7 +771,7 @@ CMD ["node", "dist/main.js"]
 | `STORAGE_KEY_PREFIX` | api | empty, or `pr-<n>/` for PR environments |
 | `STORAGE_BUDGET_BYTES` | api | soft budget across both buckets, default `8589934592` (8 GiB) |
 | `STORAGE_HARD_LIMIT_BYTES` | api | default `9663676416` (9 GiB) — uploads refused above this |
-| `EMAIL_PROVIDER` / `SMTP_URL` / `RESEND_API_KEY` / `EMAIL_FROM` | api | `console` forbidden when `APP_ENV=production` |
+| `EMAIL_PROVIDER` / `SMTP_URL` / `RESEND_API_KEY` / `BREVO_API_KEY` / `EMAIL_FROM` | api | `smtp` · `resend` · `brevo` (HTTPS, for hosts that block SMTP, ADR-0065) · `console` (forbidden when `APP_ENV=production`) |
 | `SIGNUP_MODE` | api | `invite_code` (beta default) · `approval` · `open` |
 | `BETA_DEFAULT_CLIENT_LIMIT` | api | active-client limit for new beta workspaces, default `50` (ADR-0033) |
 | `BILLING_PROVIDER` / `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` | api | **v1.1** — leave unset in MVP |

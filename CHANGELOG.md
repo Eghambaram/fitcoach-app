@@ -6,6 +6,7 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Email through Brevo's HTTPS API (`EMAIL_PROVIDER=brevo`, `BREVO_API_KEY`, ADR-0065). Railway's Hobby plan blocks SMTP, so confirmation emails never left staging. Brevo sends from a verified Gmail sender without a domain.
 - Nightly backup inside the API (ADR-0064):
   - **Default:** `NIGHTLY_BACKUP=in_api` makes the API take the 02:00 IST `pg_dump` itself. It uses the same keys and checks as the db-backup service, so the Railway Hobby beta has backups with no extra service.
   - **Run backup now:** a new button on Platform → System Health (audited).
