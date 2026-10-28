@@ -1828,6 +1828,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/notifications": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["NotificationsController_list"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/notifications/read-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["NotificationsController_readAll"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/notifications/{id}/read": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["NotificationsController_read"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/exercises": {
     parameters: {
       query?: never;
@@ -4814,6 +4862,35 @@ export interface components {
           done: boolean;
         }[];
       };
+    };
+    NotificationListDto: {
+      items: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        type:
+          | "new_lead"
+          | "follow_up_due"
+          | "trial_soon"
+          | "attendance_needed"
+          | "package_expiring"
+          | "package_low"
+          | "payment_due"
+          | "check_in_submitted"
+          | "invite_accepted"
+          | "program_assigned"
+          | "session_booked"
+          | "session_changed"
+          | "session_cancelled";
+        title: string;
+        body: string | null;
+        link: string | null;
+        /** Format: date-time */
+        readAt: string | null;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      unreadCount: number;
     };
     ExerciseListResponseDto: {
       exercises: {
@@ -8017,6 +8094,65 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
+  NotificationsController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NotificationListDto"];
+        };
+      };
+    };
+  };
+  NotificationsController_readAll: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NotificationListDto"];
+        };
+      };
+    };
+  };
+  NotificationsController_read: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NotificationListDto"];
         };
       };
     };

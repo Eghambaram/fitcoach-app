@@ -22,9 +22,17 @@ import { DomainError } from "../../common/errors/domain-error";
 import type { AppClsStore } from "../../common/request-context";
 import { AppConfig } from "../../config/env";
 import { DbContext } from "../../db/db-context";
-import { checkIns, clients, trainerSettings, workspaceMembers, profiles } from "../../db/schema";
+import {
+  checkIns,
+  clients,
+  profiles,
+  trainerSettings,
+  workspaceMembers,
+  workspaces,
+} from "../../db/schema";
 import { WhatsAppLinkBuilder } from "../../integrations/whatsapp/whatsapp-link-builder";
 import { readFeatures } from "../client-portal/portal-access.service";
+import { notify } from "../notifications/notify";
 
 type CheckInRow = typeof checkIns.$inferSelect;
 type Trainer = { userId: string; workspaceId: string };
@@ -195,7 +203,7 @@ export class CheckInsService {
       workoutFeedback: input.workoutFeedback || null,
     };
     // Insert today's, or edit it if it exists (also under a concurrent double submit).
-    await this.db.tx
+    const [saved] = await this.db.tx
       .insert(checkIns)
       .values({
         workspaceId: scope.workspaceId,
@@ -206,7 +214,25 @@ export class CheckInsService {
       .onConflictDoUpdate({
         target: [checkIns.clientId, checkIns.localDate],
         set: values,
+      })
+      .returning({ id: checkIns.id });
+    const [owner] = await this.db.tx
+      .select({ userId: workspaces.ownerUserId, name: clients.fullName })
+      .from(workspaces)
+      .innerJoin(clients, eq(clients.workspaceId, workspaces.id))
+      .where(and(eq(workspaces.id, scope.workspaceId), eq(clients.id, scope.clientId)));
+    if (saved && owner) {
+      await notify(this.db.tx, {
+        workspaceId: scope.workspaceId,
+        recipientUserId: owner.userId,
+        type: "check_in_submitted",
+        title: `Check-in from ${owner.name}`,
+        body: `Feeling ${input.feeling}, energy ${input.energy}/10, sleep ${input.sleep}/10 (self-reported)`,
+        link: "/app/check-ins",
+        data: { checkInId: saved.id },
+        dedupeKey: `check_in:${saved.id}`,
       });
+    }
     return this.forClient();
   }
 

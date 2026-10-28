@@ -6,6 +6,9 @@ import { SystemDb } from "../../db/system-db";
 import type { EmailMessage, EmailProvider } from "./email-provider";
 import { ConsoleEmailProvider, ResendEmailProvider, SmtpEmailProvider } from "./providers";
 
+/** Waits before the 2nd and 3rd attempt of a background send. */
+export const EMAIL_RETRY_DELAYS_MS = [2_000, 15_000];
+
 export interface EmailContext {
   /** Template name for the delivery log, e.g. "auth.verify_email". */
   template: string;
@@ -17,7 +20,8 @@ export interface EmailContext {
  * Sends email through the configured provider and records every attempt in notification_deliveries
  * (PROMPT §8.10). Never throws to callers: auth flows must answer the same way whether or not the
  * email went out. Never logs addresses or bodies (CLAUDE.md rule 13).
- * A pg-boss queue with retries replaces the direct send in step 5.2.
+ * Background sends retry with backoff in-process. They are not queued in the database: auth emails
+ * carry live sign-in links and codes, which must not sit in a job table (ADR-0060).
  */
 @Injectable()
 export class EmailService {
@@ -73,8 +77,23 @@ export class EmailService {
     return status === "sent";
   }
 
-  /** Fire-and-forget for auth flows, so response timing doesn't reveal whether an email was sent. */
+  /**
+   * Fire-and-forget for auth flows, so response timing doesn't reveal whether an email was sent.
+   * Up to three attempts with backoff; each attempt is recorded in notification_deliveries.
+   */
   sendInBackground(message: EmailMessage, context: EmailContext): void {
-    void this.send(message, context);
+    void this.sendWithRetries(message, context);
+  }
+
+  private async sendWithRetries(message: EmailMessage, context: EmailContext): Promise<void> {
+    for (let attempt = 0; ; attempt += 1) {
+      if (await this.send(message, context)) return;
+      const delay = EMAIL_RETRY_DELAYS_MS[attempt];
+      if (delay === undefined) {
+        this.logger.error({ template: context.template }, "email failed after retries");
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay).unref());
+    }
   }
 }

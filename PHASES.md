@@ -31,7 +31,7 @@ For steps with screens, Claude Code also opens the board rows that `docs/design/
 - [x] 2.1 Settings + public page · [x] 2.2 Leads · [x] 2.3 Follow-ups + templates · [x] 2.4 Conversion · [x] 2.5 Onboarding · [x] 2.6 Calendar
 - [x] 3.1 Clients · [x] 3.2 Packages · [x] 3.3 Exercises + templates · [x] 3.4 Programs · [x] 3.5 Live workout
 - [x] 4.1 Client invite + login · [x] 4.2 Client app · [x] 4.3 Check-ins · [x] 4.4 Progress
-- [x] 5.1 Dashboard · [ ] 5.2 Notifications + jobs · [ ] 5.3 Beta readiness
+- [x] 5.1 Dashboard · [x] 5.2 Notifications + jobs · [ ] 5.3 Beta readiness
 - [ ] 6.1 Platform owner · [ ] 6.2 Backups + production · [ ] 6.3 Launch checklist
 
 ---

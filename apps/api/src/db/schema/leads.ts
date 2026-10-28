@@ -402,8 +402,8 @@ export const leadConsents = pgTable(
 );
 
 /**
- * In-app notifications (PROMPT §8.10). Rows are written by system work (e.g. a public enquiry); the
- * bell, unread count and mark-read UI arrive in step 5.2.
+ * In-app notifications (PROMPT §8.10) for trainers and clients. Jobs and actions insert them with a
+ * `dedupe_key`, unique per recipient, so a retried job or a restart never notifies twice (step 5.2).
  */
 export const notifications = pgTable(
   "notifications",
@@ -421,13 +421,23 @@ export const notifications = pgTable(
     /** An in-app path such as `/app/leads/<id>`. */
     link: text("link"),
     data: jsonb("data").notNull().default({}),
+    /** e.g. `follow_up:<id>`; one notification per recipient and key. */
+    dedupeKey: text("dedupe_key"),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    unique("notifications_recipient_dedupe_key").on(t.recipientUserId, t.dedupeKey),
     index("notifications_recipient_created_at_idx").on(t.recipientUserId, t.createdAt),
     index("notifications_workspace_id_idx").on(t.workspaceId),
-    check("notifications_type", sql`${t.type} in ('new_lead')`),
+    check(
+      "notifications_type",
+      sql`${t.type} in ('new_lead', 'follow_up_due', 'trial_soon', 'attendance_needed', 'package_expiring', 'package_low', 'payment_due', 'check_in_submitted', 'invite_accepted', 'program_assigned', 'session_booked', 'session_changed', 'session_cancelled')`,
+    ),
+    check(
+      "notifications_dedupe_key_length",
+      sql`${t.dedupeKey} is null or char_length(${t.dedupeKey}) between 1 and 120`,
+    ),
     check("notifications_title_length", sql`char_length(${t.title}) between 1 and 160`),
     check("notifications_body_length", sql`${t.body} is null or char_length(${t.body}) <= 500`),
     check(

@@ -1,6 +1,7 @@
 import {
   DeleteObjectsCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
   NoSuchKey,
   PutObjectCommand,
   S3Client,
@@ -128,6 +129,30 @@ export class StorageService implements OnModuleDestroy {
         Delete: { Objects: keys.map((Key) => ({ Key })), Quiet: true },
       }),
     );
+  }
+
+  /**
+   * Every object (key and size) under this environment's prefix in a bucket. One Class A
+   * operation per 1,000 objects, so only the weekly reconciliation uses it (§17.7).
+   */
+  async list(bucket: BucketKind): Promise<{ key: string; size: number }[]> {
+    const { client, storage } = this.require();
+    const objects: { key: string; size: number }[] = [];
+    let token: string | undefined;
+    do {
+      const page = await client.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucketName(bucket),
+          Prefix: storage.keyPrefix || undefined,
+          ContinuationToken: token,
+        }),
+      );
+      for (const item of page.Contents ?? []) {
+        if (item.Key) objects.push({ key: item.Key, size: item.Size ?? 0 });
+      }
+      token = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (token);
+    return objects;
   }
 
   /**
