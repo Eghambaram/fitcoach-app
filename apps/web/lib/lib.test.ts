@@ -8,6 +8,7 @@ import {
   TRAINER_BOTTOM_NAV,
   TRAINER_MORE_NAV,
   TRAINER_NAV,
+  withFrom,
 } from "@/features/shell/navigation";
 import { toApiRequestError } from "./api/errors";
 import { findSecretLikePublicVars, parseServerEnv } from "./env";
@@ -43,6 +44,14 @@ describe("navigation (PROMPT §6)", () => {
     ]) {
       expect(labels).not.toContain(cut);
     }
+  });
+
+  it("links feedback with the screen it was opened from", () => {
+    expect(withFrom("/app/feedback", "/app/clients/abc")).toBe(
+      "/app/feedback?from=%2Fapp%2Fclients%2Fabc",
+    );
+    expect(withFrom("/app/feedback", "/app/feedback")).toBe("/app/feedback");
+    expect(withFrom("/beta", "/app/clients")).toBe("/beta");
   });
 
   it("uses Home · Leads · Clients · Calendar (+ More) on the trainer bottom nav", () => {

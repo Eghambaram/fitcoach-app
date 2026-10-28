@@ -19,6 +19,7 @@ import { RateLimitService } from "../../common/security/rate-limit.service";
 import { generateToken, hashToken } from "../../common/security/tokens";
 import { AppConfig } from "../../config/env";
 import { DbContext } from "../../db/db-context";
+import { trackEvent } from "../product-events/track";
 import { clientInvites, clients, sessions } from "../../db/schema";
 import { SystemDb } from "../../db/system-db";
 import { EmailService } from "../../integrations/email/email.service";
@@ -221,6 +222,13 @@ export class PortalAccessService {
       targetType: "client",
       targetId: client.id,
       after: { channel: input.channel, expiresAt: expiresAt.toISOString() },
+    });
+    await trackEvent(this.db.tx, {
+      event: "client_invited",
+      actorKind: "trainer",
+      userId: trainer.userId,
+      workspaceId: trainer.workspaceId,
+      properties: { channel: input.channel },
     });
 
     const link = `${this.config.webOrigin}/invite/${token}`;

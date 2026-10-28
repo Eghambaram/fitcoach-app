@@ -288,6 +288,20 @@
       "when": 1793161107217,
       "tag": "0040_notifications_jobs_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793170213036,
+      "tag": "0041_beta_readiness",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793170215391,
+      "tag": "0042_beta_readiness_rls",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { PrivacyLink, TermsLink } from "@/components/shared/legal-links";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useOnline } from "@/components/shared/offline-banner";
@@ -116,8 +117,8 @@ export function InviteWelcome({ token }: { token: string }) {
             aria-invalid={touched && !accepted ? true : undefined}
           />
           <span>
-            I accept the FitCoach terms of use and privacy policy, and agree that {trainerName} can
-            see what I log here.
+            I accept the FitCoach <TermsLink /> and <PrivacyLink />, and agree that {trainerName}{" "}
+            can see what I log here.
           </span>
         </label>
         {touched && !accepted ? (

@@ -6,6 +6,33 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 5.3 beta readiness (PROMPT §1A.5, §6, §8.12, §10.2, §12, §14, §16.0):
+  - **Send feedback** from the app menu (desktop sidebar and More on mobile), with the screen it was sent from. Works while suspended. `POST /v1/feedback`.
+  - **Data export** in Settings → Export your data:
+    - a zip of leads, clients, sessions, packages, payments and measurements as CSV, built by a background job and downloadable for 24 hours;
+    - each download goes through the API with a session check;
+    - expired exports are deleted hourly;
+    - works while suspended;
+    - endpoints: `GET/POST /v1/exports`, `GET /v1/exports/:id/download`.
+  - **Installable app:**
+    - manifest and icons generated from the logo mark (including maskable);
+    - a service worker that never caches pages or `/api`, with an offline page;
+    - an install card in Settings and in the client app's More, with iPhone Add to Home Screen steps.
+  - **Public site:**
+    - landing page (no claims, "Request beta access");
+    - `/pricing` (free during the beta);
+    - `/beta` FAQ with known limitations;
+    - `/privacy` and `/terms`, marked as needing legal review;
+    - terms and privacy linked from signup and the client invite;
+    - signed-in visitors to `/` go to their home.
+  - **Product events** for every beta metric: program assigned, session attended, workout completed, client invited, invite accepted, check-in submitted, feedback sent, data exported. The metric mapping is in `docs/metrics.md`.
+  - **Config:** new optional build-time `NEXT_PUBLIC_BETA_CONTACT_EMAIL`.
+  - **Database:** `feedback`, `data_exports` with RLS. ADR-0061.
+  - **Accessibility pass** (axe on every main trainer and client screen, desktop and mobile): fixed the contrast of the "Not configured" notice and the landing page landmarks.
+  - **Tests:**
+    - **RLS:** feedback write-only and signed; exports pending-only inserts, own workspace.
+    - **API:** zip contents and CSV-injection safety, tampering, one pending at a time, expiry deletes the file, trainer-only, suspended, rate limits.
+    - **e2e:** public pages, manifest, worker and offline page, feedback, export download, axe sweep.
 - Step 5.2 notifications and background jobs (PROMPT §8.10, §13):
   - **The bell** for trainers (top bar) and clients (app header): unread count, the latest notifications, open to jump there, Mark all read.
   - **Notifications:**

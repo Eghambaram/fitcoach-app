@@ -1972,6 +1972,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/feedback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["FeedbackController_send"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exports": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ExportsController_list"];
+    put?: never;
+    post: operations["ExportsController_request"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/exports/{id}/download": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["ExportsController_download"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5104,6 +5152,43 @@ export interface components {
     EnquiryResponseDto: {
       /** @enum {boolean} */
       ok: true;
+    };
+    FeedbackRequestDto: {
+      message: string;
+      page?: string;
+    };
+    FeedbackResponseDto: {
+      /** Format: uuid */
+      id: string;
+    };
+    DataExportListDto: {
+      available: boolean;
+      exports: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        status: "pending" | "ready" | "failed" | "expired";
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        completedAt: string | null;
+        /** Format: date-time */
+        expiresAt: string | null;
+        sizeBytes: number | null;
+      }[];
+    };
+    DataExportDto: {
+      /** Format: uuid */
+      id: string;
+      /** @enum {string} */
+      status: "pending" | "ready" | "failed" | "expired";
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      completedAt: string | null;
+      /** Format: date-time */
+      expiresAt: string | null;
+      sizeBytes: number | null;
     };
   };
   responses: never;
@@ -8359,6 +8444,88 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["EnquiryResponseDto"];
+        };
+      };
+    };
+  };
+  FeedbackController_send: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FeedbackRequestDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FeedbackResponseDto"];
+        };
+      };
+    };
+  };
+  ExportsController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DataExportListDto"];
+        };
+      };
+    };
+  };
+  ExportsController_request: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DataExportDto"];
+        };
+      };
+    };
+  };
+  ExportsController_download: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/zip": string;
         };
       };
     };

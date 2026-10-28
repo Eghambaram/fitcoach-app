@@ -35,6 +35,7 @@ import { recordAudit } from "../audit/audit.service";
 import { type NewSession, SessionsService } from "../auth/sessions.service";
 import { FilesService } from "../files/files.service";
 import { notify } from "../notifications/notify";
+import { trackEvent } from "../product-events/track";
 
 const MINUTE = 60;
 const PORTAL_STATUSES = ["active", "paused"];
@@ -81,6 +82,7 @@ export class ClientAuthService {
         id: clientInvites.id,
         workspaceId: clientInvites.workspaceId,
         clientId: clientInvites.clientId,
+        channel: clientInvites.channel,
       })
       .from(clientInvites)
       .innerJoin(
@@ -208,6 +210,13 @@ export class ClientAuthService {
         ipHash: meta.ipHash,
         userAgent: meta.userAgent,
         requestId: meta.requestId,
+      });
+      await trackEvent(tx, {
+        event: "client_invite_accepted",
+        actorKind: "client",
+        userId,
+        workspaceId: client.workspaceId,
+        properties: { channel: invite.channel },
       });
       return this.sessions.create(tx, {
         userId,

@@ -1,7 +1,7 @@
 /**
  * Product events for the beta metrics (PROMPT §1A.5, §10.2, ADR-0030). Properties must never contain
  * PII: no names, emails, phones, free text or health data — only ids, counts, enums and booleans.
- * Each step adds the events its feature needs; step 5.3 audits coverage against every metric.
+ * Coverage of every §1A.5 metric is mapped in docs/metrics.md (step 5.3).
  */
 export const PRODUCT_EVENTS = [
   "trainer_signed_up",
@@ -19,6 +19,18 @@ export const PRODUCT_EVENTS = [
   // Packages used (§1A.5, §8.3A): a package was sold or renewed / a payment was recorded.
   "package_sold",
   "payment_recorded",
+  // Activation (§1A.5): ≥ 1 program assigned.
+  "program_assigned",
+  // Weekly active trainer / retention (§1A.5): sessions attended and workouts logged.
+  "session_attended",
+  "workout_completed",
+  // Client engagement (§1A.5): invited clients and their check-ins.
+  "client_invited",
+  "client_invite_accepted",
+  "check_in_submitted",
+  // Beta operations (step 5.3).
+  "feedback_sent",
+  "data_exported",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENTS)[number];

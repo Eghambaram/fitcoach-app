@@ -132,6 +132,8 @@ test("the trainer shell shows only MVP navigation, unbuilt screens as 'coming so
       "Check-ins",
       "Progress",
       "Settings",
+      // The help group at the bottom (step 5.3): Send feedback · Help.
+      "Send feedback",
     ]);
     await expect(nav.getByRole("link")).toHaveText([
       "Dashboard",
@@ -142,6 +144,8 @@ test("the trainer shell shows only MVP navigation, unbuilt screens as 'coming so
       "Check-ins",
       "Progress",
       "Settings",
+      "Send feedback",
+      "Help",
     ]);
   }
   // Not in the MVP: never shown (PROMPT §6).

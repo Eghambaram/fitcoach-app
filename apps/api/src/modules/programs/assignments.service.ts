@@ -20,6 +20,7 @@ import { clientProgramAssignments, clients, workoutSessions, workspaces } from "
 import { SystemDb } from "../../db/system-db";
 import { JobsService } from "../jobs/jobs.service";
 import { notify } from "../notifications/notify";
+import { trackEvent } from "../product-events/track";
 import { ProgramsService, type Trainer } from "./programs.service";
 
 type AssignmentRow = typeof clientProgramAssignments.$inferSelect;
@@ -256,6 +257,13 @@ export class AssignmentsService {
         dedupeKey: `program_assigned:${created.id}`,
       });
     }
+    await trackEvent(this.db.tx, {
+      event: "program_assigned",
+      actorKind: "trainer",
+      userId: trainer.userId,
+      workspaceId: trainer.workspaceId,
+      properties: { replaced: current !== undefined, workouts: program.workouts.length },
+    });
     return {
       assignment: this.toAssignment(created),
       sessionsPlanned: planned,

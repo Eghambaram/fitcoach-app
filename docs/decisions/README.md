@@ -65,3 +65,4 @@ New decisions take the next number (`0026-…`). Superseded ADRs stay, marked `S
 | [0058](0058-progress-and-sharing.md)                   | Progress: measurements, custom types, per-metric sharing and the client view                |
 | [0059](0059-dashboard-summary.md)                      | Dashboard summary: one endpoint, fixed queries, shared metric definitions                   |
 | [0060](0060-notifications-and-jobs.md)                 | Notifications with dedupe keys, MVP jobs and recorded job outcomes                          |
+| [0061](0061-beta-readiness.md)                         | Beta readiness: feedback, export through the API, hand-rolled PWA and an honest public site |

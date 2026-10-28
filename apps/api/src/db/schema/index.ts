@@ -9,3 +9,4 @@ export * from "./scheduling";
 export * from "./packages";
 export * from "./programs";
 export * from "./check-ins";
+export * from "./beta";

@@ -45,6 +45,22 @@ export const TRAINER_NAV: readonly NavItem[] = [
   { label: "Settings", href: "/app/settings", icon: Settings, available: true },
 ];
 
+/**
+ * Beta help (step 5.3): in the desktop sidebar under the main items, and in "More" on mobile.
+ * "Send feedback" carries the current page as `?from=` (see `withFrom`).
+ */
+export const TRAINER_HELP_NAV: readonly NavItem[] = [
+  { label: "Send feedback", href: "/app/feedback", icon: MessageSquareText, available: true },
+  { label: "Help", href: "/beta", icon: HeartPulse, available: true },
+];
+
+/** The feedback link names the screen it was opened from. */
+export function withFrom(href: string, pathname: string): string {
+  return href === "/app/feedback" && pathname.startsWith("/app/") && pathname !== href
+    ? `${href}?from=${encodeURIComponent(pathname)}`
+    : href;
+}
+
 /** Mobile bottom nav: Home · Leads · Clients · Calendar · More (§6). */
 export const TRAINER_BOTTOM_NAV: readonly NavItem[] = [
   { ...navItem(TRAINER_NAV, "/app/dashboard"), label: "Home", icon: Home },
@@ -60,9 +76,7 @@ export const TRAINER_MORE_NAV: readonly NavItem[] = [
   navItem(TRAINER_NAV, "/app/check-ins"),
   navItem(TRAINER_NAV, "/app/progress"),
   navItem(TRAINER_NAV, "/app/settings"),
-  // Feedback and the beta FAQ arrive in step 5.3.
-  { label: "Send feedback", href: "/app/feedback", icon: MessageSquareText, available: false },
-  { label: "Help", href: "/beta", icon: HeartPulse, available: false },
+  ...TRAINER_HELP_NAV,
 ];
 
 export const MORE_ICON = MoreHorizontal;

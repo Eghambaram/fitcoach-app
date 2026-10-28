@@ -20,6 +20,8 @@ ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_APP_ENV=production
 # Optional: enables the Turnstile challenge on the public enquiry form.
 ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
+# Optional: the address "Request beta access" opens an email to.
+ARG NEXT_PUBLIC_BETA_CONTACT_EMAIL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV \
     NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY \
@@ -35,6 +37,8 @@ ENV NODE_ENV=production \
 WORKDIR /app
 COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /repo/apps/web/.next/static ./apps/web/.next/static
+# Icons and the service worker (PWA, PROMPT §14); standalone output doesn't include public/.
+COPY --from=build --chown=node:node /repo/apps/web/public ./apps/web/public
 USER node
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]

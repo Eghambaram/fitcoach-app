@@ -751,6 +751,7 @@ CMD ["node", "dist/main.js"]
 | `NEXT_PUBLIC_SITE_URL` | web (build+run) | public web URL |
 | `NEXT_PUBLIC_APP_ENV` | web (build+run) | `staging`/`production` (staging ribbon) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | web (build) | optional |
+| `NEXT_PUBLIC_BETA_CONTACT_EMAIL` | web (build) | optional; "Request beta access" opens an email to it |
 | `API_INTERNAL_URL` | web | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}` |
 | `HOSTNAME` | web | `::` |
 | `APP_ENV` | api | `development`/`staging`/`production` |
