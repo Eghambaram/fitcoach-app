@@ -1796,6 +1796,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/dashboard/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["DashboardController_summary"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/dashboard/checklist/dismiss": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["DashboardController_dismissChecklist"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/exercises": {
     parameters: {
       query?: never;
@@ -4661,6 +4693,127 @@ export interface components {
         change: number | null;
         percentChange: number | null;
       }[];
+    };
+    DashboardSummaryDto: {
+      today: string;
+      date: string;
+      timezone: string;
+      kpis: {
+        sessions: {
+          total: number;
+          inPerson: number;
+          online: number;
+          trials: number;
+        };
+        activeClients: number;
+        newLeads: number;
+        followUps: {
+          due: number;
+          overdue: number;
+        };
+        checkInsToReview: number;
+        paymentsDue: number;
+        packagesExpiring: number;
+      };
+      schedule: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        kind: "session" | "online_session" | "trial" | "consultation";
+        /** @enum {string} */
+        status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show";
+        /** Format: date-time */
+        startsAt: string;
+        startTime: string;
+        endTime: string;
+        durationMin: number;
+        person: {
+          /** @enum {string} */
+          kind: "client" | "lead";
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+        };
+        location: string | null;
+        meetingUrl: string | null;
+        started: boolean;
+        ended: boolean;
+        /** Format: uuid */
+        workoutSessionId: string | null;
+      }[];
+      attention: {
+        /** @enum {string} */
+        kind:
+          | "follow_up_overdue"
+          | "follow_up_today"
+          | "trial_soon"
+          | "payment_due"
+          | "package_low"
+          | "check_in_review"
+          | "attendance"
+          | "no_check_in"
+          | "no_measurement";
+        count: number;
+        items: {
+          /** Format: uuid */
+          id: string;
+          title: string;
+          detail: string;
+          href: string;
+          whatsApp: {
+            /** @enum {string} */
+            purpose:
+              | "follow_up"
+              | "trial_confirmation"
+              | "client_invite"
+              | "payment_reminder"
+              | "package_renewal"
+              | "check_in_nudge"
+              | "session_reminder";
+            text: string;
+            /** Format: uri */
+            url: string;
+          } | null;
+        }[];
+        href: string;
+      }[];
+      activity: {
+        /** Format: uuid */
+        id: string;
+        /** @enum {string} */
+        type:
+          | "lead_converted"
+          | "client_onboarded"
+          | "client_paused"
+          | "client_resumed"
+          | "client_archived"
+          | "client_restored"
+          | "session_attended"
+          | "session_no_show"
+          | "package_sold"
+          | "package_cancelled"
+          | "payment_recorded"
+          | "payment_voided"
+          | "sessions_adjusted";
+        data: {
+          [key: string]: unknown;
+        };
+        /** Format: date-time */
+        createdAt: string;
+        client: {
+          /** Format: uuid */
+          id: string;
+          fullName: string;
+        } | null;
+      }[];
+      checklist: {
+        visible: boolean;
+        steps: {
+          /** @enum {string} */
+          key: "public_page" | "first_person" | "program" | "invite";
+          done: boolean;
+        }[];
+      };
     };
     ExerciseListResponseDto: {
       exercises: {
@@ -7824,6 +7977,46 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PortalProgressDto"];
+        };
+      };
+    };
+  };
+  DashboardController_summary: {
+    parameters: {
+      query?: {
+        date?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DashboardSummaryDto"];
+        };
+      };
+    };
+  };
+  DashboardController_dismissChecklist: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
         };
       };
     };

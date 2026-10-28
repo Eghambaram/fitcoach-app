@@ -11,6 +11,7 @@ import { DatabaseModule } from "./db/database.module";
 import { EmailModule } from "./integrations/email/email.module";
 import { AuditModule } from "./modules/audit/audit.module";
 import { AuthModule } from "./modules/auth/auth.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { ProgressModule } from "./modules/progress/progress.module";
 import { CheckInsModule } from "./modules/check-ins/check-ins.module";
 import { ClientPortalModule } from "./modules/client-portal/client-portal.module";
@@ -50,6 +51,7 @@ import { WorkoutsModule } from "./modules/workouts/workouts.module";
     ClientPortalModule,
     CheckInsModule,
     ProgressModule,
+    DashboardModule,
     PackagesModule,
     ExercisesModule,
     ProgramsModule,

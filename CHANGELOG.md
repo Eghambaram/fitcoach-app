@@ -6,6 +6,20 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Step 5.1 dashboard and first-run checklist (PROMPT §8.1):
+  - **`/app/dashboard`:**
+    - Greeting in your time zone.
+    - KPI cards from real data: sessions today (in person / online, trials), active clients, new leads, follow-ups due (overdue), check-ins to review, payments due (packages expiring). Each card links to the matching filtered list; the row scrolls sideways on phones.
+    - **Today's schedule** with previous / next day and Start / Join / View / Mark attendance.
+    - **Needs attention** in the specified order, with **Remind** on WhatsApp for payments and packages.
+    - **Recent activity.**
+  - **First-run checklist:** publish your page, add a lead or client, assign a program, invite a client. Steps tick themselves from real data, and you can hide it.
+  - **Metric definitions** in `packages/shared/src/metrics.ts` and `docs/metrics.md`.
+  - **API:** `GET /v1/dashboard/summary` (fixed number of queries), `POST /v1/dashboard/checklist/dismiss`.
+  - **Database:** `trainer_settings.first_run_dismissed_at`. ADR-0059.
+  - **Tests:**
+    - **API:** zeros for a new workspace; hand-checked numbers, attention order and reminders; previous / next day; dismiss; workspace isolation; clients refused.
+    - **e2e:** a new workspace, then data, on desktop and mobile.
 - Step 4.4 measurements, charts and sharing (PROMPT §8.8, without photos):
   - **Client profile → Progress:**
     - Add values in kg/lb or cm/in. They're stored in kg/cm and checked for plausible ranges.

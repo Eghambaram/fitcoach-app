@@ -1,0 +1,1 @@
+ALTER TABLE "trainer_settings" ADD COLUMN "first_run_dismissed_at" timestamp with time zone;
