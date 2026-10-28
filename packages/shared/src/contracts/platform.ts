@@ -271,6 +271,8 @@ export const platformHealthSchema = z.object({
     budgetBytes: z.number().int().nullable(),
     hardLimitBytes: z.number().int().nullable(),
   }),
+  /** The in-API backup can be run now (ADR-0064); false with the external service or when unset. */
+  canRunBackup: z.boolean(),
   failedJobs: z.array(
     z.object({
       name: z.string().max(80),

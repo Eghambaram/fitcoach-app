@@ -142,10 +142,11 @@ export class StorageService implements OnModuleDestroy {
   }
 
   /**
-   * Every object (key and size) under this environment's prefix in a bucket. One Class A
-   * operation per 1,000 objects, so only the weekly reconciliation uses it (§17.7).
+   * Every object (key and size) under this environment's prefix (and `path`, e.g. `backups/`) in a
+   * bucket. One Class A operation per 1,000 objects: the weekly reconciliation and the nightly
+   * backup's retention use it (§17.7).
    */
-  async list(bucket: BucketKind): Promise<{ key: string; size: number }[]> {
+  async list(bucket: BucketKind, path = ""): Promise<{ key: string; size: number }[]> {
     const { client, storage } = this.require();
     const objects: { key: string; size: number }[] = [];
     let token: string | undefined;
@@ -153,7 +154,7 @@ export class StorageService implements OnModuleDestroy {
       const page = await client.send(
         new ListObjectsV2Command({
           Bucket: this.bucketName(bucket),
-          Prefix: storage.keyPrefix || undefined,
+          Prefix: `${storage.keyPrefix}${path}` || undefined,
           ContinuationToken: token,
         }),
       );

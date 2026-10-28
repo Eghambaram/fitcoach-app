@@ -29,7 +29,8 @@ export async function linkFromEmail(
   subject: string,
   path: "/verify-email" | "/reset-password",
 ): Promise<string> {
-  for (let attempt = 0; attempt < 60; attempt++) {
+  // Up to 20 s: the first sign-ups of a run, with every worker starting at once, can be slow to send.
+  for (let attempt = 0; attempt < 200; attempt++) {
     const search = await request.get(`${MAILPIT}/api/v1/search`, {
       params: { query: `to:"${email}"` },
     });

@@ -16,7 +16,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { backupKeys, expiredKeys, safeError } from "./plan";
+import { backupKeys, expiredKeys, safeError } from "@fitcoach/shared";
 
 interface Env {
   databaseUrl: string;

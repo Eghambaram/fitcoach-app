@@ -10,6 +10,7 @@ import {
   type PlatformAuditQuery,
   type PlatformFeedbackListResponse,
   type PlatformHealth,
+  ERROR_CODES,
 } from "@fitcoach/shared";
 import { and, eq, sql } from "drizzle-orm";
 import { ClsService } from "nestjs-cls";
@@ -22,6 +23,7 @@ import { SystemDb } from "../../db/system-db";
 import { EmailService } from "../../integrations/email/email.service";
 import { StorageService } from "../../integrations/storage/storage.service";
 import { BackupsService } from "../backups/backups.service";
+import { NightlyBackupService } from "../backups/nightly-backup.service";
 import { recordAudit } from "../audit/audit.service";
 import {
   type BetaInviteSummary,
@@ -68,7 +70,26 @@ export class PlatformOpsService {
     private readonly storage: StorageService,
     private readonly email: EmailService,
     private readonly backups: BackupsService,
+    private readonly nightlyBackup: NightlyBackupService,
   ) {}
+
+  /** Platform → System Health → "Run backup now" (ADR-0064). Queued; the health page shows the result. */
+  async runBackup(): Promise<void> {
+    const auth = this.owner();
+    const reason = this.nightlyBackup.unavailable();
+    if (reason)
+      throw new DomainError(ERROR_CODES.CONFLICT_STATE, 409, `A backup can't run here: ${reason}`);
+    await this.nightlyBackup.runNow();
+    await this.systemDb.run("platform: audit an on-demand backup", (tx) =>
+      recordAudit(tx, {
+        actorKind: "platform_owner",
+        actorUserId: auth.userId,
+        workspaceId: null,
+        action: "backup.run_requested",
+        targetType: "backup",
+      }),
+    );
+  }
 
   private owner(): AuthContext {
     const auth = this.cls.get("auth");
@@ -218,6 +239,7 @@ export class PlatformOpsService {
       email,
       storage,
       storageBudget: budget,
+      canRunBackup: this.nightlyBackup.unavailable() === null,
       failedJobs: failedJobs.map((row) => ({
         name: String(row.name),
         startedAt: iso(row.started_at),

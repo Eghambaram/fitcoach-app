@@ -1096,6 +1096,27 @@
         ]
       }
     },
+    "/v1/platform/backups/run": {
+      "post": {
+        "operationId": "PlatformController_runBackup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "platform"
+        ]
+      }
+    },
     "/v1/platform/audit-logs": {
       "get": {
         "operationId": "PlatformController_audit",
@@ -1158,6 +1179,37 @@
         },
         "tags": [
           "platform"
+        ]
+      }
+    },
+    "/v1/internal/backups/heartbeat": {
+      "post": {
+        "operationId": "BackupsController_heartbeat",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupHeartbeatDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "internal"
         ]
       }
     },
@@ -7418,6 +7470,9 @@
               "hardLimitBytes"
             ]
           },
+          "canRunBackup": {
+            "type": "boolean"
+          },
           "failedJobs": {
             "type": "array",
             "items": {
@@ -7454,6 +7509,7 @@
           "email",
           "storage",
           "storageBudget",
+          "canRunBackup",
           "failedJobs"
         ]
       },
@@ -7538,6 +7594,48 @@
         "required": [
           "items",
           "nextCursor"
+        ]
+      },
+      "BackupHeartbeatDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "failed"
+            ]
+          },
+          "objectKey": {
+            "type": "string",
+            "maxLength": 200,
+            "pattern": "^([a-z0-9-]+\\/)?backups\\/(daily|weekly)\\/[A-Za-z0-9._-]+$"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "error": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "status",
+          "startedAt",
+          "finishedAt"
         ]
       },
       "WorkspaceSettingsResponseDto": {

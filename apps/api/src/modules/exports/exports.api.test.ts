@@ -49,10 +49,15 @@ async function requestAndBuild(trainer: SignedIn): Promise<DataExport> {
   const requested = await trainer.http.post("/v1/exports");
   expect(requested.status, JSON.stringify(requested.body)).toBe(201);
   expect(requested.body.status).toBe("pending");
-  // The queued job may also run; building is idempotent, so run it here deterministically.
+  // The queued job may also run. Only one run builds it (row lock); if the job has it, wait for it.
   await app.get(ExportsService).generate(requested.body.id);
-  const list = (await trainer.http.get("/v1/exports")).body as DataExportListResponse;
-  const built = list.exports.find((item) => item.id === requested.body.id);
+  let built: DataExport | undefined;
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const list = (await trainer.http.get("/v1/exports")).body as DataExportListResponse;
+    built = list.exports.find((item) => item.id === requested.body.id);
+    if (built?.status !== "pending") break;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
   expect(built?.status).toBe("ready");
   return built as DataExport;
 }

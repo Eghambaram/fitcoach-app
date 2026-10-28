@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { ErrorState, StatusPill } from "@/components/shared/status";
 import { Card } from "@/components/ui/card";
 import { formatBytes, formatDateTime, HEALTH_STATUS } from "@/features/platform/format";
+import { RunBackupButton } from "@/features/platform/run-backup-button";
 import { serverApi } from "@/lib/api/server";
 
 export const metadata: Metadata = { title: "System health" };
@@ -60,7 +61,13 @@ export default async function PlatformHealthPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Check title="Database" item={data.database} />
         <Check title="Background jobs" item={data.jobs} />
-        <Check title="Backups" item={data.backups} />
+        <Check title="Backups" item={data.backups}>
+          {data.canRunBackup ? (
+            <div>
+              <RunBackupButton />
+            </div>
+          ) : null}
+        </Check>
         <Check title="Email" item={data.email} />
         <Check title="File storage (R2)" item={data.storage} />
         <Check title="Storage used" item={budget}>

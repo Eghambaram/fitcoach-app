@@ -6,6 +6,12 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Added
 
+- Nightly backup inside the API (ADR-0064):
+  - **Default:** `NIGHTLY_BACKUP=in_api` makes the API take the 02:00 IST `pg_dump` itself. It uses the same keys and checks as the db-backup service, so the Railway Hobby beta has backups with no extra service.
+  - **Run backup now:** a new button on Platform → System Health (audited).
+  - **API image:** now includes the Postgres 17 client.
+  - **Production:** the guide uses the separate service (`NIGHTLY_BACKUP=external`).
+  - **Docs:** a "Running the beta on staging" guide (Gmail SMTP, ribbon, invite codes).
 - Step 6.2 backups and production (PROMPT §17.2–§17.7, §12.4):
   - **Nightly backup:**
     - **What:** `infra/db-backup` (Railway cron, 02:00 IST) runs `pg_dump -Fc`, checks it with `pg_restore --list`, and uploads it to the private R2 bucket (`backups/daily/`, plus `backups/weekly/` on Sundays).
@@ -319,6 +325,7 @@ All notable changes to FitCoach. Entries reference `PROMPT.md` sections and `PHA
 
 ### Fixed
 
+- Data export: a retried or duplicate export job could re-upload a zip after it had expired. The build now holds the export row locked from start to finish, so only one run builds each export.
 - Package session use listed a switched mark (attended → no-show) in random order: the reversal and the new mark share the transaction's timestamp, so the tie was broken by UUID. The reversal now always comes first.
 - E2E accessibility checks run with reduced motion, so axe never samples a toast mid-fade (CI reported contrast "failures" of 1.4–4.3:1 that were transitions, not colours).
 - Leads and clients lists: a debounced search, or two quick filter changes, could undo a filter chosen just before. Filters now always build on the newest URL (`useUrlQuery`).

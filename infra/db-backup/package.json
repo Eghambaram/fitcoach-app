@@ -8,17 +8,16 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run",
     "start": "node dist/main.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1153.0"
+    "@aws-sdk/client-s3": "^3.1153.0",
+    "@fitcoach/shared": "workspace:*"
   },
   "devDependencies": {
     "@fitcoach/config": "workspace:*",
     "@types/node": "^24.19.2",
     "eslint": "^9.39.5",
-    "typescript": "~5.9.3",
-    "vitest": "^5.0.5"
+    "typescript": "~5.9.3"
   }
 }

@@ -4,6 +4,9 @@ import { z } from "zod";
 export const APP_ENVS = ["development", "test", "staging", "production"] as const;
 export type AppEnv = (typeof APP_ENVS)[number];
 
+export const NIGHTLY_BACKUP_MODES = ["in_api", "external", "off"] as const;
+export type NightlyBackupMode = (typeof NIGHTLY_BACKUP_MODES)[number];
+
 const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace", "silent"] as const;
 const EMAIL_PROVIDERS = ["smtp", "resend", "console"] as const;
 export type EmailProviderName = (typeof EMAIL_PROVIDERS)[number];
@@ -72,6 +75,13 @@ const envSchema = z
       .default(9 * 1024 ** 3),
     /** Shared with the db-backup cron, which posts a heartbeat after each run (PROMPT §17.2). */
     BACKUP_HEARTBEAT_TOKEN: z.string().min(32).optional(),
+    /**
+     * Who takes the nightly database backup (ADR-0064): `in_api` — a pg-boss job in the API (no extra
+     * service, the default); `external` — the separate db-backup cron service (ADR-0063); `off`.
+     */
+    NIGHTLY_BACKUP: z.enum(NIGHTLY_BACKUP_MODES).default("in_api"),
+    /** Admin URL; the migration uses it, and the in-API backup runs pg_dump with it. */
+    DATABASE_OWNER_URL: postgresUrl.optional(),
     LOG_LEVEL: z.enum(LOG_LEVELS).default("info"),
   })
   .superRefine((env, ctx) => {
@@ -123,8 +133,17 @@ const envSchema = z
           "must be the media custom domain in production, not r2.dev",
         );
       }
-      if (!env.BACKUP_HEARTBEAT_TOKEN) {
-        problem("BACKUP_HEARTBEAT_TOKEN", "is required in production (nightly backup heartbeat)");
+      if (env.NIGHTLY_BACKUP === "off") {
+        problem("NIGHTLY_BACKUP", "can't be off in production");
+      }
+      if (env.NIGHTLY_BACKUP === "external" && !env.BACKUP_HEARTBEAT_TOKEN) {
+        problem(
+          "BACKUP_HEARTBEAT_TOKEN",
+          "is required with NIGHTLY_BACKUP=external (db-backup heartbeat)",
+        );
+      }
+      if (env.NIGHTLY_BACKUP === "in_api" && !env.DATABASE_OWNER_URL) {
+        problem("DATABASE_OWNER_URL", "is required with NIGHTLY_BACKUP=in_api (pg_dump)");
       }
     }
 
@@ -190,6 +209,9 @@ export abstract class AppConfig {
   abstract readonly turnstileSecretKey: string | null;
   /** null when the db-backup cron isn't wired: backups show "Not configured" on Platform Health. */
   abstract readonly backupHeartbeatToken: string | null;
+  abstract readonly nightlyBackup: NightlyBackupMode;
+  /** Admin URL for pg_dump (in-API backup); null when not set. Never logged. */
+  abstract readonly databaseOwnerUrl: string | null;
   abstract readonly logLevel: (typeof LOG_LEVELS)[number];
 }
 
@@ -251,6 +273,8 @@ export function parseEnv(source: NodeJS.ProcessEnv): AppConfig {
         : null,
     turnstileSecretKey: env.TURNSTILE_SECRET_KEY ?? null,
     backupHeartbeatToken: env.BACKUP_HEARTBEAT_TOKEN ?? null,
+    nightlyBackup: env.NIGHTLY_BACKUP,
+    databaseOwnerUrl: env.DATABASE_OWNER_URL ?? null,
     logLevel: env.LOG_LEVEL,
   };
 }

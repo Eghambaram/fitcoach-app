@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { backupKeys, expiredKeys, localDay, safeError } from "./plan";
+import { backupKeys, expiredKeys, localDay, safeError } from "./backup-plan";
 
 describe("backup plan", () => {
   it("names the 02:00 IST run after the IST day, with a weekly copy on Sundays", () => {

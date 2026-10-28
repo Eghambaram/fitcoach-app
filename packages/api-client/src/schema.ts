@@ -548,6 +548,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/platform/backups/run": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["PlatformController_runBackup"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/platform/audit-logs": {
     parameters: {
       query?: never;
@@ -558,6 +574,22 @@ export interface paths {
     get: operations["PlatformController_audit"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/internal/backups/heartbeat": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["BackupsController_heartbeat"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2685,6 +2717,7 @@ export interface components {
         budgetBytes: number | null;
         hardLimitBytes: number | null;
       };
+      canRunBackup: boolean;
       failedJobs: {
         name: string;
         /** Format: date-time */
@@ -2709,6 +2742,17 @@ export interface components {
         reason: string | null;
       }[];
       nextCursor: string | null;
+    };
+    BackupHeartbeatDto: {
+      /** @enum {string} */
+      status: "succeeded" | "failed";
+      objectKey?: string;
+      sizeBytes?: number;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      finishedAt: string;
+      error?: string;
     };
     WorkspaceSettingsResponseDto: {
       locale: {
@@ -6558,6 +6602,25 @@ export interface operations {
       };
     };
   };
+  PlatformController_runBackup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
+        };
+      };
+    };
+  };
   PlatformController_audit: {
     parameters: {
       query?: {
@@ -6578,6 +6641,29 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PlatformAuditListDto"];
+        };
+      };
+    };
+  };
+  BackupsController_heartbeat: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BackupHeartbeatDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OkResponseDto"];
         };
       };
     };

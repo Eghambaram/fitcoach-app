@@ -95,6 +95,18 @@ jobs:
       - name: E2E (desktop + mobile)
         run: pnpm test:e2e
 
+      # The in-API nightly backup (ADR-0064): queue one run in the API container, expect a good dump.
+      - name: In-API nightly backup
+        run: |
+          docker compose exec -T api node -e "const {PgBoss}=require('pg-boss'); const b=new PgBoss({connectionString:process.env.DATABASE_SYSTEM_URL,schema:'pgboss',migrate:false,createSchema:false}); b.start().then(()=>b.send('backups.run',{})).then(()=>b.stop({graceful:false,close:true}))"
+          for attempt in $(seq 1 30); do
+            status="$(docker compose exec -T postgres psql -U postgres -d fitcoach -Atc "select status from backup_runs order by finished_at desc limit 1")"
+            [ -n "$status" ] && break
+            sleep 2
+          done
+          echo "in-API backup: $status"
+          [ "$status" = "succeeded" ]
+
       # One run of the nightly backup image against the stack: pg_dump, upload, heartbeat (ADR-0063).
       - name: Nightly backup image
         run: |
